@@ -1,0 +1,54 @@
+{
+  "name": "calliotext",
+  "version": "0.0.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/calliotext.umd.js",
+  "types": "./dist/lib/index.d.js",
+  "module": "./dist/calliotext.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/calliotext.es.js",
+      "require": "./dist/calliotext.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build-dev": "tsc && vite build --mode development",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.0.2",
+    "@mui/material": "^7.0.2",
+    "immer": "^10.1.1",
+    "jquery": "^3.7.1",
+    "notistack": "^3.0.2",
+    "overlayscrollbars": "^2.11.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "slate": "^0.112.0",
+    "slate-history": "^0.113.1",
+    "slate-react": "^0.112.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.15.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.22.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.26.1",
+    "vite": "^6.3.1",
+    "vite-plugin-dts": "^4.5.3"
+  }
+}
