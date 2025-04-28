@@ -1,10 +1,12 @@
 /** 这个模块提供一个文本样式的图标，或者说类似于图标的文本。
  */
+import * as React from "react"
 
 import {
     Typography , 
     TypographyProps , 
 } from "@mui/material"
+
 export { TextIcon }
 
 function TextIcon(props: {

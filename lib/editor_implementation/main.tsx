@@ -108,14 +108,14 @@ type DefaultEditorComponentprops = EditorComponentProps & {
  * 这个组件提供一个开箱即用的默认编辑器组件。
  */
 class DefaultEditorComponent extends React.Component <DefaultEditorComponentprops, {
-    idx_conflicts: [number, number[][]][] // 节点idx冲突
+    idx_conflicts: [string, number[][]][] // 节点idx冲突
 }> {    
     onUpdate: (newval: Node[]) => void
     onFocusChange: ()=>void
     onSave: ()=> void
 
-    editor_ref		: React.RefObject<EditorComponent>
-    parameteredit_ref: React.RefObject<ParameterEdit>
+    editor_ref		: React.RefObject<EditorComponent | null>
+    parameteredit_ref: React.RefObject<ParameterEdit | null>
 
     constructor(props: DefaultEditorComponentprops) {
         super(props)
@@ -125,8 +125,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         this.onFocusChange  = props.onFocusChange || (()=>{})
         this.onSave = props.onSave || (()=>{})
 
-        this.editor_ref = React.createRef<EditorComponent>()
-        this.parameteredit_ref = React.createRef<ParameterEdit>()
+        this.editor_ref         = React.createRef<EditorComponent | null>()
+        this.parameteredit_ref  = React.createRef<ParameterEdit | null>()
 
         this.state = {
             idx_conflicts: [] , 
@@ -143,14 +143,14 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     get_root(): AbstractNode | undefined{
         return this.get_editor()?.get_root()
     }
-    append_idx_conflict(conflicts: [number, number[][]][]){
+    append_idx_conflict(conflicts: [string, number[][]][]){
         this.setState({idx_conflicts: [...this.state.idx_conflicts, ...conflicts]})
     }
 
     IdxConflitSolver(props: {}){
         let me = this
         let editor = me.get_editor()
-        if(editor == undefined){ // 等待editor创建完毕
+        if(!editor){ // 等待editor创建完毕
             return <></>
         }
         let slate = editor.get_slate()
@@ -169,12 +169,14 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             }
             let new_conf = [...me.state.idx_conflicts]
             let confitem = new_conf.shift()
-            if(keep != "fuck"){
+            if(keep != "fuck" && confitem && editor){
                 for(let path of confitem[1]){
                     if(keep && JSON.stringify(path) == JSON.stringify(keep)){ // 或许用下标比较更好？
                         continue
                     }
-                    editor.set_node_by_path(path,{idx: Math.floor(Math.random()*233333333 + 2333333)})
+                    editor.set_node_by_path(path,{
+                        idx: Math.floor(Math.random()*233333333 + 2333333).toString()
+                    })
                 }    
             }
             me.setState({idx_conflicts: new_conf})
@@ -238,15 +240,17 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     }
 
     check_idx(){
-        // console.log()
         if(!get_normalize_status("pasting")){ // 如果没有在粘贴，就直接退出。
             return 
         }
 
         let me = this
         let editor = me.get_editor()
+        if(!editor){
+            return
+        }
         let slate = editor.get_slate()
-        let idx_paths: {[key: number]: number[][]} = {}
+        let idx_paths: {[key: string]: number[][]} = {}
         for(let [node,path] of Slate.Node.descendants(slate)){
             if(!slate_is_concept(node)){
                 continue
@@ -257,7 +261,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             idx_paths[node.idx].push(path)
         }
 
-        let conflicts = []
+        let conflicts: [string, number[][]][] = new Array()
         for(let idx in idx_paths){
             if(idx_paths[idx].length > 1){
                 conflicts.push([idx, idx_paths[idx]])
@@ -271,6 +275,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
 
     componentDidMount(): void {
+
         let me = this
 
         while(!this.get_editor()); // 确保editor存在
@@ -309,8 +314,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             <IdxConflitSolver />
             <KeyEventManager
                 spaces = {[
-                    sidebar_get_mouseless_space(me.get_editor()) , 
-                    buttons_get_mouseless_space(me.get_editor()) , 
+                    sidebar_get_mouseless_space(me.get_editor() as EditorComponent) , 
+                    buttons_get_mouseless_space(me.get_editor() as EditorComponent) , 
                 ]}
                 non_space_oprations = {[
                     {
@@ -355,17 +360,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         </EditorComponentEditingBox>
                         
                     </ScrollBarBox>
-                    
-                    {/* {(me.editor_ref?.current) && (
-                        <Box sx={{
-                            maxHeight: "20%" , 
-                            overflow: "auto" ,
-                            width: "100%" , 
-                            paddingRight: "1%" , 
-                        }}>
-                            <ParameterEdit editor={me.editor_ref?.current} ref={me.parameteredit_ref} />
-                        </Box>
-                    )} */}
                 </Box>
 
                 <Box key="area-2" sx = {{
@@ -375,8 +369,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     left: paper_right, 
                     width: toolbar_width
                 }}>{(()=>{
+                    let root   = me.get_root()
                     let editor = me.get_editor()
-                    let root = me.get_root()
                     if(!(editor && root)){
                         return <></>
                     }
@@ -384,8 +378,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         <DefaultRootParameterEditButton root={root} editor={editor}/>
                         <Divider />
                         <DefaultSidebar 
-                            editor = {me.get_editor()}
-                            extra = {me.props.sidebar_extra}
+                            editor = {me.get_editor() as EditorComponent}
+                            extra  = {me.props.sidebar_extra}
                         />
                         {me.props.extra_buttons?.length > 0 ? <Divider /> : <></>}
                         {me.props.extra_buttons}

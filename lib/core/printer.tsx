@@ -102,7 +102,6 @@ function should_inline(printer: Printer, node: Node){
 
 /**
  * 印刷器类。
- * 这个类除了需要储存概念列表还需要什么？
  */
 class Printer{
     firstClassConcepts: FirstClassConceptDict
@@ -227,7 +226,7 @@ class Printer{
         }
 
         // 保存固定值参数的处理结果。
-        let processed_fixedparams = {}
+        let processed_fixedparams: any = {}
 
         // 处理二级概念的固定值参数（主要是处理函数值参数）。
         for(let x in sec_ccpt.fixed_override){
@@ -256,7 +255,7 @@ class Printer{
         }
 
         // 最后再去除所有项的类型，只保留值。
-        let final_parameters = {}
+        let final_parameters: any = {}
         for(let x in _final_parameters){
             final_parameters[x] = _final_parameters[x].val
         }
@@ -265,7 +264,15 @@ class Printer{
     }
 
     /**这个函数在印刷之前生成环境和上下文。 */
-    preprocess({root, init_env}:{root: AbstractNode, init_env?: Env}): [Env , {[path: string]: Context} , {[path: string]: ProcessedParameterList}, PrinterCache]{
+    preprocess(
+        {
+            root, 
+            init_env , 
+        }:{
+            root: AbstractNode, 
+            init_env?: Env , 
+        }
+    ): [Env , {[path: string]: Context} , {[path: string]: ProcessedParameterList}, PrinterCache]{
         let me = this 
         let printer = me
         init_env = init_env || {}
@@ -309,13 +316,6 @@ class Printer{
                 all_parameters[my_path] = my_parameters // 由于参数列表不会改变，所以这里直接储存。
             }
 
-            // XXX 我们真的需要不可变操作吗 
-            // 进入时操作。
-            // 进入时先操作一次环境并建立一次上下文。使用produce来进行不可变更新。
-            // 前面加个分号是为了防止被视为索引。
-            // ([nowenv , nowcontext] = produce([nowenv , nowcontext] , ([e,c])=>{
-            //     renderer.enter(node , my_parameters , e , c)
-            // }))
             renderer.enter(node , path , my_parameters , nowenv , nowcontext)
 
             // 然后让所有子节点操作环境。
@@ -333,11 +333,6 @@ class Printer{
                 }
             }
 
-            // 退出时再操作一次环境和上下文。
-            // ([nowenv , nowcontext] = produce([nowenv , nowcontext] , ([e,c]) => {
-            //     let [flag2 , cache] = renderer.exit(node , my_parameters , e , c)
-            //     flag = flag && flag2
-            // }))
             let [cache, flag2] = renderer.exit(node , path , my_parameters , nowenv , nowcontext)
             flag = flag && flag2
 
@@ -379,8 +374,8 @@ interface PrinterComponentProps {
  */
 class PrinterComponent extends React.Component<PrinterComponentProps>{
 
-    idx2path: {[idx: number]: number[]}
-    path_refs: {[path_str: string]: React.RefObject<HTMLDivElement>} // 如果写 HTMLDivElement | SpanElement则div会报错，事儿真多。
+    idx2path: {[idx: string]: number[]}
+    path_refs: {[path_str: string]: React.RefObject<HTMLDivElement | null>} // 如果写 HTMLDivElement | SpanElement则div会报错，事儿真多。
 
     constructor(props:PrinterComponentProps){
         super(props)
@@ -398,7 +393,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
     bind_ref(path: number[]){
         let path_str = JSON.stringify(path)
         if(!this.path_refs[path_str]){
-            this.path_refs[path_str] = React.createRef()
+            this.path_refs[path_str] = React.createRef<HTMLDivElement | null>()
         }
         return this.path_refs[path_str]
     }
@@ -418,7 +413,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
         return this.get_ref(this.idx2path[idx])
     }
 
-    scroll_to_idx(idx: number){ 
+    scroll_to_idx(idx: string){ 
         if(this.idx2path[idx] == undefined){
             return
         }
@@ -470,7 +465,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
             children_component = <React.Fragment>{        
                 Object.keys(mychildren).map((subidx) => <ThisFunction
                 key      = {subidx}
-                node     = {mychildren[subidx]} 
+                node     = {mychildren[parseInt(subidx)]} 
                 path     = {[...path , parseInt(subidx)]}
                 all_contexts = {all_contexts}
                 all_parameters = {all_parameters}
@@ -508,13 +503,13 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
 
         // 通过React注入器提供给用户定义的渲染器的全局信息。
         let globalinfo = {
-            "printer": me.props.printer , 
-            "root": me.props.root , 
-            "printer_component": me ,
-            "env": env , // 这一项提供所有节点的环境。
-            "all_contexts": all_contexts , // 这一项提供所有节点的上下文。
-            "all_parameters": all_parameters ,  // 这一项提供所有节点的处理好的参数。
-            "all_caches": all_caches ,  // 这一项提供所有临时缓存结果。
+            "printer"           : me.props.printer , 
+            "root"              : me.props.root , 
+            "printer_component" : me ,
+            "env"               : env , // 这一项提供所有节点的环境。
+            "all_contexts"      : all_contexts , // 这一项提供所有节点的上下文。
+            "all_parameters"    : all_parameters ,  // 这一项提供所有节点的处理好的参数。
+            "all_caches"        : all_caches ,  // 这一项提供所有临时缓存结果。
         }
 
         return <GlobalInfoProvider 

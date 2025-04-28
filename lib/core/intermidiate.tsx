@@ -80,7 +80,7 @@ interface InlineNode{
 	/** 节点类型 */
 	type: "inline"
 	/** 节点的全局唯一编号 */
-	idx: number 
+	idx: string 
 
 	/** 节点的二级概念 */
 	concept: string
@@ -98,7 +98,7 @@ interface GroupNode{
 	/** 节点类型。 */
 	type: "group"
 	/** 节点的全局唯一编号。 */
-	idx: number 
+	idx: string 
 
 	/** 节点的二级概念 */
 	concept: string
@@ -119,7 +119,7 @@ interface SupportNode{
 	/** 节点类型。 */
 	type: "support" 
 	/** 节点的全局唯一编号。 */
-	idx: number 
+	idx: string 
 
 	/** 节点的二级概念 */
 	concept: string
@@ -137,7 +137,7 @@ interface StructNode{
 	/** 节点类型。 */
 	type: "structure" 
 	/** 节点的全局唯一编号。 */
-	idx: number 
+	idx: string 
 
 	/** 节点的二级概念 */
 	concept: string
@@ -158,7 +158,7 @@ interface AbstractNode{
 	/** 节点类型。 */
 	type: "abstract"
 	/** 节点的全局唯一编号。 */
-	idx: number 
+	idx: string 
 	
 	/** 节点的二级概念 */
 	concept: string
@@ -173,50 +173,51 @@ interface AbstractNode{
 
 /** 判断一个节点是不是概念节点。（包括组、行内、支撑、结构和抽象） */
 function is_concetnode(node: Node): node is ConceptNode{
-	return node["type"] != undefined
+	return (node as any)["type"] != undefined
 }
 
 /** 判断一个节点是不是行内节点。 */
 function is_inlinenode(node: Node): node is InlineNode{
-	return node["type"] == "inline"
+	return (node as any)["type"] == "inline"
 }
 
 /** 判断一个节点是不是组节点。 */
 function is_groupnode(node: Node): node is GroupNode{
-	return node["type"] == "group"
+	return (node as any)["type"] == "group"
 }
 
 /** 判断一个节点是不是支撑节点。 */
 function is_supportnode(node: Node): node is SupportNode{
-	return node["type"] == "support"
+	return (node as any)["type"] == "support"
 }
 /** 判断一个节点是不是抽象节点。 */
 function is_abstractnode(node: Node): node is AbstractNode{
-	return node["type"] == "abstract"
+	return (node as any)["type"] == "abstract"
 }
 
 /** 判断一个节点是不是组节点。 */
 function is_structnode(node: Node): node is AbstractNode{
-	return node["type"] == "structure"
+	return (node as any)["type"] == "structure"
 }
 
 /** 判断一个节点是不是段落节点。 */
 function is_paragraphnode(node: Node): node is ParagraphNode{
-	return node["type"] == undefined && node["children"] != undefined
+	return (node as any)["type"] == undefined && (node as any)["children"] != undefined
 }
 
 /** 判断一个节点是不是文本节点。 */
 function is_textnode(node: Node): node is TextNode{
-	return node["type"] == undefined && node["text"] != undefined
+	return (node as any)["type"] == undefined && (node as any)["text"] != undefined
 }
 
 /** 获得一个节点的类型的字符串。 */
 function get_node_type(node: Node): AllNodeTypes{
-	if(node["type"] != undefined){
-		return node["type"]
+	let anynode = (node as any)
+	if(anynode["type"] != undefined){
+		return anynode["type"]
 	}
-	let flag1 = node["children"] != undefined // 段落节点的特征
-	let flag2 = node["text"] != undefined // 文本节点的特征
+	let flag1 = anynode["children"] != undefined // 段落节点的特征
+	let flag2 = anynode["text"] != undefined // 文本节点的特征
 	if(flag1 == flag2){// flag1和flag2不能同是同非。
 		throw new BadNodeError(`the node has ${flag1 ? "yes" : "no" } "children" and has ${flag2 ? "yes" : "no"} "text"`)
 	}

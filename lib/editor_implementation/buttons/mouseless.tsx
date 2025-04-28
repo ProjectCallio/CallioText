@@ -36,7 +36,7 @@ function get_mouseless_space(editor: EditorComponent){
     return {
         key: SPACE, 
         activate_position: get_activate_position(editor) , 
-        switch_position: get_switch_position(editor) , 
+        switch_position : get_switch_position(editor) , 
     }
 }
 
@@ -48,7 +48,7 @@ function get_position(node: Slate.Node & ConceptNode , idx: number){
 /** 从候选位置中看有没有以当前节点开头的位置。 */
 function get_cancidate_idxs(node: Slate.Node & ConceptNode, position_list: string[]){
     let cancidate_idxs = position_list.reduce((s,x)=>{ // 所选中的节点有哪些候选的位置。
-        let [nodeidx,subidx]: [number,number] = JSON.parse(x)
+        let [nodeidx,subidx]: [string,number] = JSON.parse(x)
         if(nodeidx == node.idx){
             return [...s, subidx]
         }
@@ -58,8 +58,8 @@ function get_cancidate_idxs(node: Slate.Node & ConceptNode, position_list: strin
 }
 
 /** 获取离一个节点最近的有无鼠标元素的父亲。返回父亲和父亲的无鼠标元素列表。 */
-function get_mouseless_father(editor: EditorComponent, node: Slate.Node & ConceptNode, position_list: string[], only_father: boolean): [Slate.Node & ConceptNode , number[]]{
-    let now_node = node
+function get_mouseless_father(editor: EditorComponent, node: Slate.Node & ConceptNode, position_list: string[], only_father: boolean): [Slate.Node & ConceptNode | undefined , number[]]{
+    let now_node: (Slate.Node & ConceptNode) | undefined = node
 
     // 如果不想包括本节点，就先迭代一次。
     if(only_father){ 
@@ -88,7 +88,12 @@ function get_mouseless_father(editor: EditorComponent, node: Slate.Node & Concep
 }
 
 function get_switch_position(editor: EditorComponent): SwitchPositionFunction{
-    return (position_list: string[] , cur_position: string, direction: DirectionKey, all_keys: {[k:string]: boolean}): string =>{
+    return (
+        position_list: string[] , 
+        cur_position: string, 
+        direction: DirectionKey, 
+        all_keys: {[k:string]: boolean}
+    ): string | undefined =>{
         if(cur_position == undefined){
             return get_activate_position(editor)(position_list, cur_position)
         }
@@ -146,7 +151,11 @@ function get_switch_position(editor: EditorComponent): SwitchPositionFunction{
 }
 
 /** 这个函数是位置函数的备用方案，当在祖先节点中找不到一个带无鼠标元素的概念节点时，就去兄弟节点中找。 */
-function activate_position_brother(editor: EditorComponent, position_list: string[], cur_position: string): string{
+function activate_position_brother(
+    editor: EditorComponent, 
+    position_list: string[], 
+    cur_position: string
+): string | undefined{
     let selection = editor.get_slate().selection
     if(!selection){ // 如果光标不在编辑器上
         return undefined
@@ -161,8 +170,8 @@ function activate_position_brother(editor: EditorComponent, position_list: strin
     if(!children){
         return cur_position
     }
-    let res_node: Slate.Node & ConceptNode = undefined
-    let res_cancidate_idxs = []
+    let res_node: (Slate.Node & ConceptNode) | undefined = undefined
+    let res_cancidate_idxs: number[] = []
     for(let _subidx in children){ // 枚举父节点的子节点。
         let subidx = parseInt(_subidx)
         if(subidx >= my_idx){ // 不要管后面的节点。
@@ -186,7 +195,7 @@ function activate_position_brother(editor: EditorComponent, position_list: strin
 }
 
 function get_activate_position(editor: EditorComponent){
-    return (position_list: string[], cur_position: string): string => {
+    return (position_list: string[], cur_position: string): string | undefined => {
         let selection = editor.get_slate().selection
         if(!selection){ // 如果光标不在编辑器上
             return undefined

@@ -25,10 +25,6 @@ import {
     Radio  , 
 } from "@mui/material"
 import { 
-    TreeItem , 
-    TreeView , 
-} from "@mui/lab"
-import { 
     ExpandMore as ExpandMoreIcon , 
     ChevronRight as ChevronRightIcon  , 
 } from "@mui/icons-material"
@@ -234,7 +230,7 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
 class DefaultParameterWithEditor extends React.Component<EditorButtonInformation>{
 
     /** 参数菜单的引用。 */
-    container_ref: React.RefObject<DefaultParameterContainer>
+    container_ref: React.RefObject<DefaultParameterContainer | null>
 
     constructor(props){
         super(props)
@@ -290,7 +286,7 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
     let parametereditor_ref = React.useRef<DefaultParameterWithEditor | null>(null)
     
     // 记录进入时的光标位置，以便在退出时还原。
-    let [enter_selection , set_ec] = React.useState<Slate.Location | undefined>(undefined)
+    let [enter_selection , set_ec] = React.useState<Slate.Location | null>(null)
 
     return <GlobalInfo.Consumer>{globalinfo=>{
         let editor = globalinfo.editor as EditorComponent
@@ -305,7 +301,7 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
             }}
             SlideProps  = {{
                 onEnter: ()=>{
-                    set_ec({...editor.get_slate().selection})
+                    set_ec(editor.get_slate().selection)
                 } , 
                 onExited: () => {
                     if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。

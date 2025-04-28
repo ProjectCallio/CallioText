@@ -34,7 +34,7 @@ type Context = {[key: string | number]: any}
 type PrinterCacheItem = {[key: string]: any}
 
 /** 印刷器的临时缓存。 */
-type PrinterCache = {[idx: number]: PrinterCacheItem}
+type PrinterCache = {[idx: string]: PrinterCacheItem}
 
 
 /** 经过处理的参数列表。 */
@@ -72,7 +72,7 @@ interface PrinterRenderFunctionProps<NodeType extends Node = Node> {
     readonly parameters: {[key: string]: any}
 
     /** 子节点列表，这个是用来递归渲染用的。 */
-	readonly children?: React.ReactElement
+	readonly children?: React.ReactNode
 
     /** 在抽象节点中可以额外传入的参数。 */
     readonly flags?: NodeType extends AbstractNode ? any : never

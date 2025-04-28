@@ -115,7 +115,7 @@ class EditorCore{
     }
 
     gene_idx(){
-        return Math.floor( Math.random() * 233333333)
+        return Math.floor( Math.random() * 233333333).toString()
     }
 
     /** 从一级概念查询一个渲染器。

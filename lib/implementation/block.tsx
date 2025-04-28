@@ -1,4 +1,4 @@
-import React, { ReactComponentElement } from "react"
+import React from "react"
 import { Grid } from "@mui/material"
 
 import {
@@ -158,18 +158,18 @@ function get_default_group_renderer({
  * @param params.text_key 注入文本使用的子环境名。
 */
 function get_default_structure_renderer({
-    contexters =  [] , 
-    outer =  undefined , 
-    inner =  undefined ,
-    subinner =  undefined ,
-    small_margin_enter = false , 
-    small_margin_exit = false ,  
-    pre_element =  undefined , 
-    aft_element =  undefined , 
-    pre_text =  undefined , 
-    aft_text =  undefined , 
-    element_key =  "paragraph-element" , 
-    text_key =  "paragraph-text" , 
+    contexters          =  [] , 
+    outer               =  undefined , 
+    inner               =  undefined ,
+    subinner            =  undefined ,
+    small_margin_enter  =  false , 
+    small_margin_exit   =  false ,  
+    pre_element         =  undefined , 
+    aft_element         =  undefined , 
+    pre_text            =  undefined , 
+    aft_text            =  undefined , 
+    element_key         =  "paragraph-element" , 
+    text_key            =  "paragraph-text" , 
 }:{
     contexters?: PreprocessFunction<StructNode , ContexterBase<StructNode>>[]
     outer?: PrinterRenderFunction<StructNode>
@@ -194,7 +194,7 @@ function get_default_structure_renderer({
 
     // 默认的子级包裹，提供一个Grid Item来决策宽度。
     let SUBINN = subinner || ((props)=>{
-        return <Grid item sx={{align: "center"}}>{props.children}</Grid>
+        return <Grid sx={{align: "center"}}>{props.children}</Grid>
     })
     
     // 注意contexter是没有状态的，因此可以声明在外面。
@@ -226,7 +226,13 @@ function get_default_structure_renderer({
             }
             
             // props.children 是一个 React.Fragment，而他的children是一个array
-            let children = props.children.props.children
+            let children = (props.children as {
+                props: {
+                    children: React.ReactNode[]
+                }
+            }).props.children
+
+            
             
             return <OUT {...props_except_children}>
                 <INN {...props_except_children}><React.Fragment>{Object.keys(children).map((subidx)=>{

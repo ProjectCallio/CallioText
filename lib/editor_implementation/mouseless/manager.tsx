@@ -3,7 +3,7 @@
 */
 
 import React from "react"
-import produce from "immer"
+import { produce } from "immer"
 import {
     UnexpectedParametersError , 
 } from "../../exceptions"
@@ -96,7 +96,7 @@ interface MouselessRegisteration {
 let MouselessRegister = React.createContext<[MouselessRegisterFunction, MouselessUnRegisterFunction]>([()=>{}, ()=>{}])
 
 /** 确定聚焦时位置的函数。 */
-type ActivatePositionFunction = (position_list: string[], cur_position: string) => string
+type ActivatePositionFunction = (position_list: string[], cur_position: string) => string | undefined
 
 /** 确定按下方向键时的聚焦切换的函数。 */
 type SwitchPositionFunction = (
@@ -104,7 +104,7 @@ type SwitchPositionFunction = (
     cur_position: string, 
     direction: DirectionKey, 
     all_keys: {[key: string]: boolean}
-) => string
+) => string | undefined
 
 /** 按键管理器的空间元素描述。 */
 interface KeyEventManagerSpaceItem{
@@ -133,7 +133,7 @@ interface KeyEventManagerProps{
     spaces: KeyEventManagerSpaceItem[]
     non_space_oprations: KeyEventManagerNonSpaceItem[]
 
-    children: React.ReactChild | React.ReactChild[]
+    children: React.ReactNode
 }
 /** 按键事件管理器的`state`。 */
 interface KeyEventManagerState{    
@@ -431,9 +431,11 @@ class KeyEventManager extends React.Component<KeyEventManagerProps, KeyEventMana
                 let cur_position = this.get_cur_position(cur_space)    
 
                 let new_position = this.spaces[cur_space].switch_position(position_list, cur_position, cur_dir, me.ctrl_key)
-                this.setState(produce(this.state, state=>{
-                    state.cur_positions[cur_space] = new_position
-                }))
+                if(new_position){
+                    this.setState(produce(this.state, state=>{
+                        state.cur_positions[cur_space] = new_position
+                    }))
+                }
                 // 不用处理激活的问题，componentDidUpdate会自动处理。
                 e.preventDefault()
                 return true    
@@ -487,9 +489,11 @@ class KeyEventManager extends React.Component<KeyEventManagerProps, KeyEventMana
             let position_list = this.get_position_list(cur_space)
             let cur_position = this.get_cur_position(cur_space)
             let new_position = this.spaces[cur_space].activate_position(position_list, cur_position)
-            this.setState(produce(this.state, state=>{
-                state.cur_positions[cur_space] = new_position
-            }))
+            if(new_position){   
+                this.setState(produce(this.state, state=>{
+                    state.cur_positions[cur_space] = new_position
+                }))
+            }
             // 不用处理激活的问题，componentDidUpdate会自动处理。
             e.preventDefault()
             return true

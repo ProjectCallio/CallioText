@@ -4,7 +4,6 @@ export {
 }
 
 
-
 /** 对对象的每个值进行操作，返回一个新的对象。 */
 function object_foreach(obj: any , func: (o:any)=>any){
     let ret = {}
@@ -13,8 +12,6 @@ function object_foreach(obj: any , func: (o:any)=>any){
     }
     return ret
 }
-
-
 
 // 递归合并两个对象的每一项。
 function merge_object(obj_1: any, obj_2: any){

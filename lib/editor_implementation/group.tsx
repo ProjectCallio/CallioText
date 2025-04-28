@@ -156,7 +156,7 @@ function get_deafult_group_editor_with_appbar({
             </AutoStack>
         </GroupPaper>
     }
-    return React.memo(subcomp)
+    return subcomp
 }
 
 /** 这个函数返回一个默认的group组件，但是各种选项等都被折叠在右侧的一个小按钮内。用于比较小的group。

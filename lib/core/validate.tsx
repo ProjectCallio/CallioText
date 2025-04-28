@@ -25,7 +25,7 @@ function validate_parameters(parameters: any, gene_msg: (s:string)=>string): [bo
         let item = parameters[x]
         
         if(["string" , "number" , "boolean" , "function"].indexOf(item["type"]) < 0){
-            return [false , gene_msg(`type of ${x} is ${x["type"]}, which is not standard.`)]
+            return [false , gene_msg(`type of ${x} is ${item["type"]}, which is not standard.`)]
         }
 
         if(item["type"] == "string" && typeof item["val"] != "string"){
@@ -216,5 +216,4 @@ function validate(tree: any, path: number[] = []): [boolean , string]{
     }
 
     return [true , ""]
-
 }

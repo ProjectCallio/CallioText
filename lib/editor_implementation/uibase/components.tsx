@@ -3,7 +3,7 @@
  * @module
  */
 
-import React, { ReactFragment } from "react"
+import * as React from "react"
 
 import {
     ScrollBarBox , 
@@ -112,12 +112,14 @@ let EditorComponentPaperNestLevel = React.createContext<number>(1)
 /** 这个组件定义一个用来渲染特殊节点的纸张。 
  * @param props.is_inline 这个组件是否是行内组件。
 */
-const EditorComponentPaper = (props: PaperProps & {is_inline?: boolean, component?: "card" | "paper"}) =>{
+const EditorComponentPaper = (
+    props: PaperProps & {is_inline?: boolean, comp?: "card" | "paper"}
+) =>{
     let net_level = React.useContext(EditorComponentPaperNestLevel) // 已经嵌套了多少层了
-    let {children , is_inline, component, ...other_props} = props
+    let {children , is_inline, comp, ...other_props} = props
     
     let CONT = Paper
-    if(props.component == "card"){
+    if(comp == "card"){
         CONT = Card
     }
 

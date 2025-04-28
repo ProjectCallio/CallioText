@@ -24,10 +24,6 @@ import {
     Radio  , 
 } from "@mui/material"
 import { 
-    TreeItem , 
-    TreeView , 
-} from "@mui/lab"
-import { 
     Settings as SettingsIcon , 
 } from "@mui/icons-material"
 
@@ -85,7 +81,7 @@ function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWit
     let parametereditor_ref = React.useRef<DefaultParameterWithEditor | null>(null)
 
     // 记录进入时的光标位置，以便在退出时还原。
-    let [enter_selection , set_ec] = React.useState<Slate.Location | undefined>(undefined)
+    let [enter_selection , set_ec] = React.useState<Slate.Location | null>(null)
 
     let editor = props.editor
 
@@ -99,7 +95,7 @@ function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWit
         }}
         SlideProps  = {{
             onEnter: ()=>{
-                set_ec({...editor.get_slate().selection})
+                set_ec(editor.get_slate().selection)
             } , 
             onExited: () => {
                 if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。

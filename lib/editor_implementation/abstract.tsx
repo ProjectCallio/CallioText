@@ -5,7 +5,7 @@
 import React, {useState , createRef} from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
-import produce from "immer"
+import { produce } from "immer"
 
 import {
     Button ,
@@ -115,16 +115,18 @@ interface DefaultAbstractEditorProps{
 /** 抽象节点编辑器的`state`。 */
 interface DefaultAbstractEditorState{
     drawer_open: boolean
-    enter_selection: Slate.Location | undefined
+    enter_selection: Slate.Location | undefined | null
 }
 
 /** 这个组件提供默认的Abstract编辑页面。 
  * 这个组件会提供一个完整的文档编辑器，因为每个抽象节点都可以视为一个新文档。
 */
-class DefaultAbstractEditor extends React.Component<DefaultAbstractEditorProps , DefaultAbstractEditorState>{
+class DefaultAbstractEditor extends React.Component<
+    DefaultAbstractEditorProps , DefaultAbstractEditorState
+>{
 
     /** 这个组件提供的文档编辑器的`ref`。 */
-    subeditor_ref: React.RefObject<DefaultEditorComponent>
+    subeditor_ref: React.RefObject<DefaultEditorComponent | null>
 
 
     /**
@@ -141,7 +143,7 @@ class DefaultAbstractEditor extends React.Component<DefaultAbstractEditorProps ,
             enter_selection: undefined , 
         }
         
-        this.subeditor_ref = React.createRef()
+        this.subeditor_ref = React.createRef<DefaultEditorComponent | null>()
     }
 
     get_editor(){
@@ -176,7 +178,9 @@ class DefaultAbstractEditor extends React.Component<DefaultAbstractEditorProps ,
                         if(!subeditor){
                             return
                         } 
-                        me.setState({enter_selection: {...father_editor.get_slate().selection}})
+
+                        let selection = 
+                        me.setState({enter_selection: father_editor.get_slate().selection})
 
                         setTimeout(()=>{ // 稍微延迟一点，然后focus在新编辑器上。延迟一点是为了等抽屉弹出来。
                             SlateReact.ReactEditor.focus(subeditor.get_slate())
@@ -217,10 +221,10 @@ class DefaultAbstractEditor extends React.Component<DefaultAbstractEditorProps ,
                         sidebar_extra = {(editor)=>{ // 添加一个额外的退出按钮，方便在编辑抽象时退出。
                             return [{
                                 button: <IconButton onClick={e=>{
-                                    me.props.onClose(e)
+                                    me.props.onClose?.(e)
                                     e.preventDefault()
                                 }}><ArrowRightAltIcon /></IconButton> , 
-                                run : ()=>{me.props.onClose(undefined)}
+                                run : ()=>{me.props.onClose?.(undefined)}
                             }]
                         }}
     
@@ -273,7 +277,7 @@ function DefaultAbstractEditorGroup(props: {node: Slate.Node & ConceptNode, anch
 class DefaultNewAbstractButton extends React.Component<EditorButtonInformation , {
     ae: HTMLElement | undefined
 }>{
-    boxref: React.RefObject<HTMLDivElement>
+    boxref: React.RefObject<HTMLDivElement | null>
     constructor(props: EditorButtonInformation){
         super(props)
 
@@ -281,7 +285,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
             ae: undefined , 
         }
 
-        this.boxref = React.createRef()
+        this.boxref = React.createRef<HTMLDivElement | null>()
     }
 
     get_box(){
@@ -329,7 +333,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
  class DefaultEditAbstractButton extends React.Component<EditorButtonInformation , {
     ae: HTMLElement | undefined
  }>{
-    boxref: React.RefObject<HTMLDivElement>
+    boxref: React.RefObject<HTMLDivElement | null>
     constructor(props: EditorButtonInformation){
         super(props)
 
@@ -337,7 +341,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
             ae: undefined , 
         }
 
-        this.boxref = React.createRef()
+        this.boxref = React.createRef<HTMLDivElement | null>()
     }
 
     get_box(){

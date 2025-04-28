@@ -98,7 +98,7 @@ let tree_op_mixin = {
         if(paths.length == 0){
             throw new UnexpectedParametersError("这这不能")
         }
-        let path_strs = paths.reduce((s,x)=>[...s, JSON.stringify(x)] , [])
+        let path_strs: string[] = paths.reduce((s,x)=>[...s, JSON.stringify(x)] , [] as string[])
 
         Slate.Transforms.removeNodes<NT>(editor.get_slate() , {
             match: (node, path)=>path_strs.indexOf(JSON.stringify(path)) >= 0 // 只要在列表中...
@@ -181,7 +181,7 @@ let tree_op_mixin = {
         editor: EditorComponent , 
         node: NT, 
         options:{
-            match?: (n:NT)=>boolean , 
+            match?: (n:Slate.Node)=>boolean , 
             split?: boolean , 
         }
     ){
@@ -194,7 +194,12 @@ let tree_op_mixin = {
             editor.get_slate() , 
             node , 
             {
-                match: options.match , 
+                match: (n: Slate.Node, path: number[])=>{
+                    if(options.match){
+                        return options.match(n)
+                    }
+                    return true
+                } , 
                 split: options.split , 
             }
         )
@@ -210,7 +215,7 @@ let tree_op_mixin = {
         from: Slate.Point , 
         to: Slate.Point , 
         options:{
-            match?: (n:NT)=>boolean , 
+            match?: (n:Slate.Node)=>boolean , 
             split?: boolean , 
         }
     ){
@@ -227,7 +232,12 @@ let tree_op_mixin = {
                     anchor: from , 
                     focus: to , 
                 } , 
-                match: options.match , 
+                match: (n: Slate.Node, path: number[])=>{
+                    if(options.match){
+                        return options.match(n)
+                    }
+                    return true
+                } , 
                 split: options.split , 
             }
         )
