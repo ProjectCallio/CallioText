@@ -165,7 +165,6 @@ class DefaultAbstractEditor extends React.Component<
 
         return <GlobalInfo.Consumer>{globalinfo=>{
             let father_editor = globalinfo.editor as EditorComponent
-            let theme = globalinfo.theme as ThemeOptions
             return <Drawer
                 anchor      = {"left"}
                 open        = {me.props.open}
@@ -204,7 +203,9 @@ class DefaultAbstractEditor extends React.Component<
                         // 还原父编辑器的焦点。
                         SlateReact.ReactEditor.focus(father_editor.get_slate())
                         let enter_selection = me.state.enter_selection
-                        if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
+                        if(enter_selection && (
+                            (enter_selection as any)["anchor"] && (enter_selection as any)["anchor"]["path"]
+                        )){
                             Slate.Transforms.select(father_editor.get_slate() , enter_selection) // 设置为保存的selection。
                         }
                     } , 
@@ -216,7 +217,6 @@ class DefaultAbstractEditor extends React.Component<
                         editorcore  = {father_editor.get_editorcore()}
                         init_rootchildren = {son_children}
                         init_rootproperty = {son_but_children}
-                        theme             = {theme}
 
                         sidebar_extra = {(editor)=>{ // 添加一个额外的退出按钮，方便在编辑抽象时退出。
                             return [{
@@ -252,7 +252,7 @@ function DefaultAbstractEditorGroup(props: {node: Slate.Node & ConceptNode, anch
         >
             {Object.keys(abstract).map((idx)=>{
                 return <MenuItem key={idx} onClick={e=>{set_drawer_open(idx);onClose(e)}}>
-                    {abstract[idx].concept}-{idx}
+                    {abstract[parseInt(idx)].concept}-{idx}
                 </ MenuItem>
             })}
             <MenuItem onClick={e=>{onClose(e)}}>算了</MenuItem>

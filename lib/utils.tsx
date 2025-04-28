@@ -6,7 +6,7 @@ export {
 
 /** 对对象的每个值进行操作，返回一个新的对象。 */
 function object_foreach(obj: any , func: (o:any)=>any){
-    let ret = {}
+    let ret: any = {}
     for(let k in obj){
         ret[k] = func(obj[k])
     }
@@ -29,7 +29,7 @@ function merge_object(obj_1: any, obj_2: any){
         return obj_1
     }
 
-    let ret = {}
+    let ret: any = {}
     for(let key in {...obj_1,...obj_2}){
         ret[key] = merge_object(obj_1[key] , obj_2[key])
     }

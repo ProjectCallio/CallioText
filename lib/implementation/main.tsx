@@ -14,14 +14,12 @@ import {
 } from "../core"
 import {
     PrinterBackgroundPaper , 
+    PrinterConfigContext , 
+    PrinterConfig , 
+    make_printerconfig , 
+    PartialPrinterConfig , 
 } from "./uibase"
-import {
-    default_theme , 
-    ThemeProvider , 
-    ThemeContext , 
-    Theme , 
-} from "../core/theme"
-import { merge_object } from "../core/utils"
+
 export {
     DefaultPrinterComponent , 
 }
@@ -32,23 +30,23 @@ export type {
 
 /** 这是默认印刷器实现的props。 */
 interface DefaultPrinterProps {
-    printer: Printer
-    root: AbstractNode
-    theme?: Theme
-    onUpdateCache?: (cache: PrinterCache) => void
+    printer : Printer
+    root    : AbstractNode
+    config? : PartialPrinterConfig
 
-    onDidMount?: (printer_comp: PrinterComponent, me: DefaultPrinterComponent)=>void
+    onUpdateCache?: (cache: PrinterCache) => void
+    onDidMount   ?: (printer_comp: PrinterComponent, me: DefaultPrinterComponent)=>void
 }
 
 /** 这个类提供一个默认的印刷器实现。 */
 class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
-    printer_ref: React.RefObject<PrinterComponent>
+    printer_ref: React.RefObject<PrinterComponent | null>
     
     /**
      * 默认印刷器的构造函数。
      * @param props.printer 要使用的印刷器。
      * @param props.root 要印刷的树。
-     * @param props.theme 要使用的主题设置。可以只设置一部分主题，剩下的会被默认选项填充。
+     * @param props.config 要使用的主题设置。可以只设置一部分配置，剩下的会被默认选项填充。
      */
     constructor(props: DefaultPrinterProps){
         super(props)
@@ -56,10 +54,10 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
     }
 
     componentDidMount(): void {
-        while(!this.get_component());
+        while(!this.get_component()); // TODO 他妈的谁想出来的这种写法
 
         if(this.props.onDidMount){
-            this.props.onDidMount(this.get_component(), this)
+            this.props.onDidMount(this.get_component() as PrinterComponent, this)
         }
     }
 
@@ -73,17 +71,17 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
     render(){
         let me = this
 
-        let theme = merge_object(default_theme , this.props.theme)
+        let config = make_printerconfig(this.props.config)
 
-        return <GlobalInfoProvider value={{theme: theme}}><ThemeProvider value = {theme}>
+        return <PrinterConfigContext.Provider value = {config}>
             <PrinterBackgroundPaper>
                 <PrinterComponent 
-                    ref = {me.printer_ref}
+                    ref     = {me.printer_ref}
                     printer = {me.props.printer}
-                    root = {me.props.root}
+                    root    = {me.props.root}
                     onUpdateCache = {me.props.onUpdateCache}
                 />
             </PrinterBackgroundPaper>
-        </ThemeProvider></GlobalInfoProvider>
+        </PrinterConfigContext.Provider>
     }
 }

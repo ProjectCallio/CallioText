@@ -13,10 +13,10 @@ import type {
     DividerProps , 
 } from "@mui/material"
 
-
 import {
-    ThemeContext , 
-} from "../../core/theme"
+    PrinterConfigContext , 
+    PrinterConfig , 
+} from "./config"
 
 export { 
     PrinterDivider , 
@@ -52,13 +52,13 @@ function remtimes(rem:string , num: number){
 
 /** 默认的分隔线。 */
 const PrinterDivider = (props: DividerProps) => {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Divider 
         {...props}
         sx = {[
             {
-                marginTop: theme.printer.margins.special , 
-                marginBottom: theme.printer.margins.special , 
+                marginTop: config.margins.special , 
+                marginBottom: config.margins.special , 
             } , 
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
@@ -66,15 +66,15 @@ const PrinterDivider = (props: DividerProps) => {
 }
 /** 一段要弱化的话。 */
 const PrinterWeakenText = (props: TypographyProps  & {inline?: boolean}) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Typography 
         component = {props.inline ? "span" : Box}
         {...{...props , inline: undefined}}
         sx = {[
             ({
-                ...theme.printer.fonts.weaken, // 使用弱化字体的样式
+                ...config.fonts.weaken, // 使用弱化字体的样式
                 ...(props.inline ? { // 如果是行内样式
-                    marginRight: theme.printer.margins.colon , 
+                    marginRight: config.margins.colon , 
                     display: "inline-block" , 
                 } : {})
             }),
@@ -86,15 +86,15 @@ const PrinterWeakenText = (props: TypographyProps  & {inline?: boolean}) =>  {
 
 /** 一段要展示的话。 */
 const PrinterDisplayText = (props: TypographyProps  & {inline?: boolean}) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Typography 
         component = {props.inline ? "span" : Box}
         {...{...props , inline: undefined}}
         sx = {[
             {
-                ...theme.printer.fonts.display, // 使用展示字体的样式
+                ...config.fonts.display, // 使用展示字体的样式
                 ...(props.inline ? { // 如果是行内样式
-                    marginRight: theme.printer.margins.colon , 
+                    marginRight: config.margins.colon , 
                     display: "inline-block" , 
                 } : {})
             },
@@ -105,7 +105,7 @@ const PrinterDisplayText = (props: TypographyProps  & {inline?: boolean}) =>  {
 
 /** 段落节点的默认输出方式。 */
 const PrinterParagraphBox = (props: TypographyProps) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Typography 
         component = {Box}
         {...props}
@@ -118,7 +118,7 @@ const PrinterParagraphBox = (props: TypographyProps) =>  {
                 lineSpacing : "inherit" , 
                 fontWeight  : "inherit" , 
 
-                marginTop: theme.printer.margins.paragraph , 
+                marginTop: config.margins.paragraph , 
             }, 
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
@@ -127,18 +127,18 @@ const PrinterParagraphBox = (props: TypographyProps) =>  {
 
 /** 一个的标题，独占一行。这个样式同时包含字体和间距。 */
 const PrinterStructureBoxText = (props: TypographyProps & {inline?: boolean , leftmargin?: boolean}) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Typography 
         component = {props.inline ? "span" : Box}
         {...{...props , inline: undefined , leftmargin: undefined}}
         sx = {[
             {
-                ...theme.printer.fonts.structure, // 使用结构字体的样式
+                ...config.fonts.structure, // 使用结构字体的样式
                 ...(props.inline ? { // 如果是行内样式
                     ...(props.leftmargin ? { // 是否将空格放在左边。
-                        marginLeft: theme.printer.margins.colon ,
+                        marginLeft: config.margins.colon ,
                     }: {
-                        marginRight: theme.printer.margins.colon ,
+                        marginRight: config.margins.colon ,
                     }) , 
                     display: "inline-block" , 
                 } : {})
@@ -150,13 +150,13 @@ const PrinterStructureBoxText = (props: TypographyProps & {inline?: boolean , le
 
 /** 一个用来包裹一个部分的组件。 */
 const PrinterPartBox = (props: BoxProps & {subtitle_like?: boolean , small_margin?: boolean}) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
         return <Box 
         {...{...props , subtitle_like: undefined , small_margin: undefined}}
         sx = {[
             {
-                ...(props.subtitle_like ? theme.printer.fonts.title : {}) , 
-                marginTop: props.small_margin ? theme.printer.margins.paragraph : theme.printer.margins.special , 
+                ...(props.subtitle_like ? config.fonts.title : {}) , 
+                marginTop: props.small_margin ? config.margins.paragraph : config.margins.special , 
                 // marginBottom: theme.printer.margins.special , // 下方的边距由下方的元素负责。
             } , 
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
@@ -166,12 +166,12 @@ const PrinterPartBox = (props: BoxProps & {subtitle_like?: boolean , small_margi
 
 /** 用来包裹右边部分，从而开启新层级的组件。 */
 const PrinterNewLevelBox = (props: BoxProps) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Box 
         {...props}
         sx = {[
             {
-                left: theme.printer.margins.level , 
+                left: config.margins.level , 
                 position: "relative" , 
             } ,
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
@@ -181,13 +181,13 @@ const PrinterNewLevelBox = (props: BoxProps) =>  {
 
 /** 用来包裹左边部分，从而开启新层级的组件。 */
 const PrinterOldLevelBox = (props: BoxProps) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Box 
         {...props}
         sx = {[
             {
-                width: theme.printer.margins.level , 
-                flex: `0 0 ${theme.printer.margins.level}` , 
+                width: config.margins.level , 
+                flex: `0 0 ${config.margins.level}` , 
             } ,
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
@@ -197,13 +197,13 @@ const PrinterOldLevelBox = (props: BoxProps) =>  {
 
 /** 一个用来包裹一个部分的组件。 */
 const PrinterBackgroundPaper = (props: BoxProps) =>  {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(PrinterConfigContext)
     return <Box 
         {...props}
         sx = {[
             {
-                ...theme.printer.fonts.body, // 不要内容字体的样式。这个样式应该在最外层使用方便被覆盖。
-                padding: theme.printer.margins.structure , 
+                ...config.fonts.body, // 不要内容字体的样式。这个样式应该在最外层使用方便被覆盖。
+                padding: config.margins.structure , 
                 boxSizing: "border-box" , // 设置这个属性来让padding不要撑大宽高。
                 height: "100%" , 
                 width: "100%" , 

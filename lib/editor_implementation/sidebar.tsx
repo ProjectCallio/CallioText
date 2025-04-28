@@ -91,7 +91,7 @@ function get_activate_position(){
         if(position_list.length == 0){
             return undefined
         }
-        let positions = position_list.reduce((s,x)=>[...s, JSON.parse(x)], [])
+        let positions = position_list.reduce((s,x)=>[...s, JSON.parse(x)], [] as string[])
         positions.sort((a: [number,number],b: [number,number])=>(a[0] == b[0]) ? (a[1] - b[1]) : (a[0] - b[0]))
         return JSON.stringify(positions[0]) // 最小的那个。
     }
@@ -146,8 +146,8 @@ function get_switch_position(editor: EditorComponent): SwitchPositionFunction{
 }
 
 /** 每个小部分的容器。 */
-class SideBarContainer extends React.Component<{children: React.ReactChild}>{
-    constructor(props: {children: React.ReactChild}){
+class SideBarContainer extends React.Component<{children: React.ReactNode}>{
+    constructor(props: {children: React.ReactNode}){
         super(props)
     }
     render(): React.ReactNode {
@@ -176,67 +176,66 @@ function DefaultSidebar(props: {
     let extra = props.extra ? props.extra(editor) : []
 
     let icons = {
-        group: ((props)=><TextIcon {...props} text="组" />), 
-        inline: ((props)=><TextIcon {...props} text="行" />) , 
-        support: ((props)=><TextIcon {...props} text="支" />) , 
-        structure: ((props)=><TextIcon {...props} text="结" />) , 
+        group    : ((props: any)=><TextIcon {...props} text="组" />), 
+        inline   : ((props: any)=><TextIcon {...props} text="行" />) , 
+        support  : ((props: any)=><TextIcon {...props} text="支" />) , 
+        structure: ((props: any)=><TextIcon {...props} text="结" />) , 
     }
 
     let refs = {
-        group: React.useRef<AutoStackedPopperWithButton>() , 
-        inline: React.useRef<AutoStackedPopperWithButton>() , 
-        support: React.useRef<AutoStackedPopperWithButton>() , 
-        structure: React.useRef<AutoStackedPopperWithButton>() , 
+        group       : React.useRef<AutoStackedPopperWithButton | null>(null) , 
+        inline      : React.useRef<AutoStackedPopperWithButton | null>(null) , 
+        support     : React.useRef<AutoStackedPopperWithButton | null>(null) , 
+        structure   : React.useRef<AutoStackedPopperWithButton | null>(null) , 
     }
 
     return <React.Fragment>
-        {["group" , "inline" , "support" , "structure"].map ( (typename: Exclude<AllConceptTypes , "abstract">)=>{
+        {[
+            "group"     as "group"      , 
+            "inline"    as "inline"     , 
+            "support"   as "support"    , 
+            "structure" as "structure"  , 
+        ].map ( (
+            typename: Exclude<AllConceptTypes , "abstract">
+        )=>{
             let Icon = icons[typename]
             let sec_concept_list = editor.get_core().get_sec_concept_list(typename)
 
-            return <Box key={typename} sx={{marginX: "auto"}}>
-                <MouselessElement 
+            return <Box key={typename} sx={{marginX: "auto"}}><MouselessElement 
+                space = {SPACE}
+                position = {get_position(typename , 0)}
+                run = {()=>{refs[typename].current ? refs[typename].current.run() : 0}}
+            ><AutoStackedPopperWithButton
+                poper_props     = {{
+                    stacker: AutoStackButtons ,
+                    component: SideBarContainer ,  
+                    sx: {
+                        opacity: "80%" , 
+                    }
+                }}
+                outer_button    = {IconButton}
+                outer_props     = {{
+                    children: <Icon /> , 
+                }}
+                label           = {typename}
+                ref             = {refs[typename]}
+            >{sec_concept_list.map( (sec_ccpt , idx) => 
+                <Box key = {idx}   flexShrink = {0}><MouselessElement 
                     space = {SPACE}
-                    position = {get_position(typename , 0)}
-                    run = {()=>{refs[typename].current ? refs[typename].current.run() : 0}}
+                    position = {get_position(typename, idx + 1)} // 因为按钮本身要占一个位置，所以子按钮从1开始编号。
+                    run = {get_run(editor, typename, idx)}
                 >
-                    <AutoStackedPopperWithButton
-                        poper_props     = {{
-                            stacker: AutoStackButtons ,
-                            component: SideBarContainer ,  
-                            sx: {
-                                opacity: "80%" , 
-                            }
+                    <Button 
+                        onClick = {e => editor.new_concept_node(typename , sec_ccpt)}
+                        variant = "text"
+                        sx = {{
+                            marginX: "0.1rem" ,
                         }}
-                        outer_button    = {IconButton}
-                        outer_props     = {{
-                            children: <Icon /> , 
-                        }}
-                        label           = {typename}
-                        ref             = {refs[typename]}
-                    >{
-                        sec_concept_list.map( (sec_ccpt , idx) => 
-                            <Box key = {idx}   flexShrink = {0}>
-                                <MouselessElement 
-                                    space = {SPACE}
-                                    position = {get_position(typename, idx + 1)} // 因为按钮本身要占一个位置，所以子按钮从1开始编号。
-                                    run = {get_run(editor, typename, idx)}
-                                >
-                                    <Button 
-                                        onClick = {e => editor.new_concept_node(typename , sec_ccpt)}
-                                        variant = "text"
-                                        sx = {{
-                                            marginX: "0.1rem" ,
-                                        }}
-                                    >
-                                        {sec_ccpt}
-                                    </Button>
-                                </MouselessElement>
-                            </Box>
-                        )
-                    }</AutoStackedPopperWithButton>
-                </MouselessElement>
-            </Box>
+                    >
+                        {sec_ccpt}
+                    </Button>
+                </MouselessElement></Box>
+            )}</AutoStackedPopperWithButton></MouselessElement></Box>
         })}
         {Object.keys(extra).map(_exidx=>{
             let exidx = parseInt(_exidx)

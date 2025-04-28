@@ -23,7 +23,7 @@ interface MouselessElementProps{
     space: string
     position: string 
     run: MouselessRun
-    children: React.ReactChild | React.ReactChild[]
+    children: React.ReactNode
 
     extra_activate?: MouselessActivateOperation
     extra_unactivate?: MouselessUnActivateOperation
@@ -34,7 +34,7 @@ function MouselessElement(props: MouselessElementProps){
 
     let [act, set_act] = React.useState(false)
     let [regiester_func, unregister_func] = React.useContext(MouselessRegister)
-    let eleref = React.useRef<HTMLDivElement | undefined>(undefined)
+    let eleref = React.useRef<HTMLDivElement | null>(null)
 
     React.useEffect(()=>{
         regiester_func(space, position, 
@@ -43,7 +43,7 @@ function MouselessElement(props: MouselessElementProps){
                 if(extra_activate){
                     extra_activate()
                 }
-                eleref.current.scrollIntoView({block: "center", inline: "center"}) // 自动滚到
+                eleref.current?.scrollIntoView({block: "center", inline: "center"}) // 自动滚到
             }, 
             (new_pos) => {
                 set_act(false)

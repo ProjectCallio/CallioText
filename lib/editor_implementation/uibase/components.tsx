@@ -23,9 +23,8 @@ import type {
 } from "@mui/material"
 
 import {
-    default_theme , 
-    ThemeContext , 
-} from "../../core/theme"
+    EditorConfigContext , 
+} from "./config"
 
 export { 
     EditorComponentPaper , 
@@ -53,14 +52,14 @@ const EditorUnselecableBox = (props: BoxProps) => <Box
 
 /** 这个组件定义默认的段落渲染方式。 */
 const EditorParagraphBox = (props: TypographyProps) => {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(EditorConfigContext)
     return <Typography 
         component = {Box}
         {...props}
         sx = {[
             {
-                ...theme.editor.fonts.body , 
-                marginTop: theme.editor.margins.paragraph , 
+                ...config.fonts.body , 
+                marginTop: config.margins.paragraph , 
             } , 
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
@@ -69,15 +68,15 @@ const EditorParagraphBox = (props: TypographyProps) => {
 
 /** 结构性的文字。 */
 const EditorStructureTypography = (props: TypographyProps) => {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(EditorConfigContext)
     return <Typography 
         component = {Box}
         {...props}
         sx = {[
             {
-                ...theme.editor.fonts.structure,
+                ...config.fonts.structure,
                 marginY: "auto" , // 垂直居中
-                height: theme.editor.fonts.structure.lineHeight , 
+                height: config.fonts.structure.lineHeight , 
                 whiteSpace: "nowrap" , 
             },
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
@@ -90,16 +89,16 @@ const EditorStructureTypography = (props: TypographyProps) => {
  * @param props.autogrow 如果为 true ，则区域会自动横向增长以填满父元素。
  */
 const EditorComponentEditingBox = (props: BoxProps & {autogrow?: boolean}) => {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(EditorConfigContext)
     return <Box 
         {...{...props , autogrow: undefined}} // 去掉自己定义的属性。
         sx = {[
             {
-                paddingX : theme.editor.margins.background , 
+                paddingX : config.margins.background , 
                 ...(props.autogrow
                     ? { flex: 1 , minWidth: 0 , } // 如果自动增长，就设置一个 flex 属性。但是必须同时设置一个 minWidth，不知道为啥...
                                                 // 可以参考 https://makandracards.com/makandra/66994-css-flex-and-min-width 
-                    : {} // { minWidth: theme.editor.widths.minimum_content } // 如果不自动增长，设置一个最小宽度。
+                    : {} // { minWidth: config.widths.minimum_content } // 如果不自动增长，设置一个最小宽度。
                 ) ,
             } , 
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
@@ -123,7 +122,7 @@ const EditorComponentPaper = (
         CONT = Card
     }
 
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(EditorConfigContext)
 
     return <CONT 
         elevation = {net_level + 2}
@@ -138,11 +137,11 @@ const EditorComponentPaper = (
                 ...(is_inline
                     ? { // 行内
                         display     : "inline-block" ,
-                        minHeight   : theme.editor.fonts.body.lineHeight , 
+                        minHeight   : config.fonts.body.lineHeight , 
                         color       : "text.primary" ,
-                        marginX     : theme.editor.margins.small , 
+                        marginX     : config.margins.small , 
                     } : { // 块级
-                        marginTop   : theme.editor.margins.paragraph ,      
+                        marginTop   : config.margins.paragraph ,      
                         color       : "text.primary" ,        
                     }
                 ) , 
@@ -156,12 +155,12 @@ const EditorComponentPaper = (
 
 /** 对于一个不用纸张作为最外层元素的节点，这个组件用来提供其边框。 */
 const EditorComponentBox = (props: BoxProps) => {
-    let theme = React.useContext(ThemeContext)
+    let config = React.useContext(EditorConfigContext)
     return <Box 
         {...props}
         sx = {[
             {
-                marginTop: theme.editor.margins.paragraph , 
+                marginTop: config.margins.paragraph , 
             },
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}

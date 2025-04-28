@@ -48,7 +48,7 @@ import {
     object_foreach , 
     merge_object ,
 
-} from "../core/utils"
+} from "../utils"
 
 import {
     KeyEventManager , 
@@ -60,6 +60,10 @@ import {
 import { 
     EditorBackgroundPaper , 
     EditorComponentEditingBox  ,
+    EditorConfigContext , 
+    make_editorconfig , 
+    EditorConfig , 
+    PartialEditorConfig , 
 } from "./uibase"
 import { 
     ScrollBarBox , 
@@ -80,11 +84,6 @@ import {
 import {
     get_mouseless_space as buttons_get_mouseless_space
 } from "./buttons"
-import {
-    ThemeProvider , 
-    Theme , 
-    default_theme , 
-} from "../core/theme"
 
 import {
     ParameterEdit
@@ -94,7 +93,7 @@ export { DefaultEditorComponent }
 
 
 type DefaultEditorComponentprops = EditorComponentProps & {
-    theme?: Theme
+    config?: PartialEditorConfig
     extra_buttons?: any
     onSave?: ()=>void // 保存时操作。
 
@@ -114,7 +113,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     onFocusChange: ()=>void
     onSave: ()=> void
 
-    editor_ref		: React.RefObject<EditorComponent | null>
+    editor_ref		 : React.RefObject<EditorComponent | null>
     parameteredit_ref: React.RefObject<ParameterEdit | null>
 
     constructor(props: DefaultEditorComponentprops) {
@@ -291,7 +290,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         let paper_right   = {xs: "89%" , md: "92%" , xl: "95%"} // 纸张的宽度，
         let toolbar_width = {xs: "10%" , md: "7%" , xl: "5%"} // 工具栏的宽度。
 
-        let theme = merge_object(default_theme , this.props.theme)
+        let config = make_editorconfig(this.props.config)
         let me = this
         let IdxConflitSolver = this.IdxConflitSolver.bind(this)
 
@@ -310,9 +309,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         //     me.parameteredit_ref?.current?.try_update()
         // }
 
-        return <GlobalInfoProvider value={{theme: theme}}><ThemeProvider value={theme}><EditorBackgroundPaper>
-            <IdxConflitSolver />
-            <KeyEventManager
+        return <EditorConfigContext.Provider value={config}><EditorBackgroundPaper>
+                <IdxConflitSolver />
+                <KeyEventManager
                 spaces = {[
                     sidebar_get_mouseless_space(me.get_editor() as EditorComponent) , 
                     buttons_get_mouseless_space(me.get_editor() as EditorComponent) , 
@@ -387,6 +386,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 })()}</Box>
 
             </KeyEventManager>
-        </EditorBackgroundPaper></ThemeProvider></GlobalInfoProvider>
+        </EditorBackgroundPaper></EditorConfigContext.Provider>
     }
 }

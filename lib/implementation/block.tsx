@@ -13,9 +13,6 @@ import {
     Context, 
     ParagraphNode, 
     StructNode , 
-
-    Theme , 
-    ThemeContext , 
 } from "../core"
 import {
     ContexterBase , 
@@ -29,6 +26,9 @@ import {
     PrinterParagraphBox, 
     remtimes , 
 } from "./uibase/components"
+import {
+    PrinterConfigContext , 
+} from "./uibase/config"
 import {
     auto_renderer , 
 } from "./utils"
@@ -46,14 +46,14 @@ export {
  */
  function get_default_outer<NodeType extends ConceptNode>(box_props: any = {}){
     return (props: PrinterRenderFunctionProps<NodeType>) => {
-        let theme = React.useContext(ThemeContext)
+        let config = React.useContext(PrinterConfigContext)
 
         let {node , parameters , context} = props
         let flag = false // 是否跟前面的节点相连。
         if(node.type == "structure" || node.type == "group"){
             flag = node.relation == "chaining"
         }
-        let chaining_sx: any = {marginTop: remtimes(theme.printer.margins.special , 0.5)}
+        let chaining_sx: any = {marginTop: remtimes(config.margins.special , 0.5)}
         if(box_props["small_margin"]){ // 如果要求一个小的间距
             chaining_sx = {}
         }
@@ -240,7 +240,7 @@ function get_default_structure_renderer({
                         {...props_except_children}
                         subidx = {parseInt(subidx)}
                         key = {subidx}
-                    >{children[subidx]}</SUBINN>
+                    >{children[parseInt(subidx)]}</SUBINN>
                 })}</React.Fragment></INN>
             </OUT>
         } , 
@@ -284,8 +284,12 @@ function get_default_paragraph_renderer({
             let pre_texts = text_consumer.get_context(context)
 
             return <PrinterParagraphBox>
-                {Object.keys(pre_elements).map((eleid)=><React.Fragment key={eleid}>{pre_elements[eleid]}</React.Fragment>)}
-                {Object.keys(pre_texts).map((eleid)=><span key={eleid}>{pre_texts[eleid]}</span>)}
+                {Object.keys(pre_elements).map((eleid) => { 
+                    return <React.Fragment key={eleid}>{pre_elements[parseInt(eleid)]}</React.Fragment>
+                })}
+                {Object.keys(pre_texts).map((eleid) => {
+                    return <span key={eleid}>{pre_texts[parseInt(eleid)]}</span>
+                })}
                 {props.children}
                 <br/>
             </PrinterParagraphBox>

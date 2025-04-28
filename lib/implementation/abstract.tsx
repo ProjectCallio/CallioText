@@ -8,7 +8,7 @@
  * @module
  */
 
-import React, { Children, ReactComponentElement } from "react"
+import React from "react"
 
 import {
     Printer , 
@@ -36,6 +36,10 @@ import {
     PrinterParagraphBox, 
 } from "./uibase"
 import {
+    PrinterConfigContext , 
+    PrinterConfig , 
+} from "./uibase/config"
+import {
     auto_renderer , 
 } from "./utils"
 import {
@@ -43,7 +47,7 @@ import {
 } from "./main"
 
 import {
-    Link, ThemeOptions , Dialog, Tooltip  , Box , Badge  , Button , Paper , IconButton  , 
+    Link , Dialog, Tooltip  , Box , Badge  , Button , Paper , IconButton  , 
 } from "@mui/material"
 
 export {get_default_abstract_renderer , DefaultAbstractRendererAsProperty , DefaultAbstractAsRoot}
@@ -84,16 +88,17 @@ function DefaultAbstractRendererAsProperty(props: PrinterRenderFunctionProps<Con
  * @param props.printer_suggestion 上层提供的印刷器，如果没有提供就使用原来的印刷器。
  * @param props.theme_suggestion 上层提供的主题，如果没有提供就使用原来的主题。
 */
-function DefaultAbstractAsRoot(props: PrinterRenderFunctionProps<AbstractNode> & {printer?: Printer , theme?: ThemeOptions}){
-    let {node , parameters , context , flags, printer, theme} = props
+function DefaultAbstractAsRoot(props: PrinterRenderFunctionProps<AbstractNode> & {
+    printer?: Printer , 
+    config?: PrinterConfig
+}){
+    let {node , parameters , context , flags, printer} = props
     let globalinfo = React.useContext(GlobalInfo)
     let p = printer || globalinfo.printer as Printer
-    let t = theme || globalinfo.theme as ThemeOptions
 
     return <DefaultPrinterComponent 
-        root = {node}
+        root    = {node}
         printer = {p}
-        theme = {t}
     />
 }
 
@@ -107,13 +112,11 @@ function get_default_abstract_renderer({
     contexters =  [] , 
     container =  (props: PrinterRenderFunctionProps<AbstractNode>)=><PrinterPartBox>{props.children}</PrinterPartBox> , 
     printer = undefined , 
-    theme = undefined , 
     senario = "title" , 
 }:{
     contexters?: PreprocessFunction<AbstractNode , ContexterBase<AbstractNode>>[]
     container?: PrinterRenderFunction<AbstractNode>
     printer?: Printer
-    theme?: ThemeOptions , 
     senario?: string 
 }){
     let CONT = container
@@ -130,7 +133,6 @@ function get_default_abstract_renderer({
 
             let subcomp = <DefaultAbstractAsRoot
                 {...props}
-                theme = {theme}
                 printer = {printer}
             ></DefaultAbstractAsRoot>
 

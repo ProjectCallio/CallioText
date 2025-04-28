@@ -50,10 +50,10 @@ function get_default_support_editor(){
 
 function get_default_editors(): {[key in AllNodeTypes]: EditorRenderer}{
     return {
-        "group"     : get_default_block_editor<GroupNode>() , 
-        "inline"    : get_default_block_editor<InlineNode>() , 
-        "structure" : get_default_block_editor<StructNode>() , 
-        "support"   : get_default_support_editor() , 
+        "group"     : get_default_block_editor<GroupNode >() as EditorRenderer, 
+        "inline"    : get_default_block_editor<InlineNode>() as EditorRenderer, 
+        "structure" : get_default_block_editor<StructNode>() as EditorRenderer, 
+        "support"   : get_default_support_editor() as EditorRenderer, 
         "abstract"  : (props) => <Box>{props.children}</Box> , 
         "paragraph" : (props) => <ParagraphBox>{props.children}</ParagraphBox> , 
         "text"      : (props) => <span>{props.children}</span>, 
