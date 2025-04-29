@@ -11,7 +11,6 @@
 import React from "react"
 
 import {
-    Printer , 
     ProcessedParameterList , 
     ConceptNode , 
     GroupNode , 
@@ -24,6 +23,9 @@ import {
     GlobalInfo , 
     AbstractNode , 
 } from "../core"
+import {
+    Printer , 
+} from "../printer"
 import {
     ContexterBase , 
     InjectContexter , 

@@ -5,13 +5,17 @@
 import React from "react"
 
 import { 
-    Printer , 
-    PrinterComponent , 
     GroupNode , 
     AbstractNode , 
     GlobalInfoProvider , 
     PrinterCache , 
 } from "../core"
+
+import {
+    Printer , 
+    PrinterComponent , 
+} from "../printer"
+
 import {
     PrinterBackgroundPaper , 
     PrinterConfigContext , 

@@ -7,7 +7,7 @@ import React from "react"
 import {
     FirstClassConcept , 
     SecondClassConcept , 
-} from "./concept"
+} from "../core/concept"
 import {
     PrinterRenderer , 
     Env , 
@@ -15,7 +15,7 @@ import {
     ProcessedParameterList , 
     PrinterCacheItem , 
     PrinterCache , 
-} from "./renderer"
+} from "../core/renderer"
 import {
     AbstractNode , 
     ConceptNode, 
@@ -28,14 +28,14 @@ import {
     ParameterList,
     is_inlinenode , 
     is_concetnode, 
-} from "./intermidiate"
+} from "../core/intermidiate"
 import {
     UnexpectedParametersError , 
 } from "../exceptions"
 import {
     GlobalInfo , 
     GlobalInfoProvider , 
-} from "./globalinfo"
+} from "../core/globalinfo"
 
 export type {
     FirstClassConceptDict , 

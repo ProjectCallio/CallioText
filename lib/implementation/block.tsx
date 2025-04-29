@@ -2,7 +2,6 @@ import React from "react"
 import { Grid } from "@mui/material"
 
 import {
-    Printer , 
     ProcessedParameterList , 
     ConceptNode , 
     GroupNode , 
