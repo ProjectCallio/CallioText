@@ -15,7 +15,7 @@ import {
     ProcessedParameterList , 
     PrinterCacheItem , 
     PrinterCache , 
-} from "../core/renderer"
+} from "./renderer"
 import {
     AbstractNode , 
     ConceptNode, 
