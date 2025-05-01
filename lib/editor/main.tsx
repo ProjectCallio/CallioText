@@ -16,7 +16,6 @@ import {
     SupportNode , 
     ParagraphNode , 
     TextNode , 
-    Printer, 
     ParameterList,
     ConceptNode, 
     AllNodeTypes, 
@@ -26,6 +25,10 @@ import {
     AllConceptTypes, 
     ProcessedParameterList, 
 } from "../core"
+
+import {
+    Printer, 
+} from "../printer"
 
 import {
     EditorRenderer , 

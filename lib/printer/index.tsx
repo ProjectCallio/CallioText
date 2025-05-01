@@ -1,5 +1,5 @@
-export * from "./printercore"
+export * from "./main"
 export * from "./globalinfo"
 
-export * as renderer from "./printercore"
+export * as renderer from "./main"
 export * as intermidiate from "./globalinfo"

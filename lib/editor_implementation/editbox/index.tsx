@@ -43,7 +43,7 @@ class ParameterEdit extends React.Component<{
     curpath: number [] | undefined, 
 }>{
 
-    parametereditor_ref: React.RefObject<DefaultParameterWithEditor>
+    parametereditor_ref: React.RefObject<DefaultParameterWithEditor | null>
 
     constructor(props: any){
         super(props)

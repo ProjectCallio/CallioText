@@ -186,7 +186,9 @@ class ButtonGroup extends React.Component<ButtonGroupProps>{
             idxs = [...idxs, Math.max(...idxs) + 1] // 每次加入最大元素+1。
         }
 
-        let ret = Object.keys(buttons).map((subidx)=>{
+        let ret = Object.keys(buttons).map((_subidx)=>{
+            let subidx = parseInt(_subidx)
+            
             let res_other_props = {} 
             let res_component = buttons[subidx]
             let res_skip_mouseless = false // 是否跳过无鼠标
@@ -262,7 +264,7 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
 }>{
 
     static contextType = MouselessRegister
-    button_ref: React.RefObject<AutoStackedPopperWithButton>
+    button_ref: React.RefObject<AutoStackedPopperWithButton | null>
 
     /**
      * 创建一个折叠起来的按钮组，且通过无鼠标的方式来操作。
@@ -405,7 +407,7 @@ function MouselessParameterEditor(props: {
 }){
     let {node , parameter_name , generate_parameter, idx , label} = props
 
-    let input_ref = React.useRef<HTMLInputElement | undefined>()
+    let input_ref = React.useRef<HTMLInputElement | null>(null)
     let [active , set_active] = React.useState(false)
     let [enter_selection , set_ec] = React.useState<Slate.Location | undefined>(undefined)
     let position = get_position(node, idx)

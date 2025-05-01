@@ -12,7 +12,7 @@ import {
 import {
     Printer , 
     PrinterComponent , 
-} from "./printercore"
+} from "./main"
 
 export {
     PrinterGlobalInfo , 

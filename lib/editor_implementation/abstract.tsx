@@ -28,7 +28,6 @@ import {
     AllNodeTypes , 
     AllConceptTypes , 
     AbstractNode , 
-    Printer , 
     GlobalInfo, 
     GlobalInfoProvider,
     GroupNode , 
