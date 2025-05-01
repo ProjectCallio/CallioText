@@ -10,12 +10,12 @@ import * as SlateReact from "slate-react"
 import {
     ConceptNode , 
     ParameterList , 
-    GlobalInfo, 
     ParameterValue, 
 } from "../../core"
 
 import {
     EditorComponent ,
+    EditorGlobalInfo ,
 } from "../../editor"
 
 import {
@@ -413,7 +413,8 @@ function MouselessParameterEditor(props: {
     let position = get_position(node, idx)
 
     let [regiester_func, unregister_func] = React.useContext(MouselessRegister)
-    let editor = React.useContext(GlobalInfo).editor as EditorComponent
+    
+    let editor = React.useContext(EditorGlobalInfo).editor 
 
     // 聚焦或取消聚焦输入框。
     function focus_blur_input(focus: boolean){

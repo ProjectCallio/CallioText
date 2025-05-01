@@ -31,11 +31,10 @@ import {
 } from "../core/intermidiate"
 import {
     UnexpectedParametersError , 
-} from "../exceptions"
+} from "../uibase/exceptions"
 import {
-    GlobalInfo , 
-    GlobalInfoProvider , 
-} from "../core/globalinfo"
+    PrinterGlobalInfo , 
+} from "./globalinfo"
 
 export type {
     FirstClassConceptDict , 
@@ -512,13 +511,13 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
             "all_caches"        : all_caches ,  // 这一项提供所有临时缓存结果。
         }
 
-        return <GlobalInfoProvider 
+        return <PrinterGlobalInfo.Provider 
             value = {globalinfo}
         ><R
             node = {me.props.root} 
             path = {[]}
             all_contexts = {all_contexts}
             all_parameters = {all_parameters}
-        /></GlobalInfoProvider>
+        /></PrinterGlobalInfo.Provider>
     }
 }

@@ -27,7 +27,7 @@ import {
     EditorComponent , 
 } from "../editor"
 import {
-    AllConceptTypes, GlobalInfo , 
+    AllConceptTypes, 
 } from "../core"
 
 import { 

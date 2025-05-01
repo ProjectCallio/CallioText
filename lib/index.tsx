@@ -1,5 +1,5 @@
 export * from "./core"
-export * from "./exceptions"
+export * from "./uibase/exceptions"
 export * from "./printer_implementation"
 export * from "./editor"
 export * from "./editor_implementation"

@@ -36,10 +36,10 @@ import {
     Node , 
     StructNode , 
     ConceptNode , 
-    GlobalInfo
 } from "../../core"
 import { 
     EditorComponent , 
+    EditorGlobalInfo , 
     slate_concept_node2path , 
 } from "../../editor"
 import { AutoTooltip , Direction , AutoStack , AutoStackedPopper , AutoStackedPopperProps } from "../../uibase"
@@ -132,7 +132,7 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
  * @param props.node 这个组件所服务的节点。
  */
 class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -154,7 +154,7 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
  * @param props.puretext 是否将子组件作为纯文本。
  */
 class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformation & {puretext?: boolean}> implements ButtonBase{
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
 
     constructor(props: EditorButtonInformation & {puretext?: boolean}){
         super(props)
@@ -184,7 +184,7 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
  * @param props.node 这个组件所服务的节点。
  */
 class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -204,7 +204,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
  * @param props.node 这个组件所服务的节点。
  */
  class NewParagraphButtonDown extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -225,7 +225,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
  * @param props.node 这个组件所服务的节点。
  */
  class CopyButton extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -265,9 +265,9 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNode | StructNode>, {
     checked: boolean
 }> implements ButtonBase{
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
     
-    switchref: React.RefObject<HTMLInputElement>
+    switchref: React.RefObject<HTMLInputElement | null>
 
     constructor(props: EditorButtonInformation<GroupNode | StructNode>){
         super(props)
@@ -368,7 +368,7 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
     menu_open: boolean
 }>{
 
-    static contextType = GlobalInfo
+    static contextType = EditorGlobalInfo
 
     menu_anchor_ref: React.RefObject<HTMLAnchorElement>
 

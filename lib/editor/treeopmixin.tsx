@@ -29,7 +29,7 @@ import {
 import {
     EditorComponent, 
 } from "./main"
-import { BadNodeError , UnexpectedParametersError} from "../exceptions"
+import { BadNodeError , UnexpectedParametersError} from "../uibase/exceptions"
 
 export { tree_op_mixin }
 

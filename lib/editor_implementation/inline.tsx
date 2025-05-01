@@ -21,13 +21,13 @@ import {
 import {
     InlineNode , 
     ConceptNode , 
-    GlobalInfo , 
 } from "../core"
 
 import {
     EditorRenderer , 
     EditorRendererProps, 
     EditorComponent , 
+    EditorGlobalInfo , 
 } from "../editor"
 
 import { 
@@ -70,7 +70,7 @@ function get_default_inline_editor({
 
 }): EditorRenderer<InlineNode>{
     return (props: EditorRendererProps<InlineNode>) => {
-        let editor      = React.useContext(GlobalInfo).editor as EditorComponent
+        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
 

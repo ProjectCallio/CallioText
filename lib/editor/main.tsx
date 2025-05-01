@@ -21,7 +21,6 @@ import {
     AllNodeTypes, 
     NonLeafNode, 
 
-    GlobalInfoProvider, 
     AllConceptTypes, 
     ProcessedParameterList, 
 } from "../core"
@@ -54,8 +53,11 @@ import {
 import {
     tree_op_mixin
 } from "./treeopmixin"
-import { UnexpectedParametersError } from "../exceptions"
-import { BorderColor } from "@mui/icons-material"
+import { UnexpectedParametersError } from "../uibase/exceptions"
+
+import {
+    EditorGlobalInfo , 
+} from "./globalinfo"
 
 export {
     EditorComponent , 
@@ -144,15 +146,19 @@ class EditorCore{
     /** 从二级概念查询一个渲染器。
      * @param type 查找的节点类型。
      * @param sec_concept 查找的概念名称。
-     * 如果`type == "paragraph" || "text"`，那么`name`将会被忽略。
-     * 反之，如果`type != "paragraph" && type != "text"`，那么`name`必须提供。
+     * 如果`type == "paragraph" || "text"`，那么`sec_concept`将会被忽略。
+     * 反之，如果`type != "paragraph" && type != "text"`，那么`sec_concept`必须提供。
      */
 
     get_second_renderer(type: AllNodeTypes , sec_concept?: string): EditorRenderer{
         if(type == "paragraph" || type == "text"){
             return this.get_first_renderer(type, sec_concept)
         }
+        if(sec_concept == undefined){
+            throw new UnexpectedParametersError("sec_concept is undefined.")
+        }
         let sec_ccpt = this.get_printer().get_second_concept(type, sec_concept)
+        
         if(sec_ccpt == undefined){
             return this.default_renderers[type]
         }
@@ -529,7 +535,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         let me = this
 
         let slate = me.state.slate
-    
+        
         let context = {
             editor: me , 
             slate: me.state.slate , 
@@ -537,7 +543,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         }
 
         let root_children = me.props.init_rootchildren || (this.get_core().create_abstract("root") as AbstractNode).children
-        return <GlobalInfoProvider value={context}>
+        return <EditorGlobalInfo.Provider value={context}>
             <SlateReact.Slate 
                 editor = {slate} 
                 initialValue = {root_children} 
@@ -584,7 +590,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                     onKeyPress  = {e=>me.onKeyPress(e)}
                 />
             </SlateReact.Slate>
-        </GlobalInfoProvider>
+        </EditorGlobalInfo.Provider>
     }
 
     /** 在当前位置新建一个指定概念的节点。 */

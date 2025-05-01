@@ -34,13 +34,14 @@ import {
     ConceptNode,
     ParameterList , 
     ParameterValue , 
-    GlobalInfo , 
     AbstractNode, 
-    GlobalInfoProvider, 
 } from "../../core"
 
 import { EditorComponentEditingBox, EditorStructureTypography as StructureTypography } from "../uibase/components"
-import { EditorComponent } from "../../editor"
+import { 
+    EditorComponent , 
+    EditorGlobalInfo , 
+} from "../../editor"
 import { EditorButtonInformation } from "./base"
 import { AutoIconButton } from "./buttons"
 import {
@@ -77,6 +78,7 @@ type DefaultRootParameterWithEditorWithDrawerProps = {
  * @param props.onClose 抽屉应该关闭时的回调。如果不提供这个参数，抽屉就不会关闭。
  */
 function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWithEditorWithDrawerProps){
+    let globalinfo = React.useContext(EditorGlobalInfo)
     let onClose = props.onClose || ((e:any)=>{})
     let parametereditor_ref = React.useRef<DefaultParameterWithEditor | null>(null)
 
@@ -86,7 +88,7 @@ function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWit
     let editor = props.editor
 
     // 临时提供一个上下文。
-    return <GlobalInfoProvider value={{editor: props.editor}}><Drawer 
+    return <EditorGlobalInfo.Provider value={{...globalinfo, editor: props.editor}}><Drawer 
         anchor      = {"left"}
         open        = {props.open}
         onClose     = {onClose}
@@ -114,7 +116,7 @@ function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWit
         <Divider />
         <DefaultParameterWithEditor node={props.root} ref={parametereditor_ref}/>
         <Button onClick={onClose}>Close</Button>
-    </Drawer></GlobalInfoProvider>
+    </Drawer></EditorGlobalInfo.Provider>
 }
 
 interface DefaultRootParameterEditButtonProps{

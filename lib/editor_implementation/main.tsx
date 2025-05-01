@@ -30,7 +30,6 @@ import {
     AllConceptTypes , 
     AllNodeTypes, 
     AbstractNode,
-    GlobalInfoProvider, 
 } from "../core"
 
 import { 

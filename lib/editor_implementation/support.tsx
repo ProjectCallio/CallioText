@@ -29,13 +29,13 @@ import * as Slate from "slate"
 import {
     SupportNode , 
     ConceptNode , 
-    GlobalInfo , 
 } from "../core"
 
 import { 
     EditorRenderer , 
     EditorRendererProps  , 
     EditorComponent , 
+    EditorGlobalInfo , 
 } from "../editor"
 
 import {  
@@ -80,7 +80,7 @@ function get_default_spliter_editor({
     get_title?: EditorNodeInfoFunction<SupportNode , string>
 }){
     return (props: EditorRendererProps<SupportNode>) => {
-        let editor      = React.useContext(GlobalInfo).editor as EditorComponent
+        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let title       = get_title(node, parameters)
@@ -133,7 +133,7 @@ function get_default_display_editor({
     render_element  ?: (props: EditorButtonInformation<SupportNode>)=>any , 
 }){
     return (props: EditorRendererProps<SupportNode>) => {
-        let editor      = React.useContext(GlobalInfo).editor as EditorComponent
+        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let label = get_label(node, parameters)

@@ -36,11 +36,14 @@ import {
     ConceptNode,
     ParameterList , 
     ParameterValue , 
-    GlobalInfo , 
 } from "../../core"
 
 import { EditorStructureTypography as StructureTypography } from "../uibase/components"
-import { EditorComponent } from "../../editor"
+import { 
+    EditorComponent , 
+    EditorGlobalInfo , 
+}
+ from "../../editor"
 import { EditorButtonInformation } from "./base"
 
 export { 
@@ -288,7 +291,7 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
     // 记录进入时的光标位置，以便在退出时还原。
     let [enter_selection , set_ec] = React.useState<Slate.Location | null>(null)
 
-    return <GlobalInfo.Consumer>{globalinfo=>{
+    return <EditorGlobalInfo.Consumer>{globalinfo=>{
         let editor = globalinfo.editor as EditorComponent
 
         return <Drawer 
@@ -321,6 +324,6 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
             <DefaultParameterWithEditor node={props.node} ref={parametereditor_ref}/>
             <Button onClick={onClose}>Close</Button>
         </Drawer>
-    }}</GlobalInfo.Consumer>
+    }}</EditorGlobalInfo.Consumer>
 }
 

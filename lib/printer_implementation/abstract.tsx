@@ -20,11 +20,11 @@ import {
     Env , 
     Context, 
     ParagraphNode, 
-    GlobalInfo , 
     AbstractNode , 
 } from "../core"
 import {
     Printer , 
+    PrinterGlobalInfo , 
 } from "../printer"
 import {
     ContexterBase , 
@@ -56,7 +56,7 @@ export {get_default_abstract_renderer , DefaultAbstractRendererAsProperty , Defa
 
 /** 这个组件为其他组件提供一个默认的渲染抽象节点的方法。 */
 function DefaultAbstractRendererAsProperty(props: PrinterRenderFunctionProps<ConceptNode> & {senario:string}){
-    let globalinfo = React.useContext(GlobalInfo)
+    let globalinfo = React.useContext(PrinterGlobalInfo)
     let printer = globalinfo.printer as Printer
 
     let abstracts = props.node.abstract
@@ -95,7 +95,7 @@ function DefaultAbstractAsRoot(props: PrinterRenderFunctionProps<AbstractNode> &
     config?: PrinterConfig
 }){
     let {node , parameters , context , flags, printer} = props
-    let globalinfo = React.useContext(GlobalInfo)
+    let globalinfo = React.useContext(PrinterGlobalInfo)
     let p = printer || globalinfo.printer as Printer
 
     return <DefaultPrinterComponent 

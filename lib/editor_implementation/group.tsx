@@ -36,12 +36,13 @@ import {
 
 import * as Slate from "slate"
 
-import { GlobalInfo, GroupNode  } from "../core"
+import { GroupNode  } from "../core"
 import { 
     EditorRendererProps , 
     EditorRenderer , 
     EditorComponent ,  
     slate_is_concept , 
+    EditorGlobalInfo , 
 } from "../editor"
 
 import { 
@@ -116,7 +117,7 @@ function get_deafult_group_editor_with_appbar({
 }): EditorRenderer<GroupNode>{
     // 渲染器
     let subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        let editor      = React.useContext(GlobalInfo).editor as EditorComponent
+        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let label       = get_label(node, parameters)
@@ -176,7 +177,7 @@ function get_default_group_editor_with_rightbar({
 }): EditorRenderer<GroupNode>{
 
     return (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        let editor      = React.useContext(GlobalInfo).editor as EditorComponent
+        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let mylabel     = get_label(node, parameters)

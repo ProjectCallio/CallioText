@@ -28,12 +28,11 @@ import {
     AllNodeTypes , 
     AllConceptTypes , 
     AbstractNode , 
-    GlobalInfo, 
-    GlobalInfoProvider,
     GroupNode , 
 } from "../core"
 import {
     EditorComponent , 
+    EditorGlobalInfo , 
 } from "../editor"
 import {
     DefaultEditorComponent
@@ -62,7 +61,7 @@ export {
  */
 function DefaultNewAbstract(props: {node: ConceptNode, anchor_element: any, open: boolean, onClose?: (e:any)=>void}){
 
-    let globalinfo = React.useContext(GlobalInfo)
+    let globalinfo = React.useContext(EditorGlobalInfo)
     let node = props.node 
     let editor = globalinfo.editor as EditorComponent
 
@@ -162,7 +161,7 @@ class DefaultAbstractEditor extends React.Component<
             return [children , son_but_children]
         })()
 
-        return <GlobalInfo.Consumer>{globalinfo=>{
+        return <EditorGlobalInfo.Consumer>{globalinfo=>{
             let father_editor = globalinfo.editor as EditorComponent
             return <Drawer
                 anchor      = {"left"}
@@ -230,7 +229,7 @@ class DefaultAbstractEditor extends React.Component<
                     />
                 </ForceContain.Provider>
             </Drawer>
-        }}</GlobalInfo.Consumer>
+        }}</EditorGlobalInfo.Consumer>
     }
 }
 
@@ -308,7 +307,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
     render(){
         let node = this.props.node
         
-        return <GlobalInfo.Consumer>{globalinfo=>{
+        return <EditorGlobalInfo.Consumer>{globalinfo=>{
             let editor = globalinfo.editor as EditorComponent
             return <React.Fragment>
                 <Box sx={{marginX: "auto"}} ref={this.boxref}><AutoTooltip title="新建抽象">
@@ -321,7 +320,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
                     onClose = {()=>this.close()}
                 />
             </React.Fragment>
-        }}</GlobalInfo.Consumer>
+        }}</EditorGlobalInfo.Consumer>
     }
 }
 
@@ -364,7 +363,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
     render(){
         let node = this.props.node
         
-        return <GlobalInfo.Consumer>{globalinfo=>{
+        return <EditorGlobalInfo.Consumer>{globalinfo=>{
             let editor = globalinfo.editor as EditorComponent
             return <React.Fragment>
                 <Box sx={{marginX: "auto"}} ref={this.boxref}><AutoTooltip title="编辑抽象">
@@ -377,7 +376,7 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
                     onClose = {()=>this.close()}
                 />
             </React.Fragment>
-        }}</GlobalInfo.Consumer>
+        }}</EditorGlobalInfo.Consumer>
     }
 }
 
@@ -393,7 +392,7 @@ function get_default_abstract_editor({
     get_label       ?: EditorNodeInfoFunction<AbstractNode , string> ,  
 }){
     return (props: EditorRendererProps<Slate.Node & AbstractNode>) => {
-        let editor      = React.useContext(GlobalInfo).editor as EditorComponent
+        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let label   = get_label(node, parameters)

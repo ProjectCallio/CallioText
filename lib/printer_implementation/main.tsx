@@ -7,7 +7,6 @@ import React from "react"
 import { 
     GroupNode , 
     AbstractNode , 
-    GlobalInfoProvider , 
     PrinterCache , 
 } from "../core"
 

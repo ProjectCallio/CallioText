@@ -4,7 +4,7 @@ import * as Slate from "slate"
 
 import { 
     BadNodeError , 
-} from "../exceptions"
+} from "../uibase/exceptions"
 import {
     Node ,
     ConceptNode ,

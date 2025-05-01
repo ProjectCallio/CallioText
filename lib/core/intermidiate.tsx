@@ -4,7 +4,7 @@
 
 import {
 	BadNodeError , 
-} from "../exceptions"
+} from "../uibase/exceptions"
 
 export type {
 	TextNode , 

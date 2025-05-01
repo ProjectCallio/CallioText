@@ -26,7 +26,6 @@ import * as Slate from "slate"
 import { 
     StructNode , 
     ParameterList , 
-    GlobalInfo , 
 } from "../core"
 import { 
     EditorRenderer , 
@@ -34,6 +33,7 @@ import {
     EditorComponent , 
 
     slate_concept_node2path , 
+    EditorGlobalInfo , 
 } from "../editor"
 
 import { 
@@ -113,7 +113,7 @@ function get_default_struct_editor_with_rightbar({
 }): EditorRenderer<StructNode>{
 
     return (props: EditorRendererProps<StructNode>) => {
-        let globalinfo  = React.useContext(GlobalInfo)
+        let globalinfo  = React.useContext(EditorGlobalInfo)
         let editor      = globalinfo.editor as EditorComponent
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
