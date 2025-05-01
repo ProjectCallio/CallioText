@@ -19,6 +19,9 @@ export type {
     PreprocessInformation , 
     PreprocessFunction , 
 }
+
+// TODO 目前，所有contexter都会返回true，也就是不会进入下一次迭代。需要实现这个功能。
+
   
 /** 在预处理阶段可以访问的信息。 */
 interface PreprocessInformation<NodeType = Node>{
@@ -40,6 +43,7 @@ type PreprocessFunction<NodeType = Node, ReturnType = any> = (info: PreprocessIn
  * - 每个上下文工具自行维护是否需要进行下一次迭代。
  * 
  * 在上下文工具中可以尽情修改`env`和`context`，因为已经事先使用了immer来确定不可变性。
+   XXX 其实没有用immer，但是好像是可以改的。
  * 
  * 另外，需要注意，`Contexter`永远是无状态的，也就是说同一个`contexter`可以用在不同的对象上。
  * 
@@ -57,7 +61,6 @@ class ContexterBase<NodeType = Node, ContextType = any, EnvType = any>{
     constructor(key:string, default_val: EnvType){
         this.key = key
         this.get_default_val = ()=>( JSON.parse( JSON.stringify(default_val) ) ) // 深拷贝，避免被修改。
-
     }
 
     /** 进入时操作。子类需要重写这个函数。 */
@@ -69,7 +72,9 @@ class ContexterBase<NodeType = Node, ContextType = any, EnvType = any>{
         context: Context , 
     ){}
     
-    /** 退出时操作。子类需要重写这个函数。 */
+    /** 退出时操作。子类需要重写这个函数。 
+     * 第二个参数如果设为false，那么表示需要进行下一次迭代。
+    */
     exit(
         node: Readonly<NodeType> , 
         path: Readonly<number[]>, 

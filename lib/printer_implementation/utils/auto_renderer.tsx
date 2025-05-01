@@ -22,7 +22,8 @@ import {
 export {auto_renderer}
 
 /**
- * 这个函数帮助那些使用上下文工具列表的概念自动创建渲染函数。具体来说，这个函数会根据`contexters`自动创建`enter`和`exit`操作，而
+ * 这个函数帮助那些使用上下文工具列表的概念自动创建渲染函数。
+ * 具体来说，这个函数会根据`contexters`自动创建`enter`和`exit`操作，而
  * 用户只需要指定`contexters`和`renderer`。
  * @param params.render_function 即`PrinterRenderer.renderer`
  * @param params.contexters 上下文工具列表。
@@ -71,6 +72,5 @@ function auto_renderer<NodeType extends Node = Node>({
         } , 
         renderer: render_function , 
         renderer_as_property: render_function_as_property , 
-})
-
+    })
 }

@@ -107,11 +107,11 @@ class EditorCore{
     }
 
     get_sec_concept_list(type: AllConceptTypes){
-        return Object.keys( this.get_printer().secondClassConcepts[type] )
+        return Object.keys( this.get_printer().second_class_concepts[type] )
     }
 
     get_fst_concept_list(type: AllConceptTypes){
-        return Object.keys( this.get_printer().firstClassConcepts[type] )
+        return Object.keys( this.get_printer().first_class_concepts[type] )
     }
 
     get_printer(){

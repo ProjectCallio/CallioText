@@ -19,13 +19,19 @@ export {
     ReferenceContexter , 
 }
 
-type ReferenceCacheGenerateFunc<NodeType extends Node = Node> = (info: PreprocessInformation<NodeType>) => any
+type ReferenceCacheGenerateFunc<NodeType extends Node = Node> = (
+    info: PreprocessInformation<NodeType>
+) => any
 
 /** 
  * 这个上下文工具在印刷器缓存中生成节点的引用名。
  * 
 */
-class ReferenceContexter<NodeType extends Node = Node> extends ContexterBase<NodeType , undefined , undefined>{
+class ReferenceContexter<NodeType extends Node = Node> extends ContexterBase<
+    NodeType  , 
+    undefined , 
+    undefined 
+>{
     get_reference: ReferenceCacheGenerateFunc<NodeType>
 
     constructor(get_reference: ReferenceCacheGenerateFunc<NodeType>){
@@ -33,7 +39,13 @@ class ReferenceContexter<NodeType extends Node = Node> extends ContexterBase<Nod
         this.get_reference = get_reference
     }
 
-    exit(node: Readonly<NodeType>, path: Readonly<number[]>, parameters: Readonly<ProcessedParameterList>, env: Env, context: Context): [PrinterCacheItem, boolean] {
+    exit(
+        node        : Readonly<NodeType>, 
+        path        : Readonly<number[]>, 
+        parameters  : Readonly<ProcessedParameterList>, 
+        env         : Env, 
+        context     : Context , 
+    ): [PrinterCacheItem, boolean] {
         let cache_val = this.get_reference({node,parameters,env,context})
         return [{[this.key]: cache_val} , true]
     }

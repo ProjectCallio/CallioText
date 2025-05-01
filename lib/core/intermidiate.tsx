@@ -7,21 +7,24 @@ import {
 } from "../uibase/exceptions"
 
 export type {
+	Node , 
+
 	TextNode , 
 	ParagraphNode , 
-	ParameterValue , 
-	ParameterList , 
-	Node , 
-	NonLeafConceptNode , 
 	ConceptNode , 
-	NonLeafNode , 
 	InlineNode , 
 	GroupNode , 
 	SupportNode , 
 	StructNode , 
 	AbstractNode , 
+	
+	NonLeafNode , 
+	NonLeafConceptNode , 
 	AllNodeTypes , 
 	AllConceptTypes , 
+
+	ParameterValue , 
+	ParameterList , 
 }
 
 export {
