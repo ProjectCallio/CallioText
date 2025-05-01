@@ -103,7 +103,9 @@ interface MouselessButtonProps<OtherPropsType = {}>{
 }
 
 /** 将一个按钮包装成一个无鼠标元素。 */
-class MouselessButton<OtherPropsType = {}> extends React.Component<MouselessButtonProps<OtherPropsType>>{
+class MouselessButton<OtherPropsType = {}> extends React.Component<
+    MouselessButtonProps<OtherPropsType>
+>{
 
     childref: React.RefObject<any>
 
@@ -113,7 +115,7 @@ class MouselessButton<OtherPropsType = {}> extends React.Component<MouselessButt
         this.childref = React.createRef<any>()
     }
 
-    run(e: React.KeyboardEvent<HTMLDivElement>){
+    run(e?: React.KeyboardEvent<HTMLDivElement>){
         if(this.childref && this.childref.current){
             this.childref.current.run(e)
         }
@@ -140,14 +142,19 @@ class MouselessButton<OtherPropsType = {}> extends React.Component<MouselessButt
 }
 
 
-/** 描述一个按钮。 */
-type ButtonDescription<OtherPropsType = {}> = {
+type ButtonDescriptionWithProps<OtherPropsType = {}> = {
     other_props?: OtherPropsType
-    component: React.ComponentClass<EditorButtonInformation & OtherPropsType> | React.FunctionComponent<EditorButtonInformation & OtherPropsType>
+    component:  React.ComponentType<EditorButtonInformation & OtherPropsType> 
 
     /** 是否要跳过无鼠标操作的选择。 */
     skip_mouseless?: boolean
-} | (React.ComponentClass<EditorButtonInformation & OtherPropsType> | React.FunctionComponent<EditorButtonInformation & OtherPropsType>)
+} 
+
+/** 描述一个按钮。 */
+type ButtonDescription<OtherPropsType = {}> = (
+    ButtonDescriptionWithProps<OtherPropsType>
+    | React.ComponentType   <EditorButtonInformation & OtherPropsType> 
+)
 
 interface ButtonGroupProps{
     buttons: ButtonDescription[]
@@ -161,7 +168,7 @@ interface ButtonGroupProps{
 
 
     /** 要额外执行的`run`函数。 */
-    extra_run?: (new_pos: React.KeyboardEvent<HTMLDivElement>)=>void
+    extra_run?: MouselessRun
 
 
     /** 要额外执行的`activate`函数。 */
@@ -188,30 +195,35 @@ class ButtonGroup extends React.Component<ButtonGroupProps>{
 
         let ret = Object.keys(buttons).map((_subidx)=>{
             let subidx = parseInt(_subidx)
+
+            function has_props(bd: ButtonDescription): bd is ButtonDescriptionWithProps<any> {
+                return !!( (bd as any)["component"] )
+            }
             
-            let res_other_props = {} 
-            let res_component = buttons[subidx]
-            let res_skip_mouseless = false // 是否跳过无鼠标
-            if(buttons[subidx]["component"]){ // 如果是object描述
-                let {other_props,component, skip_mouseless} = buttons[subidx]
-                res_other_props = other_props || {}
-                res_component   = component
+            let res_other_props     = {} 
+            let ResComponent: React.ComponentType<EditorButtonInformation & any> = ()=><></>
+            let res_skip_mouseless  = false // 是否跳过无鼠标
+
+            let but_desc = buttons[subidx]
+            if(has_props(but_desc)){ // 如果是object描述
+                let {other_props, component, skip_mouseless} = but_desc
+                res_other_props    = other_props || {}
+                ResComponent       = component
                 res_skip_mouseless = skip_mouseless || false
             }
             if(res_skip_mouseless){
-                let C = res_component
-                return <C key={subidx} node={node} {...res_other_props}/> // 单独创建元素，不套上mouseless。
+                return <ResComponent key={subidx} node={node} {...res_other_props}/> // 单独创建元素，不套上mouseless。
             }
             return <MouselessButton 
                 key         = {subidx}
                 node        = {node}
                 idx         = {idxs[subidx]}
                 other_props = {res_other_props}
-                component   = {res_component}
+                component   = {ResComponent}
 
-                extra_run           = {this.props.extra_run}
-                extra_activate      = {this.props.extra_activate}
-                extra_unactivate    = {this.props.extra_unactivate}
+                extra_run        = {this.props.extra_run}
+                extra_activate   = {this.props.extra_activate}
+                extra_unactivate = {this.props.extra_unactivate}
             />
         })
         if(this.props.autostack){
@@ -321,18 +333,22 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
 
     /** 这个函数需要在每个子按钮被取消激活时调用，作用是检测当前位置是否还在节点内，如果不在就自动关闭菜单。 */
     extra_unactive(new_pos?: string){
+        let button = this.get_button()
+        if(!button){
+            return
+        }
         if(new_pos != undefined){
             let [new_nodeidx, subidx] = JSON.parse(new_pos)
             if(new_nodeidx != this.props.node.idx){
-                this.get_button().set_menu_open(false) // 如果激活了一个不是本节点的位置，那么就关闭菜单。
+                button.set_menu_open(false) // 如果激活了一个不是本节点的位置，那么就关闭菜单。
             }
             let my_subidxs = this.get_idxs()
             if(my_subidxs.indexOf(subidx) < 0){
-                this.get_button().set_menu_open(false) // 如果激活了本节点中的其他按钮，那也关闭菜单。
+                button.set_menu_open(false) // 如果激活了本节点中的其他按钮，那也关闭菜单。
             }
         }
         if(new_pos == undefined){ // 光标取消聚焦
-            this.get_button().set_menu_open(false)
+            button.set_menu_open(false)
         }
     }
     
@@ -341,7 +357,10 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
         let [regiester_func, _] = this.context as [MouselessRegisterFunction, MouselessUnRegisterFunction]
         regiester_func(SPACE, me.get_position() , 
             ()=>{
-                me.get_button().set_menu_open(true)
+                let button = me.get_button()
+                if(button){
+                    button.set_menu_open(true)
+                }
                 me.set_active(true)
             }  ,  
             (new_pos?: string) => {
@@ -349,7 +368,10 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
                 me.set_active(false)
             } , 
             ()=>{
-                me.get_button().run()
+                let button = me.get_button()
+                if(button){
+                    button.run()
+                }
             }
         )
     }
@@ -409,7 +431,7 @@ function MouselessParameterEditor(props: {
 
     let input_ref = React.useRef<HTMLInputElement | null>(null)
     let [active , set_active] = React.useState(false)
-    let [enter_selection , set_ec] = React.useState<Slate.Location | undefined>(undefined)
+    let [enter_selection , set_ec] = React.useState<Slate.BaseSelection | undefined>(undefined)
     let position = get_position(node, idx)
 
     let [regiester_func, unregister_func] = React.useContext(MouselessRegister)
@@ -426,32 +448,39 @@ function MouselessParameterEditor(props: {
 
     // 记录焦点。
     function record_selection(){
-        set_ec({...editor.get_slate().selection}) // 记录焦点。
+        if(!editor){
+            return
+        }
+        set_ec(editor.get_slate().selection) // 记录焦点。
     }
 
     function apply(){
-        if(input_ref && input_ref.current){
-            let input = input_ref.current
+        if(!input_ref || !input_ref.current || !editor){
+            return
+        }
+        let input = input_ref.current
 
-            let new_param = {[parameter_name]: {
-                type: "string" , 
-                val: input.value , 
-            }} as ParameterList
+        let new_param = {[parameter_name]: {
+            type: "string" , 
+            val: input.value , 
+        }} as ParameterList | undefined
 
-            // console.log(new_param)
+        // console.log(new_param)
 
-            if(generate_parameter){
-                new_param = generate_parameter(input.value)
-            }
+        if(generate_parameter){
+            new_param = generate_parameter(input.value)
+        }
 
-            if(new_param){
-                editor.auto_set_parameter(props.node, new_param )
-            }
+        if(new_param){
+            editor.auto_set_parameter(props.node, new_param )
         }
     }
 
     // 恢复已经记录的焦点。
     function restore_selection(){
+        if(!editor){
+            return
+        }
         SlateReact.ReactEditor.focus(editor.get_slate())
         if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
             Slate.Transforms.select(editor.get_slate() , enter_selection) // 设置为保存的selection。
@@ -485,7 +514,8 @@ function MouselessParameterEditor(props: {
     let param_init = node.parameters[parameter_name].val
 
     let onBlur = ()=>{apply()}
-    let onKeyDown = ()=>{(e)=>{
+
+    let onKeyDown = (e: React.KeyboardEvent) => {
         if(e.key == "Enter"){
             focus_blur_input(false)
             apply()
@@ -494,7 +524,7 @@ function MouselessParameterEditor(props: {
             return true
         }
         return false
-    }}
+    }
 
     if(props.input){
         return <Box sx={{

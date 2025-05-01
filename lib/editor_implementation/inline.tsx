@@ -56,8 +56,6 @@ import {
 export { get_default_inline_editor }
 
 /** 默认的内联样式渲染器。
- * @remark 现在有个bug，在内联节点的末尾输入中文的时候会出错。
- * 见https://github.com/ianstormtaylor/slate/issues/4811
  */
 function get_default_inline_editor({
     get_label       = (n,p)=>p.label, 

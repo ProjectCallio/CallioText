@@ -13,14 +13,6 @@ import {
     Drawer , 
 } from "@mui/material"
 
-import {
-    ConceptNode,
-    ParameterList , 
-    ParameterValue , 
-    GlobalInfo , 
-    AbstractNode , 
-} from "../../core"
-
 import { EditorStructureTypography as StructureTypography } from "../uibase/components"
 import { EditorComponent } from "../../editor"
 import {

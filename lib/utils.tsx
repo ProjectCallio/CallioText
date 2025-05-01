@@ -1,6 +1,12 @@
 export {
     object_foreach , 
     merge_object ,
+    gene_idx , 
+}
+
+/** 生成一个随机数。 */
+function gene_idx(){
+    return Math.floor( Math.random() * 233333333).toString()
 }
 
 

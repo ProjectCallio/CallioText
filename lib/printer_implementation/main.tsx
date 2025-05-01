@@ -57,19 +57,18 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
         this.printer_ref = React.createRef()
     }
 
-    componentDidMount(): void {
-        while(!this.get_component()); // TODO 他妈的谁想出来的这种写法
-
-        if(this.props.onDidMount){
-            this.props.onDidMount(this.get_component() as PrinterComponent, this)
-        }
-    }
-
     get_component(){
         if(this.printer_ref && this.printer_ref.current){
             return this.printer_ref.current
         }
         return undefined
+    }
+
+    handle_ref_printercomponent(comp: PrinterComponent){
+        this.printer_ref.current = comp
+        if(this.props.onDidMount){
+            this.props.onDidMount(comp, this)
+        }
     }
 
     render(){
@@ -80,7 +79,7 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
         return <PrinterConfigContext.Provider value = {config}>
             <PrinterBackgroundPaper>
                 <PrinterComponent 
-                    ref     = {me.printer_ref}
+                    ref     = {me.handle_ref_printercomponent.bind(me)}
                     printer = {me.props.printer}
                     root    = {me.props.root}
                     onUpdateCache = {me.props.onUpdateCache}

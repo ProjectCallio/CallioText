@@ -3,7 +3,8 @@
  * @module
  */
 
-import React, {useState , createRef} from "react"
+import React from "react"
+import * as Slate from "slate"
 
 
 import {
@@ -34,7 +35,6 @@ import {
     KeyboardArrowDown as KeyboardArrowDownIcon, Opacity
 } from "@mui/icons-material"
 
-import * as Slate from "slate"
 
 import { GroupNode  } from "../core"
 import { 

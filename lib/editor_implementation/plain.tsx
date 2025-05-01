@@ -1,6 +1,7 @@
 /** 这个模块为一般段落提供样式。 
  * @module
 */
+import * as React from "react"
 import {
     Grid , 
     Box , 

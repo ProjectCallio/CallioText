@@ -58,6 +58,10 @@ import {
     EditorGlobalInfo , 
 } from "./globalinfo"
 
+import {
+    gene_idx , 
+} from "../utils"
+
 export {
     EditorComponent , 
     EditorCore , 
@@ -65,82 +69,79 @@ export {
 export type {
     EditorComponentProps , 
     EditorRendererDict , 
-    EditorDefaultRendererhDict , 
+    EditorDefaultRendererDict , 
 }
 
 /** 用来保存概念的编辑器渲染。 */
 interface EditorRendererDict{
-    "group"     : {[name: string] : EditorRenderer<GroupNode>} , 
-    "inline"    : {[name: string] : EditorRenderer<InlineNode>} , 
-    "support"   : {[name: string] : EditorRenderer<SupportNode>} , 
-    "structure" : {[name: string] : EditorRenderer<StructNode>} , 
-    "abstract"  : {[name: string] : EditorRenderer<AbstractNode>} , 
+    "group"     : {[name: string] : EditorRenderer} , 
+    "inline"    : {[name: string] : EditorRenderer} , 
+    "support"   : {[name: string] : EditorRenderer} , 
+    "structure" : {[name: string] : EditorRenderer} , 
+    "abstract"  : {[name: string] : EditorRenderer} , 
 }
 
 /** 编辑器的默认渲染。 */
-interface EditorDefaultRendererhDict{
-    "group"     : EditorRenderer<GroupNode> , 
-    "inline"    : EditorRenderer<InlineNode> , 
-    "support"   : EditorRenderer<SupportNode> , 
-    "structure" : EditorRenderer<StructNode> , 
-    "abstract"  : EditorRenderer<AbstractNode> , 
-    "paragraph" : EditorRenderer<ParagraphNode> , 
-    "text"      : EditorRenderer<TextNode> , 
+interface EditorDefaultRendererDict{
+    "group"     : EditorRenderer , 
+    "inline"    : EditorRenderer , 
+    "support"   : EditorRenderer , 
+    "structure" : EditorRenderer , 
+    "abstract"  : EditorRenderer , 
+    "paragraph" : EditorRenderer , 
+    "text"      : EditorRenderer , 
 }
 
 /** 编辑器核心。
  * 要创建一个编辑器，需要对每个一级概念指定一个渲染器。
  */
 class EditorCore{
-    renderers: EditorRendererDict 
-    default_renderers: EditorDefaultRendererhDict 
-    printer: Printer
+    renderers        : EditorRendererDict 
+    default_renderers: EditorDefaultRendererDict 
+    printer          : Printer
 
     constructor(params: {
         renderers: EditorRendererDict , 
-        default_renderers: EditorDefaultRendererhDict, 
+        default_renderers: EditorDefaultRendererDict, 
         printer: Printer , 
     }){
-        this.renderers = params.renderers 
-        this.default_renderers = params.default_renderers 
-        this.printer = params.printer 
+        this.renderers          = params.renderers 
+        this.default_renderers  = params.default_renderers 
+        this.printer            = params.printer 
     }
 
     get_sec_concept_list(type: AllConceptTypes){
-        return Object.keys( this.get_printer().second_class_concepts[type] )
+        return Object.keys( this.printer.second_class_concepts[type] )
     }
 
     get_fst_concept_list(type: AllConceptTypes){
-        return Object.keys( this.get_printer().first_class_concepts[type] )
+        return Object.keys( this.printer.first_class_concepts[type] )
     }
 
     get_printer(){
         return this.printer
     }
 
-    gene_idx(){
-        return Math.floor( Math.random() * 233333333).toString()
-    }
 
     /** 从一级概念查询一个渲染器。
      * @param type 查找的节点类型。
      * @param fst_concept 查找的概念名称。
-     * 如果`type == "paragraph" || "text"`，那么`name`将会被忽略。
+     * 如果`type == "paragraph" || "text"`，那么`fst_concept`将会被忽略。
      * 反之，如果`type != "paragraph" && type != "text"`，那么`name`必须提供。
      */
     get_first_renderer(type: AllNodeTypes , fst_concept?: string): EditorRenderer{
-        if(type != "paragraph" && type != "text"){// 概念节点。
-            if(fst_concept == undefined)
-                return this.default_renderers[type]
-
-            let ret = this.renderers[type][fst_concept]
-            if(ret == undefined){ // 如果没有找到这个概念的渲染器，就返回一个这个概念类型的默认渲染器。
-                ret = this.default_renderers[type]
-            }
-            return ret
+        if(type == "paragraph" || type == "text"){
+            return this.default_renderers[type]
+        }
+        if(!fst_concept){
+            return this.default_renderers[type]
         }
 
-        return this.default_renderers[type] // 在不是概念节点的情况下，直接返回默认渲染器。
+        let ret = this.renderers[type as string][fst_concept]
+        if(!ret){ // 如果没有找到这个概念的渲染器，就返回一个这个概念类型的默认渲染器。
+            ret = this.default_renderers[type]
+        }
+        return ret
     }
     /** 从二级概念查询一个渲染器。
      * @param type 查找的节点类型。
@@ -148,29 +149,29 @@ class EditorCore{
      * 如果`type == "paragraph" || "text"`，那么`sec_concept`将会被忽略。
      * 反之，如果`type != "paragraph" && type != "text"`，那么`sec_concept`必须提供。
      */
-
     get_second_renderer(type: AllNodeTypes , sec_concept?: string): EditorRenderer{
         if(type == "paragraph" || type == "text"){
             return this.get_first_renderer(type, sec_concept)
         }
-        if(sec_concept == undefined){
-            throw new UnexpectedParametersError("sec_concept is undefined.")
-        }
-        let sec_ccpt = this.get_printer().get_second_concept(type, sec_concept)
-        
-        if(sec_ccpt == undefined){
+        if(!sec_concept){
             return this.default_renderers[type]
         }
-        let first_concept_name = sec_ccpt.first_concept
-        let fst_ccpt = this.get_printer().get_first_concept(type, first_concept_name)
-        if(fst_ccpt == undefined){
+        let printer  = this.get_printer()
+        let sec_ccpt = printer.get_second_concept(type, sec_concept)
+        if(!sec_ccpt){
+            return this.default_renderers[type]
+        }
+
+        let first_concept_name  = sec_ccpt.first_concept
+        let fst_ccpt            = printer.get_first_concept(type, first_concept_name)
+        if(!fst_ccpt){
             return this.default_renderers[type]
         }
         return this.get_first_renderer(type, fst_ccpt.name)
     }
 
     /** 这个函数直接从一个节点查询渲染器。 */
-    get_node_renderer(node: Slate.Node & Node): EditorRenderer{
+    get_node_renderer(node: Node & Slate.Node): EditorRenderer{
         let me = this
         if(slate_is_text(node)){ // 如果是文本节点，直接按类型查询。
             return me.get_first_renderer("text")
@@ -206,7 +207,7 @@ class EditorCore{
 
         return {
             type: "group" , 
-            idx: this.gene_idx() , 
+            idx: gene_idx() , 
             concept: name , 
             parameters: parameters , 
             relation: relation , 
@@ -223,7 +224,7 @@ class EditorCore{
 
         return {
             type: "inline" , 
-            idx: this.gene_idx() , 
+            idx: gene_idx() , 
             concept: name , 
             parameters: parameters , 
             children: [me.create_text(text)] , 
@@ -239,7 +240,7 @@ class EditorCore{
 
         return {
             type: "support" , 
-            idx: this.gene_idx() , 
+            idx: gene_idx() , 
             concept: name , 
             parameters: parameters , 
             children: [{text: ""}] , 
@@ -255,7 +256,7 @@ class EditorCore{
 
         return {
             type: "structure" , 
-            idx: this.gene_idx() , 
+            idx: gene_idx() , 
             concept: name , 
             parameters: parameters , 
             children: [this.create_group("support-child", "chaining")] , 
@@ -272,7 +273,7 @@ class EditorCore{
 
         return {
             type: "abstract" , 
-            idx: this.gene_idx() , 
+            idx: gene_idx() , 
             concept: name , 
             parameters: parameters , 
             children: [me.create_paragraph("")] , 
@@ -304,12 +305,12 @@ type TreeOpeationsMixins = {
     add_nodes_here      : <NT extends Slate.Node              >                         (nodes: (NT[]) | NT                     ) => void
     replace_nodes       : <NT extends Slate.Node & ConceptNode, ST extends Slate.Node>  (father_node: NT, nodes: ST[]           ) => void
     wrap_selected_nodes : <NT extends Slate.BaseElement       >                         (node: NT, options:{
-                                                                                            match?: (n:NT)=>boolean , 
+                                                                                            match?: (n:Slate.Node)=>boolean , 
                                                                                             split?: boolean , 
                                                                                         }) => void
     wrap_nodes          : <NT extends Slate.BaseElement       >                         (node: NT, from: Slate.Point, to: Slate.Point, 
                                                                                         options:{
-                                                                                            match?: (n:NT)=>boolean , 
+                                                                                            match?: (n:Slate.Node)=>boolean , 
                                                                                             split?: boolean , 
                                                                                         }) => void
 }
@@ -367,9 +368,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
 
 }>{
     
-    // update_debounce: DoSomething<Slate.Node[]> // XXX 见contructor()结尾
-
-
     constructor(props:EditorComponentProps){
         super(props)
 
@@ -403,13 +401,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
             root_children: props.init_rootchildren || default_root_children , 
             root_property: props.init_rootproperty || default_root_but_children , 
         }
-
-        // XXX 本来这个函数是想让一定时间内的修改batch在一起来更新，从而避免频繁更新state，频繁重新渲染，但是
-        //     实际上这个函数会导致光标位置错误...
-        // this.update_debounce = new DoSomething((val)=>{
-        //     this.update_value(val)
-        //     console.log("updating value!")
-        // } , 5000)
     }
 
     get_core(){
@@ -537,23 +528,23 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         
         let context = {
             editor: me , 
-            slate: me.state.slate , 
-            core: me.get_core() , 
+            slate : me.state.slate , 
+            core  : me.get_core() , 
         }
 
-        let root_children = me.props.init_rootchildren || (this.get_core().create_abstract("root") as AbstractNode).children
+        let root_children = me.props.init_rootchildren || (
+            this.get_core().create_abstract("root") as AbstractNode
+        ).children
         return <EditorGlobalInfo.Provider value={context}>
             <SlateReact.Slate 
-                editor = {slate} 
+                editor       = {slate} 
                 initialValue = {root_children} 
-                onChange = {value => {
+                onChange     = {value => {
                     if(JSON.stringify(value) == JSON.stringify(this.state.root_children)){
                         // 实际上没有改变，就不更新了。
                         return
                     }
-                    // me.update_debounce.go(value)
                     me.update_value(value)
-
                     me.onFocusChange()
                 }}
             >

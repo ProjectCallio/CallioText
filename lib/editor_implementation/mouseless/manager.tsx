@@ -169,6 +169,8 @@ class KeyEventManager extends React.Component<KeyEventManagerProps, KeyEventMana
         this.update_props()
         this.ctrl_key = {}
         this.elements = {}
+        this.spaces = {}
+        this.non_space_oprations = {}
     }
 
     /** 目前ctrl键是否处于按下状态。 */

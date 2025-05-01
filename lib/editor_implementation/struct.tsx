@@ -3,7 +3,7 @@
  * @module
  */
 
-import React, {useState , createRef} from "react"
+import React from "react"
 
 
 import {
@@ -58,7 +58,8 @@ import {
     AutoStack , 
     Direction , 
     SimpleAutoStack , 
-    AutoStackedPopper
+    AutoStackedPopper , 
+    UnexpectedParametersError , 
 } from "../uibase"
 
 import { 
@@ -116,13 +117,17 @@ function get_default_struct_editor_with_rightbar({
         let globalinfo  = React.useContext(EditorGlobalInfo)
         let editor      = globalinfo.editor as EditorComponent
         let node        = props.node
-        let parameters  = editor.get_core().get_printer().process_parameters(node)
+        let editorcore  = editor.get_core()
+        let parameters  = editorcore.get_printer().process_parameters(node)
 
         let mylabel = get_label(node, parameters)
         let SUR     = surrounder
 
         let mychildren = node.children
         let mypath = slate_concept_node2path(editor.get_slate() , node)
+        if(!mypath){
+            throw new UnexpectedParametersError("这这不能")
+        }
         let num_children = get_numchildren(node, parameters)
         if(num_children < 0){
             num_children = mychildren.length
@@ -138,16 +143,16 @@ function get_default_struct_editor_with_rightbar({
         React.useEffect(()=>{
             // 规范子节点数量。
             if(num_children < mychildren.length){
-                let paths = []
+                let paths = new Array<number[]>()
                 for(let x = num_children; x < mychildren.length; x++){
                     paths.push([...mypath, x])
                 }
                 editor.delete_nodes_by_paths(paths) // 删除最后一个子节点。
             }
             else if(num_children > mychildren.length){
-                let new_nodes = []
+                let new_nodes = new Array<Slate.Node>()
                 for(let x = mychildren.length; x < num_children; x++){
-                    new_nodes.push(editor.get_core().create_group("structure-child" , "chaining"))
+                    new_nodes.push(editorcore.create_group("structure-child" , "chaining"))
                 }
                 editor.add_nodes(new_nodes, [...mypath, mychildren.length]) // 在最后一个节点后面添加节点
             }
@@ -158,11 +163,15 @@ function get_default_struct_editor_with_rightbar({
             <AutoStack force_direction="row">
                 
                 <Grid container columns={widthsum} sx={{width: "100%"}}>
-                    {widths.map((width,idx)=>{
-                        return <Grid key={idx} item xs={width}>
+                    {widths.map((width,idx)=>{   
+                        let child = (props.children as any)?.[idx]
+                        if(!child){
+                            return <></>
+                        }
+                        return <Grid key={idx} size={{xs: width}}>
                             <ComponentEditorBox autogrow >
                                 <SUR node={node}>
-                                    {props.children[idx]}
+                                    {child}
                                 </SUR>
                             </ComponentEditorBox>
                         </Grid>

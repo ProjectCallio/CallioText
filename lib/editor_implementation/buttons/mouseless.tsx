@@ -32,11 +32,11 @@ export {
 
 const SPACE = "e"
 
-function get_mouseless_space(editor: EditorComponent){
+function get_mouseless_space(get_editor: ()=>EditorComponent | undefined){
     return {
         key: SPACE, 
-        activate_position: get_activate_position(editor) , 
-        switch_position : get_switch_position(editor) , 
+        activate_position: get_activate_position(get_editor) , 
+        switch_position  : get_switch_position  (get_editor) , 
     }
 }
 
@@ -87,15 +87,19 @@ function get_mouseless_father(editor: EditorComponent, node: Slate.Node & Concep
     return [now_node, cancidate_idxs]
 }
 
-function get_switch_position(editor: EditorComponent): SwitchPositionFunction{
+function get_switch_position(get_editor: ()=>EditorComponent | undefined): SwitchPositionFunction{
     return (
         position_list: string[] , 
         cur_position: string, 
         direction: DirectionKey, 
         all_keys: {[k:string]: boolean}
     ): string | undefined =>{
+        let editor = get_editor()
+        if(editor == undefined){
+            return undefined
+        }
         if(cur_position == undefined){
-            return get_activate_position(editor)(position_list, cur_position)
+            return get_activate_position(get_editor)(position_list, cur_position)
         }
 
         let flag_multi = false // 是否有多个方向键同时按下，如果有，就进入父节点。
@@ -166,7 +170,7 @@ function activate_position_brother(
     now_path = now_path.slice(0,now_path.length-2) // 向上两格，之所以要向上两格是为了跳出text，然后再跳出一格。
 
     let father_node = Slate.Editor.node(editor.get_slate(), now_path)[0] // 父节点
-    let children = father_node["children"] as (Slate.Node[] | undefined)
+    let children = (father_node as any)["children"] as (Slate.Node[] | undefined)
     if(!children){
         return cur_position
     }
@@ -194,8 +198,12 @@ function activate_position_brother(
     return JSON.stringify([res_node.idx, res_cancidate_idxs[0]])
 }
 
-function get_activate_position(editor: EditorComponent){
+function get_activate_position(get_editor: ()=>EditorComponent | undefined){
     return (position_list: string[], cur_position: string): string | undefined => {
+        let editor = get_editor()
+        if(editor == undefined){
+            return undefined
+        }
         let selection = editor.get_slate().selection
         if(!selection){ // 如果光标不在编辑器上
             return undefined

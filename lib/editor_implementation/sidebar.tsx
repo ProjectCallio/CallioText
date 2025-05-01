@@ -13,15 +13,6 @@ import {
     PaperProps, 
     BoxProps , 
 } from "@mui/material"
-import {
-    CalendarViewDay as CalendarViewDayIcon , 
-    CloseFullscreen as CloseFullscreenIcon , 
-    Coffee as CoffeeIcon , 
-    Settings as SettingsIcon , 
-    QrCode as QrCodeIcon , 
-} from "@mui/icons-material"
-import { ThemeProvider , createTheme , styled } from "@mui/material/styles"
-import type { Theme , ThemeOptions } from "@mui/material/styles"
 
 import {
     EditorComponent , 
@@ -57,11 +48,11 @@ export {
 const SPACE = "q"
 const TYPENAMES = ["group" , "inline" , "support" , "structure"] as ["group" , "inline" , "support" , "structure"]
 
-function get_mouseless_space(editor: EditorComponent){
+function get_mouseless_space(){
     return {
         key: SPACE, 
         activate_position: get_activate_position() , 
-        switch_position: get_switch_position(editor) , 
+        switch_position  : get_switch_position() , 
     }
 }
 
@@ -98,10 +89,7 @@ function get_activate_position(){
 } 
 
 /** 这个函数以editor为参数，返回改变位置的函数。 */
-function get_switch_position(editor: EditorComponent): SwitchPositionFunction{
-    if(editor == undefined){
-        return ()=>undefined
-    }
+function get_switch_position(): SwitchPositionFunction{
     return (position_list: string[], cur_position: string, direction: DirectionKey) => {
         if(cur_position == undefined){ // 如果都没有选中过位置，那就用最小的。
              return get_activate_position()(position_list, cur_position)

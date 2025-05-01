@@ -112,8 +112,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     onFocusChange: ()=>void
     onSave: ()=> void
 
-    editor_ref		 : React.RefObject<EditorComponent | null>
     parameteredit_ref: React.RefObject<ParameterEdit | null>
+    editor_ref       : React.RefObject<EditorComponent | null>
 
     constructor(props: DefaultEditorComponentprops) {
         super(props)
@@ -123,19 +123,16 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         this.onFocusChange  = props.onFocusChange || (()=>{})
         this.onSave = props.onSave || (()=>{})
 
-        this.editor_ref         = React.createRef<EditorComponent | null>()
         this.parameteredit_ref  = React.createRef<ParameterEdit | null>()
+        this.editor_ref         = React.createRef<EditorComponent | null>()
 
         this.state = {
             idx_conflicts: [] , 
         }
     }
 
-
     get_editor(){
-        if(this.editor_ref && this.editor_ref.current)
-            return this.editor_ref.current
-        return undefined
+        return this.editor_ref?.current || undefined
     }
 
     get_root(): AbstractNode | undefined{
@@ -271,27 +268,16 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         set_normalize_status({pasting: false})
     }
 
-
-    componentDidMount(): void {
-
-        let me = this
-
-        while(!this.get_editor()); // 确保editor存在
-        
-        this.forceUpdate()
-
-        setInterval(this.check_idx.bind(this), 1000) // 1s检查一次idx
-    }
-
     render() {
     
         let paper_widths  = {xs: "87%" , md: "90%" , xl: "93%"} // 纸张的宽度，
         let paper_right   = {xs: "89%" , md: "92%" , xl: "95%"} // 纸张的宽度，
         let toolbar_width = {xs: "10%" , md: "7%" , xl: "5%"} // 工具栏的宽度。
 
-        let config = make_editorconfig(this.props.config)
-        let me = this
-        let IdxConflitSolver = this.IdxConflitSolver.bind(this)
+        let me                  = this
+        let config              = make_editorconfig(this.props.config)
+        let IdxConflitSolver    = this.IdxConflitSolver.bind(this)
+        let editor              = me.get_editor()
 
         // 当焦点发生变化时，更新parameteredit_ref
         let onFocusChange = ()=>{
@@ -300,20 +286,13 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             }
             me.parameteredit_ref?.current?.try_update()
         }
-        // // 当按下按键时，更新parameteredit_ref
-        // let onKeyPress = (e: React.KeyboardEvent<HTMLDivElement>)=>{
-        //     if(me.props.onKeyPress){
-        //         me.props.onKeyPress(e)
-        //     }
-        //     me.parameteredit_ref?.current?.try_update()
-        // }
 
         return <EditorConfigContext.Provider value={config}><EditorBackgroundPaper>
-                <IdxConflitSolver />
-                <KeyEventManager
+            <IdxConflitSolver />
+            <KeyEventManager
                 spaces = {[
-                    sidebar_get_mouseless_space(me.get_editor() as EditorComponent) , 
-                    buttons_get_mouseless_space(me.get_editor() as EditorComponent) , 
+                    sidebar_get_mouseless_space() , 
+                    buttons_get_mouseless_space(me.get_editor.bind(me)) , 
                 ]}
                 non_space_oprations = {[
                     {

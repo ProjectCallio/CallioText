@@ -133,6 +133,7 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
  */
 class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
+    declare context: React.ContextType<typeof EditorGlobalInfo>
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -140,9 +141,10 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
 
     run(){
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
-
-        editor.delete_concept_node(this.props.node)
+        let editor = globalinfo.editor
+        if(editor){
+            editor.delete_concept_node(this.props.node)
+        }
     }
     render(): React.ReactNode {
         return <AutoIconButton onClick={this.run.bind(this)} title="删除组件" icon={CloseIcon} />
@@ -155,6 +157,7 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
  */
 class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformation & {puretext?: boolean}> implements ButtonBase{
     static contextType = EditorGlobalInfo
+    declare context: React.ContextType<typeof EditorGlobalInfo>
 
     constructor(props: EditorButtonInformation & {puretext?: boolean}){
         super(props)
@@ -162,14 +165,19 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
 
     run(){
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
+        let editor = globalinfo.editor
+        if(!editor){
+            return
+        }
 
         if(this.props.puretext){
             // XXX 可能保留内部样式会比较好...
             let text = Slate.Node.string(this.props.node)
             let path = slate_concept_node2path(editor.get_root() , this.props.node)
-            editor.delete_node_by_path(path)
-            editor.add_nodes(editor.get_core().create_paragraph(text) , path)
+            if(path){
+                editor.delete_node_by_path(path)
+                editor.add_nodes(editor.get_core().create_paragraph(text) , path)
+            }
         }
         else{
             editor.unwrap_node(this.props.node)
@@ -185,6 +193,7 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
  */
 class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
+    declare context: React.ContextType<typeof EditorGlobalInfo>
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -192,7 +201,10 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 
     run(){
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
+        let editor = globalinfo.editor
+        if(!editor){
+            return
+        }
         editor.add_nodes_before(editor.get_core().create_paragraph() , this.props.node )    
     }
     render(): React.ReactNode {
@@ -205,6 +217,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
  */
  class NewParagraphButtonDown extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
+    declare context: React.ContextType<typeof EditorGlobalInfo>
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -212,7 +225,10 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 
     run(){
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
+        let editor = globalinfo.editor
+        if(!editor){
+            return
+        }
         editor.add_nodes_after(editor.get_core().create_paragraph() , this.props.node )    
     }
     render(): React.ReactNode {
@@ -226,6 +242,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
  */
  class CopyButton extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
+    declare context: React.ContextType<typeof EditorGlobalInfo>
 
     constructor(props: EditorButtonInformation){
         super(props)
@@ -233,7 +250,10 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 
     run(){
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
+        let editor = globalinfo.editor
+        if(!editor){
+            return
+        }
 
         let node = this.props.node
         let new_node: ConceptNode | undefined = undefined
@@ -266,7 +286,8 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
     checked: boolean
 }> implements ButtonBase{
     static contextType = EditorGlobalInfo
-    
+    declare context: React.ContextType<typeof EditorGlobalInfo>
+
     switchref: React.RefObject<HTMLInputElement | null>
 
     constructor(props: EditorButtonInformation<GroupNode | StructNode>){
@@ -287,12 +308,15 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
     }
 
     /** 当点击的时候，处理开关的逻辑。 */
-    switch_check_change(e: React.MouseEvent<HTMLDivElement>){
+    switch_check_change(){
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
+        let editor = globalinfo.editor
         let node = this.props.node
 
-        let checked = this.get_switch().checked
+        let checked = this.get_switch()?.checked
+        if(checked == undefined || !editor){
+            return
+        }
         this.setState({checked: checked})
 
         // constraints会自动处理更改，不用担心
@@ -320,7 +344,10 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
     }
     
     run(){
-        this.get_switch().click() // 模拟点击。
+        let switch_ = this.get_switch()
+        if(switch_){
+            switch_.click() // 模拟点击。
+        }
     }
     render(): React.ReactNode {
         return <AutoTooltip title = "贴贴">
@@ -369,8 +396,9 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
 }>{
 
     static contextType = EditorGlobalInfo
+    declare context: React.ContextType<typeof EditorGlobalInfo>
 
-    menu_anchor_ref: React.RefObject<HTMLAnchorElement>
+    menu_anchor_ref: React.RefObject<HTMLAnchorElement | null>
 
     /**
      * 创建一个折叠起来的按钮组，且通过无鼠标的方式来操作。
@@ -422,7 +450,6 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
         let B = props.outer_button
 
         let globalinfo = this.context
-        let editor = globalinfo.editor as EditorComponent
 
         let poper = <React.Fragment>
             <AutoTooltip title={props.label}><B 

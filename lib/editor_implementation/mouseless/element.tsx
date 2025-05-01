@@ -9,7 +9,6 @@ import {
     MouselessActivateOperation , 
     MouselessUnActivateOperation , 
 } from "./manager"
-import { GlobalInfo } from "../../core"
 
 export {
     MouselessElement , 
