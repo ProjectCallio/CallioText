@@ -7,12 +7,13 @@ import React from "react"
 import { 
     GroupNode , 
     AbstractNode , 
-    PrinterCache , 
 } from "../core"
+
 
 import {
     Printer , 
     PrinterComponent , 
+    PrinterCache , 
 } from "../printer"
 
 import {

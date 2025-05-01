@@ -2,7 +2,11 @@
  * @module
 */
 
-import { ParameterValue , ParameterList, AllConceptTypes } from './intermidiate'
+import { 
+    ParameterValue , 
+    ParameterList, 
+    AllConceptTypes , 
+} from './intermidiate'
 export type {
     MetaParameters , 
     FixedParameterValue , 

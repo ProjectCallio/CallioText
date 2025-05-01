@@ -2,15 +2,13 @@ import * as React from "react"
 
 import type {
     TypographyConfig , 
+    MyPartial , 
 } from "../../uibase"
 
 import {
     merge_object , 
 } from "../../utils"
 
-import {
-    MyPartial , 
-} from "../../uibase"
 export {
     PrinterConfigContext    , 
     default_printerconfig , 

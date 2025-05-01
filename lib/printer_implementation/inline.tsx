@@ -14,18 +14,17 @@ import type {
 
 
 import {
-    ProcessedParameterList , 
-    ConceptNode , 
-    GroupNode , 
+    InlineNode ,
+    TextNode ,  
+} from "../core"
+import {
+    Printer , 
     PrinterRenderFunctionProps , 
     PrinterRenderFunction , 
     PrinterRenderer , 
     Env , 
     Context, 
-    ParagraphNode, 
-    InlineNode ,
-    TextNode ,  
-} from "../core"
+} from "../printer"
 import {
     ContexterBase , 
     InjectContexter , 

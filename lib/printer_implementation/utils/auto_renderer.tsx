@@ -8,14 +8,16 @@ import {
     PreprocessInformation , 
 } from "../contexter"
 import {
+    Node , 
+    AbstractNode , 
+} from "../../core"
+import {
     PrinterRenderFunction , 
     PrinterRenderer , 
-    Node , 
     ProcessedParameterList , 
     Env , 
     Context ,
-    AbstractNode , 
-} from "../../core"
+} from "../../printer"
 
 export {auto_renderer}
 

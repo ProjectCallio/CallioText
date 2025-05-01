@@ -2,17 +2,19 @@ import React from "react"
 import { Grid } from "@mui/material"
 
 import {
-    ProcessedParameterList , 
     ConceptNode , 
     GroupNode , 
+    ParagraphNode, 
+    StructNode , 
+} from "../core"
+import {
+    Printer , 
     PrinterRenderFunctionProps , 
     PrinterRenderFunction , 
     PrinterRenderer , 
     Env , 
     Context, 
-    ParagraphNode, 
-    StructNode , 
-} from "../core"
+} from "../printer"
 import {
     ContexterBase , 
     InjectContexter , 

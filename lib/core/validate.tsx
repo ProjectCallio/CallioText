@@ -7,7 +7,10 @@ import {
 	ParagraphNode , 
 } from "./intermidiate"
 
-export {validate_parameters , validate}
+export {
+    validate_parameters , 
+    validate , 
+}
 
 function make_msg(path: number[], msg: string){
     return `node ${JSON.stringify(path)}: ${msg}`

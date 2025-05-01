@@ -8,7 +8,7 @@ import {
     PrinterExitFunction , 
     ProcessedParameterList , 
     PrinterCacheItem , 
-} from "../../core"
+} from "../../printer"
 import { 
 	Node , 
 

@@ -9,11 +9,11 @@ import {
     PrinterExitFunction , 
     ProcessedParameterList , 
     PrinterCacheItem , 
-} from "../../core"
+} from "../../printer"
 import { 
 	Node , 
+} from "../../core"
 
-} from "../../core/intermidiate"
 import {
     ContexterBase
 } from "./base"

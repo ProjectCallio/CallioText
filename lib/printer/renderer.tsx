@@ -7,7 +7,7 @@ import {
     Node , 
     ParameterList , 
     AbstractNode , 
-} from "./intermidiate"
+} from "../core/intermidiate"
 
 export {
     PrinterRenderer , 
