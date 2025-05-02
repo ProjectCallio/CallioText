@@ -107,6 +107,7 @@ type DefaultEditorComponentprops = EditorComponentProps & {
  */
 class DefaultEditorComponent extends React.Component <DefaultEditorComponentprops, {
     idx_conflicts: [string, number[][]][] // 节点idx冲突
+    editor_ready: boolean
 }> {    
     onUpdate: (newval: Node[]) => void
     onFocusChange: ()=>void
@@ -128,6 +129,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
         this.state = {
             idx_conflicts: [] , 
+            editor_ready: false,
         }
     }
 
@@ -277,7 +279,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         let me                  = this
         let config              = make_editorconfig(this.props.config)
         let IdxConflitSolver    = this.IdxConflitSolver.bind(this)
-        let editor              = me.get_editor()
 
         // 当焦点发生变化时，更新parameteredit_ref
         let onFocusChange = ()=>{
@@ -314,29 +315,31 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         width: "100%" , 
                         paddingRight: "1%" , 
                         flex: 1 , 
-                    }}>
-                        <EditorComponentEditingBox>
-                            <KeyDownUpFunctionProxy.Consumer>{([onkeydown , onkeyup])=>{
-                                return <EditorComponent
-                                    ref 		        = {me.editor_ref} 
+                    }}><EditorComponentEditingBox>
+                        <KeyDownUpFunctionProxy.Consumer>{([onkeydown , onkeyup])=>{
+                            return <EditorComponent
+                                ref 		        = {(editor: EditorComponent)=>{
+                                    me.editor_ref.current = editor
+                                    if(!me.state.editor_ready){
+                                        me.setState({editor_ready: true})
+                                    }
+                                }} 
 
-                                    editorcore          = {me.props.editorcore}
-                                    plugin              = {me.props.plugin}
-                                    init_rootchildren   = {me.props.init_rootchildren}
-                                    init_rootproperty   = {me.props.init_rootproperty}
+                                editorcore          = {me.props.editorcore}
+                                plugin              = {me.props.plugin}
+                                init_rootchildren   = {me.props.init_rootchildren}
+                                init_rootproperty   = {me.props.init_rootproperty}
 
-                                    onUpdate            = {me.props.onUpdate}
-                                    onKeyPress          = {me.props.onKeyPress}
-                                    onFocusChange       = {onFocusChange}
-                                    
-                                    onKeyDown           = {onkeydown}
-                                    onKeyUp             = {onkeyup}
-                                />
-                            }}
-                            </KeyDownUpFunctionProxy.Consumer>
-                        </EditorComponentEditingBox>
-                        
-                    </ScrollBarBox>
+                                onUpdate            = {me.props.onUpdate}
+                                onKeyPress          = {me.props.onKeyPress}
+                                onFocusChange       = {onFocusChange}
+                                
+                                onKeyDown           = {onkeydown}
+                                onKeyUp             = {onkeyup}
+                            />
+                        }}
+                        </KeyDownUpFunctionProxy.Consumer>
+                    </EditorComponentEditingBox></ScrollBarBox>
                 </Box>
 
                 <Box key="area-2" sx = {{
@@ -348,6 +351,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 }}>{(()=>{
                     let root   = me.get_root()
                     let editor = me.get_editor()
+
                     if(!(editor && root)){
                         return <></>
                     }

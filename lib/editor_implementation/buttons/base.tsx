@@ -211,9 +211,14 @@ class ButtonGroup extends React.Component<ButtonGroupProps>{
                 ResComponent       = component
                 res_skip_mouseless = skip_mouseless || false
             }
+            else{
+                ResComponent = but_desc as React.ComponentType<EditorButtonInformation & any>
+            }
+
             if(res_skip_mouseless){
                 return <ResComponent key={subidx} node={node} {...res_other_props}/> // 单独创建元素，不套上mouseless。
             }
+            
             return <MouselessButton 
                 key         = {subidx}
                 node        = {node}
