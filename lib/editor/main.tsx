@@ -74,11 +74,11 @@ export type {
 
 /** 用来保存概念的编辑器渲染。 */
 interface EditorRendererDict{
-    "group"     : {[name: string] : EditorRenderer} , 
-    "inline"    : {[name: string] : EditorRenderer} , 
-    "support"   : {[name: string] : EditorRenderer} , 
-    "structure" : {[name: string] : EditorRenderer} , 
-    "abstract"  : {[name: string] : EditorRenderer} , 
+    "group"     : {[name: string] : EditorRenderer<GroupNode>} , 
+    "inline"    : {[name: string] : EditorRenderer<InlineNode>} , 
+    "support"   : {[name: string] : EditorRenderer<SupportNode>} , 
+    "structure" : {[name: string] : EditorRenderer<StructNode>} , 
+    "abstract"  : {[name: string] : EditorRenderer<AbstractNode>} , 
 }
 
 /** 编辑器的默认渲染。 */
@@ -141,7 +141,7 @@ class EditorCore{
         if(!ret){ // 如果没有找到这个概念的渲染器，就返回一个这个概念类型的默认渲染器。
             ret = this.default_renderers[type]
         }
-        return ret
+        return ret as EditorRenderer
     }
     /** 从二级概念查询一个渲染器。
      * @param type 查找的节点类型。

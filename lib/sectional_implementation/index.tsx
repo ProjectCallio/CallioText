@@ -3,3 +3,8 @@
  * 每个小节由一个slate单独编辑。
  */
 
+export * from "./editor"
+export * from "./printer"
+
+export * as editor from "./editor"
+export * as printer from "./printer"
