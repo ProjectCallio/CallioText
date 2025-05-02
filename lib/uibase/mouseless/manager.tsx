@@ -6,7 +6,7 @@ import React from "react"
 import { produce } from "immer"
 import {
     UnexpectedParametersError , 
-} from "../../../uibase/exceptions"
+} from "../exceptions"
 
 export type {
     OnKeyDownFunction , 

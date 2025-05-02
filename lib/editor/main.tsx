@@ -137,7 +137,7 @@ class EditorCore{
             return this.default_renderers[type]
         }
 
-        let ret = this.renderers[type as string][fst_concept]
+        let ret = this.renderers[type][fst_concept]
         if(!ret){ // 如果没有找到这个概念的渲染器，就返回一个这个概念类型的默认渲染器。
             ret = this.default_renderers[type]
         }

@@ -54,7 +54,7 @@ import {
     MouselessElement , 
     KeyDownUpFunctionProxy , 
     DirectionKey, 
-} from "./mouseless"
+} from "../../uibase/mouseless"
 
 import { 
     EditorBackgroundPaper , 

@@ -13,7 +13,7 @@ import {
     MouselessElement , 
     DirectionKey , 
     SwitchPositionFunction , 
-} from "../mouseless"
+} from "../../../uibase/mouseless"
 import { 
     EditorComponent , 
     slate_is_concept , 

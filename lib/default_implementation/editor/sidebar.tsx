@@ -33,7 +33,7 @@ import {
     MouselessElement , 
     DirectionKey, 
     SwitchPositionFunction , 
-} from "./mouseless"
+} from "../../uibase/mouseless"
 
 
 export {
