@@ -143,7 +143,7 @@ type SectionalEditorComponentprops = {
     /** 改变光标位置的回调。 */
     onFocusChange?: ()=>void
 
-    init_tree?: AbstractNode[]
+    init_sections?: AbstractNode[]
 
     
     config?: PartialEditorConfig
@@ -169,13 +169,13 @@ class SectionalEditorComponent extends React.Component <SectionalEditorComponent
     constructor(props: SectionalEditorComponentprops) {
         super(props)
 
-        this.onUpdate = props.onUpdate || ((newval: Node[])=>{})
+        this.onUpdate       = props.onUpdate || ((newval: Node[])=>{})
         this.onFocusChange  = props.onFocusChange || (()=>{})
-        this.onSave = props.onSave || (()=>{})
-
+        this.onSave         = props.onSave || (()=>{})
 
         this.state = {
-            sections: props.init_tree || [],
+            sections: props.init_sections || [], 
+            cur_editor: undefined , 
         }
     }
 
@@ -185,7 +185,7 @@ class SectionalEditorComponent extends React.Component <SectionalEditorComponent
         let me                  = this
         let config              = make_editorconfig(this.props.config)
 
-        let init_tree = me.props.init_tree || []
+        let init_sections = me.props.init_sections || []
 
         return <EditorConfigContext.Provider value={config}><EditorBackgroundPaper>
         <KeyEventManager
@@ -208,11 +208,18 @@ class SectionalEditorComponent extends React.Component <SectionalEditorComponent
 
                     editorcore          = {me.props.editorcore}
                     plugin              = {me.props.plugin}
-                    init_node           = {init_tree.find(n=>n.idx === section.idx)}
+                    init_node           = {init_sections.find(n=>n.idx === section.idx)}
 
                     onUpdate            = {me.props.onUpdate}
                     onKeyPress          = {me.props.onKeyPress}
-                    onFocusChange       = {me.onFocusChange}
+                    onFocusChange       = {(cur_editor: EditorComponent)=>{
+                        // me.setState({
+                        //     cur_editor: cur_editor
+                        // })
+                        // TODO finish this
+
+                        me.onFocusChange() // TODO pass into cure
+                    }}
                     
                     onKeyDown           = {onkeydown}
                     onKeyUp             = {onkeyup}

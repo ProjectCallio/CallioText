@@ -126,16 +126,27 @@ class Printer{
 
         this.first_class_concepts = make_emptydict()
         for(let x of first_class_concepts){
-            this.first_class_concepts[x.type][x.name] = x
+            this.add_first_concept(x)
         }
 
         this.second_class_concepts = make_emptydict()
         for(let x of second_class_concepts){
-            this.second_class_concepts[x.type][x.name] = x
+            this.add_second_concept(x)
         }
 
         this.renderers          = renderers
         this.default_renderers  = default_renderers
+    }
+    add_renderer(type: AllConceptTypes, name: string, renderer: PrinterRenderer){
+        this.renderers[type][name] = renderer
+    }
+
+    add_first_concept(x: FirstClassConcept){
+        this.first_class_concepts[x.type][x.name] = x
+    }
+
+    add_second_concept(x: SecondClassConcept){
+        this.second_class_concepts[x.type][x.name] = x
     }
 
     /** 查询一个二级概念。
@@ -521,8 +532,8 @@ class PrinterComponent extends React.Component<PrinterComponentProps, PrinterCom
 
         // 先渲染子节点。
         let children_component = <></>
-        if (!is_textnode(node)){                
-            let mychildren = node.children    
+        if (!is_textnode(node)){
+            let mychildren = node.children
             children_component = <React.Fragment>{        
                 Object.keys(mychildren).map((subidx) => <ThisFunction
                     key      = {subidx}

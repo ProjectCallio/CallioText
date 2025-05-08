@@ -4,6 +4,9 @@ import {
     AbstractNode ,  
     is_abstractnode , 
 } from "../core"
+import {
+    DefaultAbstractAsRoot
+} from "../default_implementation"
 
 export {
     section_fst_concept , 
@@ -29,7 +32,6 @@ let section_snd_concept = new SecondClassConcept({
         label: {val: "section"  , type: "string"} , 
     }
 })
-
 
 function verify_root(root: AbstractNode){
     for(let child of root.children){

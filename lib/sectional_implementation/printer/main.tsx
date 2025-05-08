@@ -26,6 +26,8 @@ import {
 
 import {
     verify_root , 
+    section_fst_concept , 
+    section_snd_concept , 
 } from "../predefined"
 
 export {
@@ -62,9 +64,11 @@ class SectionalPrinterComponent extends React.Component<SectionalPrinterProps>{
 
         let {printer, root, config} = props
 
-        if(!(
-               printer.get_first_concept ("group" , "section" )
-            && printer.get_second_concept("group" , "section" )
+        printer.add_first_concept (section_fst_concept)
+        printer.add_second_concept(section_snd_concept)
+
+        if(!(  printer.get_first_concept ("abstract" , "section")
+            && printer.get_second_concept("abstract" , "section")
             && verify_root(root)
         )){
             throw new Error("printer: 根节点必须是一个section节点。")

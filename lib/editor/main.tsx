@@ -337,7 +337,7 @@ interface EditorComponentProps{
     onKeyPress?: (e: React.KeyboardEvent<HTMLDivElement>) => void
 
     /** 改变光标位置的回调。 */
-    onFocusChange?: ()=>void
+    onFocusChange?: (editor?: EditorComponent)=>void
     
 }
 interface EditorComponent extends TreeOpeationsMixins{
@@ -355,7 +355,7 @@ interface EditorComponent extends TreeOpeationsMixins{
     onKeyPress: (e: React.KeyboardEvent<HTMLDivElement>) => void
 
     /** 改变光标位置的回调。 */
-    onFocusChange: ()=>void
+    onFocusChange: (editor?: EditorComponent)=>void
 }
 
 /**
@@ -545,7 +545,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                         return
                     }
                     me.update_value(value)
-                    me.onFocusChange()
+                    me.onFocusChange( me )
                 }}
             >
                 <SlateReact.Editable
@@ -555,10 +555,10 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                     
                     renderElement = {me.renderElement.bind(me)}
                     renderLeaf    = {me.renderLeaf.bind(me)}
-                    onClick       = {e=>{me.onFocusChange()}}
-                    onBlur        = {me.onFocusChange}
-                    onFocus       = {me.onFocusChange}
-                    onSelect      = {me.onFocusChange}
+                    onClick       = {e=>me.onFocusChange(me)}
+                    onBlur        = {e=>me.onFocusChange(me)}
+                    onFocus       = {e=>me.onFocusChange(me)}
+                    onSelect      = {e=>me.onFocusChange(me)}
 
                     /**
                      * TODO：应该这样处理Copy / Cut & Paste：
