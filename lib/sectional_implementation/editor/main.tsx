@@ -212,7 +212,7 @@ class SectionalEditorComponent extends React.Component <SectionalEditorComponent
 
                     onUpdate            = {me.props.onUpdate}
                     onKeyPress          = {me.props.onKeyPress}
-                    onFocusChange       = {(cur_editor: EditorComponent)=>{
+                    onFocusChange       = {()=>{
                         // me.setState({
                         //     cur_editor: cur_editor
                         // })
