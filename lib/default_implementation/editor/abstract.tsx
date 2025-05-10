@@ -41,7 +41,7 @@ import type { EditorRendererProps , EditorRenderer } from "../../editor"
 
 import {
     EditorButtonInformation , 
-} from "./buttons"
+} from "../../implbase/buttons"
 
 import {
     EditorNodeInfoFunction , 

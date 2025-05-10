@@ -42,12 +42,11 @@ import {
     EditorComponent , 
     EditorGlobalInfo , 
 } from "../../../editor"
-import { EditorButtonInformation } from "./base"
 import { AutoIconButton } from "./buttons"
 import {
     DefaultParameterWithEditor , 
-} from "./parameter_edit"
-import { ButtonBase } from "./base"
+} from "../../../implbase"
+import { ButtonBase } from "../../../implbase/buttons"
 
 export { 
     DefaultRootParameterWithEditorWithDrawer , 

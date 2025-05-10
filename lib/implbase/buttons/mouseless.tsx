@@ -8,22 +8,18 @@ import React from "react"
 import * as Slate from "slate"
 import {
     ConceptNode
-} from "../../../core"
+} from "../../core"
 import {
     MouselessElement , 
     DirectionKey , 
     SwitchPositionFunction , 
-} from "../../../uibase/mouseless"
+} from "../../uibase/mouseless"
 import { 
     EditorComponent , 
     slate_is_concept , 
     slate_concept_father , 
     slate_idx_to_node , 
-} from "../../../editor"
-import {
-    EditorButtonInformation
-} from "./base"
-
+} from "../../editor"
 export {
     get_mouseless_space , 
     SPACE , 

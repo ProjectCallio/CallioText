@@ -39,15 +39,18 @@ import {
 import { 
     DefaultParameterEditButton , 
     DefaultCloseButton , 
-    AutoStackedPopperWithButton , 
     NewParagraphButtonUp , 
     NewParagraphButtonDown , 
     DefaultSwicth  , 
     DefaultSoftDeleteButton , 
 
-    EditorButtonInformation , 
     CopyButton , 
 } from "./buttons"
+
+import {
+    EditorButtonInformation , 
+} from "../../implbase/buttons"
+
 import { 
     DefaultNewAbstractButton , 
     DefaultEditAbstractButton ,  
@@ -76,7 +79,7 @@ import {
     ButtonGroup , 
     ButtonDescription , 
     AutoStackedPopperButtonGroupMouseless , 
-} from "./buttons"
+} from "../../implbase/buttons"
 
 import {
     EditorNodeInfoFunction , 

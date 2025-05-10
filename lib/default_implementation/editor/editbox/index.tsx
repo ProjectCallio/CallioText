@@ -17,10 +17,7 @@ import { EditorStructureTypography as StructureTypography } from "../uibase/comp
 import { EditorComponent } from "../../../editor"
 import {
     DefaultParameterWithEditor , 
-} from "../buttons/parameter_edit"
-import {
-    EditorButtonInformation , 
-} from "../buttons/base"
+} from "../../../implbase"
 import {
     slate_concept_father_path
 } from "../../../editor/utils"

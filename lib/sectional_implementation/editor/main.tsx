@@ -14,6 +14,7 @@ import {
     Paper ,
     Divider , 
     Popover , 
+    AppBar , 
 } from "@mui/material"
 
 import * as Slate from "slate"
@@ -58,7 +59,11 @@ import {
     make_editorconfig , 
     EditorConfig , 
     PartialEditorConfig , 
+    EditorStructureTypography , 
 } from "../../default_implementation/editor/uibase"
+import {
+    ButtonGroup , 
+} from "../../implbase/buttons"
 import { 
     ScrollBarBox , 
 } from "../../uibase"
@@ -92,7 +97,7 @@ function AbstractEditor({
 
     onUpdate        ?: (newval: Node[]) => void
     onKeyPress      ?: (e: React.KeyboardEvent<HTMLDivElement>) => void
-    onFocusChange   ?: ()=>void
+    onFocusChange   ?: (editor?: EditorComponent)=>void
     onKeyDown       ?: (e: React.KeyboardEvent<HTMLDivElement>) => void
     onKeyUp         ?: (e: React.KeyboardEvent<HTMLDivElement>) => void
 }){
@@ -104,21 +109,39 @@ function AbstractEditor({
         init_children = children
         init_property = property
     }
+    let init_parameters = init_property?.parameters || {}
 
-    return <EditorComponentEditingBox><EditorComponent
+    return <Box sx={{
+        marginY: "1rem", 
+        border: "1px solid", 
+        marginX: "0.5rem", 
+        display: "flex",
+        flexDirection: "column",
+    }}>
+        <AppBar position="static" elevation={0} sx={{
+            borderBottom: "1px solid",
+            borderColor: "divider"
+        }}>
+            <Toolbar variant="dense">
+                <EditorStructureTypography variant="subtitle1">
+                    小节
+                </EditorStructureTypography>
+            </Toolbar>
+        </AppBar>
+        <EditorComponentEditingBox><EditorComponent
+            editorcore          = {editorcore}
+            plugin              = {plugin}
+            init_rootchildren   = {init_children}
+            init_rootproperty   = {init_property}
 
-        editorcore          = {editorcore}
-        plugin              = {plugin}
-        init_rootchildren   = {init_children}
-        init_rootproperty   = {init_property}
+            onUpdate            = {onUpdate}
+            onKeyPress          = {onKeyPress}
+            onFocusChange       = {onFocusChange}
 
-        onUpdate            = {onUpdate}
-        onKeyPress          = {onKeyPress}
-        onFocusChange       = {onFocusChange}
-
-        onKeyDown           = {onKeyDown}
-        onKeyUp             = {onKeyUp}
-    /></EditorComponentEditingBox>
+            onKeyDown           = {onKeyDown}
+            onKeyUp             = {onKeyUp}
+        /></EditorComponentEditingBox>
+    </Box>
 }
 
 
@@ -161,6 +184,7 @@ type SectionalEditorComponentprops = {
  */
 class SectionalEditorComponent extends React.Component <SectionalEditorComponentprops, {
     sections: AbstractNode[]
+    cur_editor: EditorComponent | undefined
 }> {    
     onUpdate: (newval: Node[]) => void
     onFocusChange: ()=>void
@@ -212,13 +236,13 @@ class SectionalEditorComponent extends React.Component <SectionalEditorComponent
 
                     onUpdate            = {me.props.onUpdate}
                     onKeyPress          = {me.props.onKeyPress}
-                    onFocusChange       = {()=>{
-                        // me.setState({
-                        //     cur_editor: cur_editor
-                        // })
-                        // TODO finish this
-
-                        me.onFocusChange() // TODO pass into cure
+                    onFocusChange       = {(editor?: EditorComponent)=>{
+                        if(editor && editor !== me.state.cur_editor){
+                            me.setState({
+                                cur_editor: editor
+                            })
+                        }
+                        me.onFocusChange()
                     }}
                     
                     onKeyDown           = {onkeydown}

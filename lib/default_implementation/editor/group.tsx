@@ -48,13 +48,11 @@ import {
 import { 
     DefaultParameterEditButton , 
     DefaultCloseButton , 
-    AutoStackedPopperWithButton , 
     NewParagraphButtonUp , 
     NewParagraphButtonDown , 
     DefaultSwicth ,
     DefaultSoftDeleteButton , 
 
-    EditorButtonInformation , 
     CopyButton , 
 } from "./buttons"
 
@@ -63,7 +61,6 @@ import {
     DefaultEditAbstractButton , 
 } from "./abstract"
 
-import { } from "../../uibase"
 import { 
     EditorComponentPaper as ComponentPaper , 
     EditorParagraphBox as ParagraphBox , 
@@ -86,7 +83,8 @@ import {
     ButtonGroup , 
     ButtonDescription , 
     AutoStackedPopperButtonGroupMouseless , 
-} from "./buttons"
+    EditorButtonInformation , 
+} from "../../implbase/buttons"
 
 import {
     EditorNodeInfoFunction , 

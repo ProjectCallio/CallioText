@@ -33,12 +33,16 @@ import {
 import { 
     DefaultParameterEditButton , 
     DefaultCloseButton , 
-    AutoStackedPopperWithButton, 
-    AutoStackedPopperButtonGroupMouseless, 
+    DefaultSoftDeleteButton , 
 } from "./buttons"
 
+import {
+    AutoStackedPopperButtonGroupMouseless, 
+    EditorButtonInformation , 
+    AutoStackedPopperWithButton, 
+} from "../../implbase/buttons"
+
 import { DefaultEditAbstractButton, DefaultNewAbstract, DefaultNewAbstractButton } from "./abstract"
-import { EditorButtonInformation , DefaultSoftDeleteButton } from "./buttons"
 import { AutoStackedPopper , SimpleAutoStack , AutoStack , AutoTooltip  } from "../../uibase"
 import { 
     EditorComponentPaper as ComponentPaper , 

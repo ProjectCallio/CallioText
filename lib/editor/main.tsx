@@ -532,13 +532,13 @@ class EditorComponent extends React.Component<EditorComponentProps , {
             core  : me.get_core() , 
         }
 
-        let root_children = me.props.init_rootchildren || (
+        let init_root_children = me.props.init_rootchildren || (
             this.get_core().create_abstract("root") as AbstractNode
         ).children
         return <EditorGlobalInfo.Provider value={context}>
             <SlateReact.Slate 
                 editor       = {slate} 
-                initialValue = {root_children} 
+                initialValue = {init_root_children} 
                 onChange     = {value => {
                     if(JSON.stringify(value) == JSON.stringify(this.state.root_children)){
                         // 实际上没有改变，就不更新了。

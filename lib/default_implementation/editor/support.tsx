@@ -46,12 +46,13 @@ import {
 import {  
     DefaultCloseButton , 
     DefaultParameterEditButton , 
-    AutoStackedPopperWithButton , 
     NewParagraphButtonUp , 
     NewParagraphButtonDown , 
+} from "./buttons"
+import {
     AutoStackedPopperButtonGroupMouseless , 
     EditorButtonInformation , 
-} from "./buttons"
+} from "../../implbase/buttons"
 import { 
     EditorComponentPaper as ComponentPaper , 
     EditorUnselecableBox as UnselecableBox , 

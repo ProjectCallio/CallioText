@@ -34,7 +34,6 @@ import {
 
 import { 
     DefaultParameterEditButton , 
-    AutoStackedPopperWithButton , 
     DefaultRootParameterEditButton , 
 } from "./buttons"
 import { 
@@ -82,7 +81,7 @@ import {
 } from "./sidebar"
 import {
     get_mouseless_space as buttons_get_mouseless_space
-} from "./buttons"
+} from "../../implbase/buttons"
 
 import {
     ParameterEdit
