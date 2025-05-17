@@ -67,6 +67,9 @@ import {
 import { 
     ScrollBarBox , 
 } from "../../uibase"
+import {
+    ParameterEditArea , 
+} from "./parameter_area"
 
 import {
     set_normalize_status , 
@@ -111,12 +114,22 @@ function AbstractEditor({
     }
     let init_parameters = init_property?.parameters || {}
 
+    let editor_ref = React.useRef<EditorComponent | null>(null)
+    const [ready, set_ready] = React.useState<number>(0)
+
+    React.useEffect(() => {
+        if (editor_ref.current) {
+            set_ready(v => v + 1)
+        }
+    }, [editor_ref.current])
+
     return <Box sx={{
         marginY: "1rem", 
         border: "1px solid", 
         marginX: "0.5rem", 
         display: "flex",
         flexDirection: "column",
+        position: "relative",
     }}>
         <AppBar position="static" elevation={0} sx={{
             borderBottom: "1px solid",
@@ -129,6 +142,7 @@ function AbstractEditor({
             </Toolbar>
         </AppBar>
         <EditorComponentEditingBox><EditorComponent
+            ref                 = {editor_ref}
             editorcore          = {editorcore}
             plugin              = {plugin}
             init_rootchildren   = {init_children}
@@ -141,6 +155,16 @@ function AbstractEditor({
             onKeyDown           = {onKeyDown}
             onKeyUp             = {onKeyUp}
         /></EditorComponentEditingBox>
+        {ready && editor_ref.current && (
+        <ParameterEditArea
+            editor = {editor_ref.current}
+            node   = {init_node}
+            sx = {{
+                position: "absolute",
+                top: "0" , 
+                left: "100%" , 
+            }}
+        />)}
     </Box>
 }
 

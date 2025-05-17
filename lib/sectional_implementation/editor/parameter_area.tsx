@@ -11,18 +11,43 @@ import {
 } from "../../editor"
 import {
     Box , 
+    BoxProps , 
 } from "@mui/material"
+import {
+    create , 
+} from "zustand"
+
+export {
+    ParameterEditArea , 
+}
+
+let ParameterEditAreaStore = create<{
+    editor  : EditorComponent | null
+    node    : ConceptNode | null
+    set_editor  : (editor: EditorComponent) => void
+    set_node    : (node: ConceptNode) => void
+}>()((set)=>({
+    editor      : null,
+    node        : null,
+    set_editor  : (editor) => set(state => ({ ...state , editor: editor })),
+    set_node    : (node)   => set(state => ({ ...state , node: node })),
+}))
 
 function ParameterEditArea({
     editor , 
     node, 
+    sx , 
 }:{
     editor: EditorComponent 
-    node: ConceptNode
+    node?: ConceptNode
+    sx?: BoxProps["sx"]
 }){
     // TODO
 
     return <Box sx={{
-
+        backgroundColor: "red" , 
+        width: "10rem" , 
+        height: "10rem" , 
+        ...sx
     }}></Box>
 }
