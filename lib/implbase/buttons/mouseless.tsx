@@ -106,7 +106,7 @@ function get_switch_position(get_editor: ()=>EditorComponent | undefined): Switc
         }
 
         // 获得当前激活位置。
-        let [now_idx, now_sub]: [number , number] = JSON.parse(cur_position)
+        let [now_idx, now_sub]: [string , number] = JSON.parse(cur_position)
 
         while(flag_multi){ // 同时按下多个方向键以进入父节点。
             let the_node = slate_idx_to_node(editor.get_slate(), now_idx.toString())
@@ -126,7 +126,7 @@ function get_switch_position(get_editor: ()=>EditorComponent | undefined): Switc
 
         // 所选中的节点有哪些候选的位置。
         let cancidate_idxs = position_list.reduce<number[]>((s,x)=>{
-            let [nodeidx,subidx]: [number,number] = JSON.parse(x)
+            let [nodeidx,subidx]: [string,number] = JSON.parse(x)
             if(nodeidx == now_idx){
                 return [...s, subidx]
             }
