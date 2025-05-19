@@ -33,15 +33,17 @@ export {
 
 
 
-function slate_is_concept(node: Slate.Node , type?: undefined | AllConceptTypes): node is Slate.Node & ConceptNode{
+function slate_is_concept(
+    node: Slate.Node , type?: AllConceptTypes
+): node is Slate.Node & ConceptNode{
     if(type){
-        return node["idx"] != undefined && node["type"] == type
+        return (node as any)["idx"] != undefined && (node as any)["type"] == type
     }
-    return node["idx"] != undefined
+    return (node as any)["idx"] != undefined
 }
 
 function slate_is_paragraph(node: Slate.Node): node is Slate.Node & ParagraphNode{
-    return (!slate_is_concept(node)) && (node["children"] != undefined) && (!Slate.Editor.isEditor(node))
+    return (!slate_is_concept(node)) && ((node as any)["children"] != undefined) && (!Slate.Editor.isEditor(node))
 }
 
 
@@ -49,7 +51,7 @@ function slate_is_text(node: Slate.Node): node is Slate.Node & TextNode{
     let flag = slate_is_concept(node) || slate_is_paragraph(node) || Slate.Editor.isEditor(node)
     if(flag)
         return false
-    if(node["text"] == undefined){
+    if((node as any)["text"] == undefined){
         throw new BadNodeError("can not determine know node type.")
     }
     return true
@@ -118,9 +120,13 @@ function slate_concept_father<RootType = ConceptNode>(
 
 function slate_idx_to_node<RootType = ConceptNode>(
     root: Slate.Editor, 
-    idx: number , 
+    idx: string , 
 ): (Slate.Node & ConceptNode) | undefined{
-    let ret = Array.from( Slate.Editor.nodes(root, {match: (nd)=>nd["idx"] == idx}) )
+    let ret = Array.from( 
+        Slate.Editor.nodes(root, {
+            match: (nd)=>(nd as any)["idx"] == idx
+        }) 
+    )
     if(ret.length == 0){
         return undefined
     }

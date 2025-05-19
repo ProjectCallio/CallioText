@@ -31,6 +31,8 @@ import {
     AllConceptTypes , 
     AllNodeTypes, 
     AbstractNode,
+
+    is_concetnode,
 } from "../../core"
 
 import { 
@@ -67,9 +69,6 @@ import {
 import { 
     ScrollBarBox , 
 } from "../../uibase"
-import {
-    ParameterEditArea , 
-} from "./parameter_area"
 
 import {
     set_normalize_status , 
@@ -79,94 +78,16 @@ import {
 
     EditorPlugin , 
 } from "../../editor"
+import {
+    Area , 
+    UseAreaStore , 
+} from "../areas"
 
+import {
+    AbstractEditor , 
+} from "./section"
 
 export { SectionalEditorComponent }
-
-function AbstractEditor({
-    editorcore,
-    plugin,
-    init_node,  
-
-    onUpdate,
-    onKeyPress,
-    onFocusChange,
-    onKeyDown,
-    onKeyUp,
-}:{
-    editorcore      :  EditorCore
-    plugin          ?: EditorPlugin
-    init_node       ?: AbstractNode 
-
-    onUpdate        ?: (newval: Node[]) => void
-    onKeyPress      ?: (e: React.KeyboardEvent<HTMLDivElement>) => void
-    onFocusChange   ?: (editor?: EditorComponent)=>void
-    onKeyDown       ?: (e: React.KeyboardEvent<HTMLDivElement>) => void
-    onKeyUp         ?: (e: React.KeyboardEvent<HTMLDivElement>) => void
-}){
-    let init_children: AbstractNode["children"] | undefined = undefined
-    let init_property: Omit<AbstractNode , "children"> | undefined = undefined
-
-    if(init_node){
-        let {children , ...property} = init_node
-        init_children = children
-        init_property = property
-    }
-    let init_parameters = init_property?.parameters || {}
-
-    let editor_ref = React.useRef<EditorComponent | null>(null)
-    const [ready, set_ready] = React.useState<number>(0)
-
-    React.useEffect(() => {
-        if (editor_ref.current) {
-            set_ready(v => v + 1)
-        }
-    }, [editor_ref.current])
-
-    return <Box sx={{
-        marginY: "1rem", 
-        border: "1px solid", 
-        marginX: "0.5rem", 
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-    }}>
-        <AppBar position="static" elevation={0} sx={{
-            borderBottom: "1px solid",
-            borderColor: "divider"
-        }}>
-            <Toolbar variant="dense">
-                <EditorStructureTypography variant="subtitle1">
-                    小节
-                </EditorStructureTypography>
-            </Toolbar>
-        </AppBar>
-        <EditorComponentEditingBox><EditorComponent
-            ref                 = {editor_ref}
-            editorcore          = {editorcore}
-            plugin              = {plugin}
-            init_rootchildren   = {init_children}
-            init_rootproperty   = {init_property}
-
-            onUpdate            = {onUpdate}
-            onKeyPress          = {onKeyPress}
-            onFocusChange       = {onFocusChange}
-
-            onKeyDown           = {onKeyDown}
-            onKeyUp             = {onKeyUp}
-        /></EditorComponentEditingBox>
-        {ready && editor_ref.current && (
-        <ParameterEditArea
-            editor = {editor_ref.current}
-            node   = {init_node}
-            sx = {{
-                position: "absolute",
-                top: "0" , 
-                left: "100%" , 
-            }}
-        />)}
-    </Box>
-}
 
 
 type SectionalEditorComponentprops = {
@@ -183,9 +104,6 @@ type SectionalEditorComponentprops = {
 
     /** 按键弹起的回调。 */
     onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void
-
-    /** 按键按下弹起的回调。 */
-    onKeyPress?: (e: React.KeyboardEvent<HTMLDivElement>) => void
 
     /** 改变光标位置的回调。 */
     onFocusChange?: ()=>void
@@ -206,77 +124,66 @@ type SectionalEditorComponentprops = {
 /** 
  * 这个组件提供一个开箱即用的默认编辑器组件。
  */
-class SectionalEditorComponent extends React.Component <SectionalEditorComponentprops, {
-    sections: AbstractNode[]
-    cur_editor: EditorComponent | undefined
-}> {    
-    onUpdate: (newval: Node[]) => void
-    onFocusChange: ()=>void
-    onSave: ()=> void
 
-    constructor(props: SectionalEditorComponentprops) {
-        super(props)
+function SectionalEditorComponent({
+    editorcore,
+    plugin,
+    onUpdate,
+    onKeyDown,
+    onKeyUp,
+    onFocusChange,
+    config,
+    extra_buttons,
+    onSave,
+    sidebar_extra,
+    init_sections = [],
+}: SectionalEditorComponentprops){
 
-        this.onUpdate       = props.onUpdate || ((newval: Node[])=>{})
-        this.onFocusChange  = props.onFocusChange || (()=>{})
-        this.onSave         = props.onSave || (()=>{})
+    let myconfig = make_editorconfig(config)
 
-        this.state = {
-            sections: props.init_sections || [], 
-            cur_editor: undefined , 
-        }
-    }
+    let [sections, set_sections] = React.useState<AbstractNode[]>(init_sections || [])
+    let cur_editor = UseAreaStore(state => state.editor)
+    let set_cur_editor = UseAreaStore(state => state.set_editor)
 
-    // TODO 应该添加一个组件来增加小节
-    render() {
-    
-        let me                  = this
-        let config              = make_editorconfig(this.props.config)
 
-        let init_sections = me.props.init_sections || []
+    return <EditorConfigContext.Provider value={myconfig}><EditorBackgroundPaper>
+    <KeyEventManager
+        spaces = {[]}
+        non_space_oprations = {[
+            {
+                key: "s" , 
+                on_activate: ()=>{onSave && onSave()}
+            }
+        ]}
+    ><ScrollBarBox key="area-scroll-1" sx = {{ 
+        overflow: "auto" , 
+        width: "100%" , 
+        paddingRight: "1%" , 
+        flex: 1 , 
+    }}><KeyDownUpFunctionProxy.Consumer>{([onkeydown , onkeyup])=>{
+        return sections.map((section: AbstractNode)=>{
+            return <AbstractEditor 
+                key = {`abstracteditor-${section.idx}`}
 
-        return <EditorConfigContext.Provider value={config}><EditorBackgroundPaper>
-        <KeyEventManager
-            spaces = {[]}
-            non_space_oprations = {[
-                {
-                    key: "s" , 
-                    on_activate: ()=>{me.onSave()}
-                }
-            ]}
-        ><ScrollBarBox key="area-scroll-1" sx = {{ 
-            overflow: "auto" , 
-            width: "100%" , 
-            paddingRight: "1%" , 
-            flex: 1 , 
-        }}><KeyDownUpFunctionProxy.Consumer>{([onkeydown , onkeyup])=>{
-            return me.state.sections.map((section: AbstractNode)=>{
-                return <AbstractEditor 
-                    key = {`abstracteditor-${section.idx}`}
+                editorcore          = {editorcore}
+                plugin              = {plugin}
+                init_node           = {init_sections.find(n=>n.idx === section.idx)}
 
-                    editorcore          = {me.props.editorcore}
-                    plugin              = {me.props.plugin}
-                    init_node           = {init_sections.find(n=>n.idx === section.idx)}
-
-                    onUpdate            = {me.props.onUpdate}
-                    onKeyPress          = {me.props.onKeyPress}
-                    onFocusChange       = {(editor?: EditorComponent)=>{
-                        if(editor && editor !== me.state.cur_editor){
-                            me.setState({
-                                cur_editor: editor
-                            })
-                        }
-                        me.onFocusChange()
-                    }}
-                    
-                    onKeyDown           = {onkeydown}
-                    onKeyUp             = {onkeyup}
-                />
-            }) 
-        }}</KeyDownUpFunctionProxy.Consumer>
-        </ScrollBarBox>
-        </KeyEventManager>
-        </EditorBackgroundPaper>
-        </EditorConfigContext.Provider>
-    }
+                onUpdate            = {onUpdate}
+                onFocusChange       = {(editor)=>{
+                    if(editor && editor !== cur_editor){
+                        set_cur_editor(editor)
+                    }
+                    onFocusChange && onFocusChange()
+                }}
+                
+                onKeyDown           = {onkeydown}
+                onKeyUp             = {onkeyup}
+            />
+        }) 
+    }}</KeyDownUpFunctionProxy.Consumer>
+    </ScrollBarBox>
+    </KeyEventManager>
+    </EditorBackgroundPaper>
+    </EditorConfigContext.Provider>
 }

@@ -22,6 +22,8 @@ import {
     NonLeafNode, 
 
     AllConceptTypes, 
+
+    find_node_by_path , 
 } from "../core"
 
 import {
@@ -415,6 +417,18 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         }
     }
 
+    get_node_by_path(path: number[]): Node | undefined{
+        return find_node_by_path(this.get_root() , path)
+    }
+    get_cur_node(): Node | undefined{
+        let slate = this.get_slate()
+        let path = slate.selection?.anchor?.path
+        if(path == undefined){
+            return undefined
+        }
+        return find_node_by_path(this.get_root() , path)
+    }
+
     set_root_children(root_children: (SlateReact.ReactEditor & AbstractNode)["children"]){
         this.setState({root_children: root_children})
     }
@@ -577,7 +591,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     
                     onKeyDown   = {e=>me.onKeyDown(e)}
                     onKeyUp     = {e=>me.onKeyUp(e)}
-                    onKeyPress  = {e=>me.onKeyPress(e)}
                 />
             </SlateReact.Slate>
         </EditorGlobalInfo.Provider>

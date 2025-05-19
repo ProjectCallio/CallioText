@@ -109,7 +109,7 @@ function get_switch_position(get_editor: ()=>EditorComponent | undefined): Switc
         let [now_idx, now_sub]: [number , number] = JSON.parse(cur_position)
 
         while(flag_multi){ // 同时按下多个方向键以进入父节点。
-            let the_node = slate_idx_to_node(editor.get_slate(), now_idx)
+            let the_node = slate_idx_to_node(editor.get_slate(), now_idx.toString())
             if(!the_node){ // 如果节点不存在，那么就跳过此环节。
                 break
             }

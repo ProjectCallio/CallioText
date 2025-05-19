@@ -30,6 +30,10 @@ import {
     section_snd_concept , 
 } from "../predefined"
 
+import {
+    Area , 
+} from "../areas"
+
 export {
     SectionalPrinterComponent , 
 }
@@ -88,6 +92,7 @@ class SectionalPrinterComponent extends React.Component<SectionalPrinterProps>{
         let config = make_printerconfig(this.props.config)
 
         return <PrinterConfigContext.Provider value = {config}>
+            <Area />
             <PrinterBackgroundPaper>
                 <PrinterComponent 
                     ref     = {(printer_comp: PrinterComponent)=>{
