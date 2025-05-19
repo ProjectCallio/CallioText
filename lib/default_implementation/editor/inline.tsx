@@ -80,8 +80,6 @@ function get_default_inline_editor({
         let Extra = rightbar_extra
         let SUR = surrounder
 
-        console.log("inline render", node)
-
         return <ComponentPaper is_inline>
             <AutoStack force_direction="row">
                 <ComponentEditorBox key="edi">

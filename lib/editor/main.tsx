@@ -64,6 +64,11 @@ import {
     gene_idx , 
 } from "../utils"
 
+import {
+    handle_copy , 
+    handle_paste , 
+} from "./handle_copypaste"
+
 export {
     EditorComponent , 
     EditorCore , 
@@ -398,8 +403,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                 )
             ) 
         )
-        console.log(this.slate)
-
 
         this.state = {
             root_property: props.init_rootproperty || default_root_but_children , 
@@ -525,6 +528,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         return <span {...slate_attributes}><R {...subprops}></R></span>
     }
 
+
     render(){    
         let me = this
 
@@ -561,19 +565,25 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                     onFocus       = {e=>me.onFocusChange(me)}
                     onSelect      = {e=>me.onFocusChange(me)}
 
-                    /**
-                     * TODO：应该这样处理Copy / Cut & Paste：
-                     * 在Copy或者Cut时，阻止原生事件，然后获得slate.selection，
-                     * 然后获得selection的节点，将其字符串化之后存到粘贴板中。
-                     * 
-                     * 粘贴时，从粘贴板中获得字符串化的节点并插入。
-                     */
                     onCopy = {(e)=>{
-                        return true // 虽然不知道是什么原理，但是返回`true`会使得`slate`只向粘贴板中输入文本。
+                        handle_copy(me, e, true, false)
+                        me.onFocusChange(me)
                     }}
 
                     onPaste = {(e)=>{
-                        set_normalize_status({pasting: true})
+                        handle_paste(me, e)
+                        me.onFocusChange(me)
+                        
+                        // 粘贴的时候，开启编号冲突检查。
+                        // XXX 这个是跨网也复制粘贴的编号冲突问题的一个备用解决方案...
+                        // （大多数情况下应该不会有问题）
+                        set_normalize_status({
+                            "pasting": true , 
+                        })
+                    }}
+                    onCut = {(e)=>{
+                        handle_copy (me, e, false, true)
+                        me.onFocusChange(me)
                     }}
     
                     onKeyDown   = {e=>me.onKeyDown(e)}

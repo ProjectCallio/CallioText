@@ -89,64 +89,41 @@ import {
 
 export { DefaultEditorComponent }
 
-
-type DefaultEditorComponentprops = EditorComponentProps & {
-    config?: PartialEditorConfig
-    extra_buttons?: any
-    onSave?: ()=>void // 保存时操作。
-
-    sidebar_extra?: (editor: EditorComponent)=>{
-        button: React.ReactElement
-        run: ()=>void
-    }[]
+interface IdxConflictSolverProps{
+    get_editor: ()=> EditorComponent | undefined
+    children: (onUpdate: ()=>void)=>React.ReactElement
 }
 
-/** 
- * 这个组件提供一个开箱即用的默认编辑器组件。
- */
-class DefaultEditorComponent extends React.Component <DefaultEditorComponentprops, {
+class IdxConflictSolver extends React.Component<IdxConflictSolverProps,{
     idx_conflicts: [string, number[][]][] // 节点idx冲突
-    editor_ready: boolean
-}> {    
-    onUpdate: (newval: Node[]) => void
-    onFocusChange: ()=>void
-    onSave: ()=> void
 
-    parameteredit_ref: React.RefObject<ParameterEdit | null>
-    editor_ref       : React.RefObject<EditorComponent | null>
+}>{
 
-    constructor(props: DefaultEditorComponentprops) {
+    constructor(props: IdxConflictSolverProps){
         super(props)
-
-
-        this.onUpdate = props.onUpdate || ((newval: Node[])=>{})
-        this.onFocusChange  = props.onFocusChange || (()=>{})
-        this.onSave = props.onSave || (()=>{})
-
-        this.parameteredit_ref  = React.createRef<ParameterEdit | null>()
-        this.editor_ref         = React.createRef<EditorComponent | null>()
 
         this.state = {
             idx_conflicts: [] , 
-            editor_ready: false,
         }
 
-        this.IdxConflitSolver = this.IdxConflitSolver.bind(this)
-        this.get_editor       = this.get_editor.bind(this)
+        this.IdxConflitSolverComp = this.IdxConflitSolverComp.bind(this)
     }
 
     get_editor(){
-        return this.editor_ref?.current || undefined
+        return this.props.get_editor()
     }
-
-    get_root(): AbstractNode | undefined{
-        return this.get_editor()?.get_root()
-    }
+        
+    /**
+     * 添加一个编号冲突。
+     */
     append_idx_conflict(conflicts: [string, number[][]][]){
         this.setState({idx_conflicts: [...this.state.idx_conflicts, ...conflicts]})
     }
 
-    IdxConflitSolver(props: {}){
+    /**
+     * 解决编号冲突的组件。
+     */
+    IdxConflitSolverComp(props: {}){
         let me = this
         let editor = me.get_editor()
         if(!editor){ // 等待editor创建完毕
@@ -238,6 +215,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         </React.Fragment>
     }
 
+    /**
+     * 检查是否有编号冲突。
+     */
     check_idx(){
         if(!get_normalize_status("pasting")){ // 如果没有在粘贴，就直接退出。
             return 
@@ -272,6 +252,68 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         set_normalize_status({pasting: false})
     }
 
+    render(){
+        let me = this 
+        let IdxConflitSolverComp = this.IdxConflitSolverComp
+        return <React.Fragment>
+            <IdxConflitSolverComp />
+            {this.props.children(()=>{
+                me.check_idx()
+            })}
+        </React.Fragment>
+    }
+}
+
+type DefaultEditorComponentprops = EditorComponentProps & {
+    config?: PartialEditorConfig
+    extra_buttons?: any
+    onSave?: ()=>void // 保存时操作。
+
+    sidebar_extra?: (editor: EditorComponent)=>{
+        button: React.ReactElement
+        run: ()=>void
+    }[]
+}
+
+/** 
+ * 这个组件提供一个开箱即用的默认编辑器组件。
+ */
+class DefaultEditorComponent extends React.Component <DefaultEditorComponentprops, {
+    editor_ready: boolean
+}> {    
+    onUpdate: (newval: Node[]) => void
+    onFocusChange: ()=>void
+    onSave: ()=> void
+
+    parameteredit_ref: React.RefObject<ParameterEdit | null>
+    editor_ref       : React.RefObject<EditorComponent | null>
+
+    constructor(props: DefaultEditorComponentprops) {
+        super(props)
+
+
+        this.onUpdate = props.onUpdate || ((newval: Node[])=>{})
+        this.onFocusChange  = props.onFocusChange || (()=>{})
+        this.onSave = props.onSave || (()=>{})
+
+        this.parameteredit_ref  = React.createRef<ParameterEdit | null>()
+        this.editor_ref         = React.createRef<EditorComponent | null>()
+
+        this.state = {
+            editor_ready: false,
+        }
+
+        this.get_editor       = this.get_editor.bind(this)
+    }
+
+    get_editor(){
+        return this.editor_ref?.current || undefined
+    }
+
+    get_root(): AbstractNode | undefined{
+        return this.get_editor()?.get_root()
+    }
+
     render() {
     
         let paper_widths  = {xs: "87%" , md: "90%" , xl: "93%"} // 纸张的宽度，
@@ -280,18 +322,16 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
         let me                  = this
         let config              = make_editorconfig(this.props.config)
-        let IdxConflitSolver    = this.IdxConflitSolver
 
         // 当焦点发生变化时，更新parameteredit_ref
         let onFocusChange = ()=>{
-            if(me.props.onFocusChange){
-                me.props.onFocusChange()
-            }
+            me.props.onFocusChange && me.props.onFocusChange()
             me.parameteredit_ref?.current?.try_update()
         }
 
-        return <EditorConfigContext.Provider value={config}><EditorBackgroundPaper>
-            <IdxConflitSolver />
+        return <EditorConfigContext.Provider value={config}>
+        <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>{
+            return <EditorBackgroundPaper>
             <KeyEventManager
                 spaces = {[
                     sidebar_get_mouseless_space() , 
@@ -333,8 +373,11 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                                 init_rootchildren   = {me.props.init_rootchildren}
                                 init_rootproperty   = {me.props.init_rootproperty}
 
-                                onUpdate            = {me.props.onUpdate}
                                 onKeyPress          = {me.props.onKeyPress}
+                                onUpdate            = {(v: any)=>{
+                                    me.props.onUpdate && me.props.onUpdate(v)
+                                    conflictcheck()
+                                }}
                                 onFocusChange       = {onFocusChange}
                                 
                                 onKeyDown           = {onkeydown}
@@ -371,6 +414,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 })()}</Box>
 
             </KeyEventManager>
-        </EditorBackgroundPaper></EditorConfigContext.Provider>
+            </EditorBackgroundPaper>
+        }}</IdxConflictSolver>
+        </EditorConfigContext.Provider>
     }
 }

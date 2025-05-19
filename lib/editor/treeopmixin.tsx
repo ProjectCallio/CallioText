@@ -34,11 +34,14 @@ import { BadNodeError , UnexpectedParametersError} from "../uibase/exceptions"
 
 export { tree_op_mixin }
 
+// XXX 话说，为啥要定义这些？为啥不直接用`slate`的`Transforms`....？
 /** 这个混入对象提供所有跟节点树操作有关的函数。
  * 基本上就是`slate`的`Transforms`的代理。
  */
 let tree_op_mixin = {
     
+
+
     /** 这个函数修改节点的某个属性。相当于`slate.Transforms.setNodes`。 */
     set_node<NT extends Slate.Node & ConceptNode>(editor: EditorComponent, node: NT, new_val: Partial<NT>){
 
@@ -49,10 +52,7 @@ let tree_op_mixin = {
         if(path.length == 0){ // 对于根节点的属性设置，单独处理。
             // console.log(node)
             let val = new_val as Partial<AbstractNode>
-            if(val.children != undefined){
-                editor.set_root_children(val.children)
-            }
-            delete val.children
+            delete val.children // XXX 直接无视了children，不知道有没有问题...
             editor.set_root(val)
             return 
         }
@@ -64,10 +64,7 @@ let tree_op_mixin = {
     set_node_by_path<NT extends Slate.Node & ConceptNode>(editor: EditorComponent, path:number[] , new_val: Partial<NT>){
         if(path.length == 0){ // 对于根节点的属性设置，单独处理。
             let val = new_val as Partial<AbstractNode>
-            if(val.children != undefined){
-                editor.set_root_children(val.children)
-            }
-            delete val.children
+            delete val.children // XXX 直接无视了children，不知道有没有问题...
             editor.set_root(val)
             return 
         }

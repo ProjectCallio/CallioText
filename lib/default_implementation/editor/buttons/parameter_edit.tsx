@@ -73,8 +73,6 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
     // 记录进入时的光标位置，以便在退出时还原。
     let [enter_selection , set_ec] = React.useState<Slate.BaseSelection | null>(null)
 
-    console.log("parameter edit", props.node)
-
     return <EditorGlobalInfo.Consumer>{globalinfo=>{
         let editor = globalinfo.editor as EditorComponent
 

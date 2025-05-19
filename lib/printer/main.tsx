@@ -389,7 +389,7 @@ interface PrinterComponentProps {
     onUpdateCache?: (cache: PrinterCache) => void
 }
 /** 这是印刷器组件的State类型。 */
-interface PrinterComponentState {
+interface PrinterComponentUpdateCache {
     env             ?: Env
     all_contexts    ?: {[path: string]: Context}
     all_parameters  ?: {[path: string]: ProcessedParameterList}
@@ -399,13 +399,15 @@ interface PrinterComponentState {
 /** 这个类定义印刷器的组件。印刷器组件和印刷器（核心）是分开的，组件只负责绘制，而不储存任何信息，印刷器只负责储存信息，而不负责
  * 绘制。在使用时，将印刷器和节点树一起传入印刷器组件来印刷文章。
  */
-class PrinterComponent extends React.Component<PrinterComponentProps, PrinterComponentState>{
+class PrinterComponent extends React.Component<PrinterComponentProps>{
 
     idx2path: {[idx: string]: number[]}
     path_refs: {
         [path_str: string]: React.RefObject<HTMLDivElement | null>
     } // 如果写 HTMLDivElement | SpanElement则div会报错，事儿真多。
     onUpdateCache: (cache: PrinterCache) => void
+
+    update_cache: PrinterComponentUpdateCache
 
     constructor(props:PrinterComponentProps){
         super(props)
@@ -415,7 +417,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps, PrinterCom
                             // XXX 其实正确的写法是在componentDidUpdate / componentDidMount里更改，但是我懒得写了，就这样反正也是对的。
         this.onUpdateCache = props.onUpdateCache || (()=>{})
 
-        this.state = {
+        this.update_cache = {
             env             : undefined, 
             all_contexts    : undefined, 
             all_parameters  : undefined, 
@@ -484,25 +486,16 @@ class PrinterComponent extends React.Component<PrinterComponentProps, PrinterCom
     }
 
     update(){
+        this.path_refs = {}
+        this.idx2path  = {}
         let [env , all_contexts , all_parameters, all_caches] = this.preprocess()
-        this.onUpdateCache(all_caches)
-        this.setState({
+        this.update_cache = {
             env             : env, 
             all_contexts    : all_contexts, 
             all_parameters  : all_parameters, 
             all_caches      : all_caches
-        })
-    }
-
-    componentDidMount(){
-        this.update()
-    }
-    componentDidUpdate(prevProps: PrinterComponentProps, prevState: PrinterComponentState){
-        if(!this.should_update(prevProps, this.props)){
-            // 如果props没有变化，就不要更新
-            return
         }
-        this.update()
+        this.onUpdateCache(all_caches)
     }
     
     /** 这个函数渲染一个子节点。 */
@@ -521,6 +514,10 @@ class PrinterComponent extends React.Component<PrinterComponentProps, PrinterCom
         let my_parameters   = all_parameters[my_path] // 获取参数列表。
 
         if(my_parameters == undefined){
+            console.log(my_path)
+            console.log(path)
+            console.log(node)
+            // TODO 这里好像有问题
             throw new UnexpectedParametersError(`all_parameters should contain ${my_path} but it doesn't.`)
         }
         if(my_context == undefined){
@@ -567,9 +564,9 @@ class PrinterComponent extends React.Component<PrinterComponentProps, PrinterCom
     render(){
         let me = this
         let R = me.subrender.bind(this)
-        let state = me.state
-
-        let {env, all_contexts, all_parameters, all_caches} = state
+        
+        me.update() // XXX 在这里调用似乎很傻逼（但应该是对的）
+        let {env, all_contexts, all_parameters, all_caches} = me.update_cache
         if(!(env && all_contexts && all_parameters && all_caches)){
             return <></>
         }
