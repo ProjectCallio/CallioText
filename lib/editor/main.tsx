@@ -364,12 +364,11 @@ interface EditorComponent extends TreeOpeationsMixins{
  * 因为slate实际上是编辑`root`的`children`，所以`root`的property要单独处理。
  */
 class EditorComponent extends React.Component<EditorComponentProps , {
-    slate: SlateReact.ReactEditor
     root_property: Omit<AbstractNode , "children">
-    root_children: (SlateReact.ReactEditor & AbstractNode)["children"]
 
 }>{
-    
+    slate: SlateReact.ReactEditor
+
     constructor(props:EditorComponentProps){
         super(props)
 
@@ -390,30 +389,36 @@ class EditorComponent extends React.Component<EditorComponentProps , {
             return [children, _] // 把默认根节点拆成儿子和非儿子的部分。
         })()
         
+        this.slate = with_outer_plugin(me , 
+            with_ytext_plugins(me , 
+                withHistory(
+                    SlateReact.withReact(
+                        Slate.createEditor() as SlateReact.ReactEditor
+                    ) 
+                )
+            ) 
+        )
+        console.log(this.slate)
+
+
         this.state = {
-            slate: with_outer_plugin(me , 
-                with_ytext_plugins(me , 
-                    withHistory(
-                        SlateReact.withReact(
-                            Slate.createEditor() as SlateReact.ReactEditor
-                        ) 
-                    )
-                ) 
-            ), 
-            root_children: props.init_rootchildren || default_root_children , 
             root_property: props.init_rootproperty || default_root_but_children , 
         }
-    }
 
+        this.renderElement = this.renderElement.bind(this)
+        this.renderLeaf    = this.renderLeaf.bind(this)
+    }
+    
     get_core(){
         return this.props.editorcore
     }
 
     /** 将`root_children`和`root_property`组合成一棵树。 */
     get_root(): Readonly<AbstractNode>{
+        let slate = this.get_slate()
         return {
             ...this.state.root_property ,
-            children: this.state.root_children , 
+            children: slate.children as (SlateReact.ReactEditor & AbstractNode)["children"] , 
         }
     }
 
@@ -429,10 +434,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         return find_node_by_path(this.get_root() , path)
     }
 
-    set_root_children(root_children: (SlateReact.ReactEditor & AbstractNode)["children"]){
-        this.setState({root_children: root_children})
-    }
-
     set_root(root_property: Omit<Partial<AbstractNode>, "children">){
         this.setState({root_property: {...this.state.root_property , ...root_property}})
     }
@@ -442,7 +443,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     }
 
     get_slate(){
-        return this.state.slate
+        return this.slate
     }
 
     use_tree_op_mixin(){
@@ -464,17 +465,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         this.replace_nodes          = (father_node, nodes   ) => tree_op_mixin.replace_nodes        (me,father_node, nodes)  
         this.delete_nodes_by_paths  = (paths                ) => tree_op_mixin.delete_nodes_by_paths(me, paths)
     }
-
-    /** 
-     * 当 slate 改变 value 时通知自身的函数。
-    */
-    update_value(value: Slate.Node[]){
-        this.setState({
-            root_children: value as (SlateReact.ReactEditor & AbstractNode)["children"]
-        })
-        this.onUpdate(value)
-    }
-
     /** 渲染函数
      * @param props.element 当前要渲染的节点。
      * @param props.attributes 当前元素的属性，这是slate要求的。
@@ -538,27 +528,24 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     render(){    
         let me = this
 
-        let slate = me.state.slate
+        let slate = me.get_slate()
         
         let context = {
             editor: me , 
-            slate : me.state.slate , 
+            slate : slate , 
             core  : me.get_core() , 
         }
 
         let init_root_children = me.props.init_rootchildren || (
             this.get_core().create_abstract("root") as AbstractNode
         ).children
+
         return <EditorGlobalInfo.Provider value={context}>
             <SlateReact.Slate 
                 editor       = {slate} 
                 initialValue = {init_root_children} 
                 onChange     = {value => {
-                    if(JSON.stringify(value) == JSON.stringify(this.state.root_children)){
-                        // 实际上没有改变，就不更新了。
-                        return
-                    }
-                    me.update_value(value)
+                    me.onUpdate(value)
                     me.onFocusChange( me )
                 }}
             >
@@ -567,8 +554,8 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                         outline: "none" , //阻止默认的黑框
                     }}
                     
-                    renderElement = {me.renderElement.bind(me)}
-                    renderLeaf    = {me.renderLeaf.bind(me)}
+                    renderElement = {this.renderElement}
+                    renderLeaf    = {this.renderLeaf}
                     onClick       = {e=>me.onFocusChange(me)}
                     onBlur        = {e=>me.onFocusChange(me)}
                     onFocus       = {e=>me.onFocusChange(me)}
@@ -645,4 +632,3 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         throw new UnexpectedParametersError("这这不能")
     }
 }
-

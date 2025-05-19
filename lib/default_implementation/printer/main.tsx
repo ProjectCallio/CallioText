@@ -55,6 +55,8 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
     constructor(props: DefaultPrinterProps){
         super(props)
         this.printer_ref = React.createRef()
+
+        this.handle_ref_printercomponent = this.handle_ref_printercomponent.bind(this)
     }
 
     get_component(){
@@ -79,7 +81,7 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
         return <PrinterConfigContext.Provider value = {config}>
             <PrinterBackgroundPaper>
                 <PrinterComponent 
-                    ref     = {me.handle_ref_printercomponent.bind(me)}
+                    ref     = {me.handle_ref_printercomponent}
                     printer = {me.props.printer}
                     root    = {me.props.root}
                     onUpdateCache = {me.props.onUpdateCache}

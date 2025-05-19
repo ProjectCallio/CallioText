@@ -102,6 +102,8 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
         this.state = {
             open: false
         }
+
+        this.run = this.run.bind(this)
     }
 
     run(){
@@ -114,7 +116,7 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
         let me = this
 
         return <Box sx={{marginX: "auto"}}>
-            <AutoIconButton onClick={me.run.bind(me)} title="设置参数" icon={SettingsIcon}/>
+            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon}/>
             <DefaultParameterWithEditorWithDrawer 
                 node = {props.node} 
                 open = {me.state.open} 
@@ -136,6 +138,7 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
 
     constructor(props: EditorButtonInformation){
         super(props)
+        this.run = this.run.bind(this)
     }
 
     run(){
@@ -146,7 +149,7 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
         }
     }
     render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run.bind(this)} title="删除组件" icon={CloseIcon} />
+        return <AutoIconButton onClick={this.run} title="删除组件" icon={CloseIcon} />
     }
 }
 
@@ -160,6 +163,7 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
 
     constructor(props: EditorButtonInformation & {puretext?: boolean}){
         super(props)
+        this.run = this.run.bind(this)
     }
 
     run(){
@@ -183,7 +187,7 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
         }
     }
     render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run.bind(this)} title="解除组件" icon={MoveUpIcon} />
+        return <AutoIconButton onClick={this.run} title="解除组件" icon={MoveUpIcon} />
     }
 }
 
@@ -196,6 +200,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 
     constructor(props: EditorButtonInformation){
         super(props)
+        this.run = this.run.bind(this)
     }
 
     run(){
@@ -207,7 +212,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
         editor.add_nodes_before(editor.get_core().create_paragraph() , this.props.node )    
     }
     render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run.bind(this)} title="向上添加段落" icon={NorthIcon} />
+        return <AutoIconButton onClick={this.run} title="向上添加段落" icon={NorthIcon} />
     }
 }
 
@@ -220,6 +225,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 
     constructor(props: EditorButtonInformation){
         super(props)
+        this.run = this.run.bind(this)
     }
 
     run(){
@@ -231,7 +237,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
         editor.add_nodes_after(editor.get_core().create_paragraph() , this.props.node )    
     }
     render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run.bind(this)} title="向下添加段落" icon={SouthIcon} />
+        return <AutoIconButton onClick={this.run} title="向下添加段落" icon={SouthIcon} />
     }
 }
 
@@ -245,6 +251,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 
     constructor(props: EditorButtonInformation){
         super(props)
+        this.run = this.run.bind(this)
     }
 
     run(){
@@ -273,7 +280,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
         }
     }
     render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run.bind(this)} title="复制此节点" icon={PhoneMissedIcon} />
+        return <AutoIconButton onClick={this.run} title="复制此节点" icon={PhoneMissedIcon} />
     }
 }
 
@@ -297,6 +304,8 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
         }
 
         this.switchref = React.createRef<HTMLInputElement>()
+
+        this.switch_check_change = this.switch_check_change.bind(this)
     }
 
     get_switch(): HTMLInputElement | undefined{
@@ -353,7 +362,7 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
             <Switch 
                 key = "switch"
                 checked = {this.state.checked} 
-                onChange = {this.switch_check_change.bind(this)} 
+                onChange = {this.switch_check_change} 
                 inputRef = {this.switchref}
             />
         </AutoTooltip>

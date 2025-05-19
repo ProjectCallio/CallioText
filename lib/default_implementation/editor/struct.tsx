@@ -117,8 +117,7 @@ function get_default_struct_editor_with_rightbar({
 }): EditorRenderer<StructNode>{
 
     return (props: EditorRendererProps<StructNode>) => {
-        let globalinfo  = React.useContext(EditorGlobalInfo)
-        let editor      = globalinfo.editor as EditorComponent
+        let editor      = props.editor
         let node        = props.node
         let editorcore  = editor.get_core()
         let parameters  = editorcore.get_printer().process_parameters(node)

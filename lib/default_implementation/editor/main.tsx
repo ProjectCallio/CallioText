@@ -130,6 +130,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             idx_conflicts: [] , 
             editor_ready: false,
         }
+
+        this.IdxConflitSolver = this.IdxConflitSolver.bind(this)
+        this.get_editor       = this.get_editor.bind(this)
     }
 
     get_editor(){
@@ -277,7 +280,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
         let me                  = this
         let config              = make_editorconfig(this.props.config)
-        let IdxConflitSolver    = this.IdxConflitSolver.bind(this)
+        let IdxConflitSolver    = this.IdxConflitSolver
 
         // 当焦点发生变化时，更新parameteredit_ref
         let onFocusChange = ()=>{
@@ -292,7 +295,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             <KeyEventManager
                 spaces = {[
                     sidebar_get_mouseless_space() , 
-                    buttons_get_mouseless_space(me.get_editor.bind(me)) , 
+                    buttons_get_mouseless_space(me.get_editor) , 
                 ]}
                 non_space_oprations = {[
                     {
@@ -308,6 +311,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     width: paper_widths, 
                     display: "flex" ,
                     flexDirection: "column" , 
+                    
                 }}>
                     <ScrollBarBox key="area-scroll-1" sx = {{ 
                         overflow: "auto" , 

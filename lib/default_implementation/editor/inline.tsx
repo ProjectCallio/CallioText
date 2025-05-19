@@ -71,14 +71,16 @@ function get_default_inline_editor({
     rightbar_extra  ?: (props: EditorButtonInformation) => any  , 
 
 }): EditorRenderer<InlineNode>{
-    return (props: EditorRendererProps<InlineNode>) => {
-        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
+    let subcomp = (props: EditorRendererProps<InlineNode>) => {
+        let editor      = props.editor
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
 
         let label   = get_label(node, parameters)
         let Extra = rightbar_extra
         let SUR = surrounder
+
+        console.log("inline render", node)
 
         return <ComponentPaper is_inline>
             <AutoStack force_direction="row">
@@ -106,7 +108,8 @@ function get_default_inline_editor({
                                 } , 
                                 children: <KeyboardArrowDownIcon sx={{height: "1rem"}}/> ,
                             }} 
-                            label = {"展开" + (label ? ` / ${label}` : "") }
+                            // label = {"展开" + (label ? ` / ${label}` : "") }
+                            label = {"展开"}
                             buttons = {[
                                 DefaultParameterEditButton , 
                                 DefaultCloseButton , 
@@ -115,11 +118,16 @@ function get_default_inline_editor({
                                 DefaultEditAbstractButton , 
                             ]}
                         >
-                            <StructureTypography sx={{marginY: "0.2rem", marginX: "auto", paddingX: "0.25rem"}}>{label}</StructureTypography>
+                            <StructureTypography sx={{
+                                marginY: "0.2rem", 
+                                marginX: "auto", 
+                                paddingX: "0.25rem"
+                            }}>{label}</StructureTypography>
                         </AutoStackedPopperButtonGroupMouseless>
                     </AutoStack>
                 </UnselecableBox>
             </AutoStack>
         </ComponentPaper>
     }
+    return subcomp
 }

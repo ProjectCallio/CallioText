@@ -120,11 +120,12 @@ function get_deafult_group_editor_with_appbar({
 }): EditorRenderer<GroupNode>{
     // 渲染器
     let subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
+        let editor      = props.editor
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let label       = get_label(node, parameters)
-        
+
+
         let SUR = surrounder
 
         return <GroupPaper node={node}>
@@ -179,8 +180,8 @@ function get_default_group_editor_with_rightbar({
     surrounder      ?: (props: EditorButtonInformation & {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
 
-    return (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        let editor      = React.useContext(EditorGlobalInfo).editor as EditorComponent
+    const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
+        let editor      = props.editor
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let mylabel     = get_label(node, parameters)
@@ -236,4 +237,5 @@ function get_default_group_editor_with_rightbar({
             </SimpleAutoStack>
         </GroupPaper>
     }
+    return subcomp
 }
