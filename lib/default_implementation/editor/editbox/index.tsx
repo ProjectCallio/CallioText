@@ -16,7 +16,7 @@ import {
 import { EditorStructureTypography as StructureTypography } from "../uibase/components"
 import { EditorComponent } from "../../../editor"
 import {
-    DefaultParameterWithEditor , 
+    DefaultParameterContainer , 
 } from "../../../implbase"
 import {
     slate_concept_father_path
@@ -32,7 +32,7 @@ class ParameterEdit extends React.Component<{
     curpath: number [] | undefined, 
 }>{
 
-    parametereditor_ref: React.RefObject<DefaultParameterWithEditor | null>
+    parametereditor_ref: React.RefObject<DefaultParameterContainer | null>
 
     constructor(props: any){
         super(props)
@@ -67,7 +67,7 @@ class ParameterEdit extends React.Component<{
         }}>
             <Box><StructureTypography>idx: {curnode.idx}</StructureTypography></Box>
             <Divider />
-            <DefaultParameterWithEditor node={curnode} ref={me.parametereditor_ref}/>
+            <DefaultParameterContainer node={curnode} ref={me.parametereditor_ref}/>
         </Box>
 
     }

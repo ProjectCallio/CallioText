@@ -93,12 +93,12 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
                     position: "absolute" , 
                     top: 0 , 
                     left: 0 , 
-                    width: "100%" , 
+                    height: "100%" , 
+                    width: "20%" , 
                     paddingX: "1rem" , 
-                    height: "10rem" , 
                     backgroundColor: (theme)=>theme.palette.background.paper , 
                     zIndex: 1000 , 
-                    opacity: 0.8 , 
+                    opacity: 0.9 , 
                 }}/>
             </Box>
             <PrinterBackgroundPaper>

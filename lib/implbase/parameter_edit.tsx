@@ -39,12 +39,11 @@ import {
 } from "../core"
 
 import {
-    EditorButtonInformation , 
-} from "./buttons"
+    EditorComponent , 
+} from "../editor"
 
 export {
     DefaultParameterContainer , 
-    DefaultParameterWithEditor , 
 }
 
 export type {
@@ -58,6 +57,9 @@ interface ParameterItemComponentProps{
 
     /** 这个参数项的名称。 */
     name: string
+
+    /** 更新的回调。 */
+    onUpdate?: (val: string | boolean | number)=>void
 }
 
 /** 
@@ -79,19 +81,22 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
         let {val, type, ...other_items} = this.props.parameter_item
         let ret = {
             val: this.state.val , 
-            type: this.props.parameter_item.type , 
+            type: type , 
             ...other_items
         } 
         return ret as ParameterValue
     }
     
-    componentDidUpdte(prev_props: ParameterItemComponentProps){
-
+    componentDidUpdate(
+        prev_props: ParameterItemComponentProps,
+        prev_state: {val: string | boolean | number}
+    ){
         // 如果props里面的初始值更新了，那么就以新的初始值开始。
-        if( JSON.stringify(prev_props.parameter_item.val) != JSON.stringify(this.props.parameter_item.val) ){
+        if (JSON.stringify(prev_props.parameter_item.val) != JSON.stringify(this.props.parameter_item.val)) {
             this.setState({
                 val: this.props.parameter_item.val
             })
+            return  // 添加return，避免后续的onUpdate调用
         }
     }
 
@@ -100,6 +105,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
         let name = this.props.name
         let type = this.props.parameter_item.type
         let val = this.state.val
+        let onUpdate = this.props.onUpdate || (()=>{})
 
         let standard_props = {
             value: val ,
@@ -121,6 +127,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
                     value = {val}
                     onChange = {e=>{
                         me.setState({val: e.target.value})
+                        onUpdate(e.target.value)
                     }}
                 >
                     {choices.map((c,idx)=><FormControlLabel sx={{marginLeft: "5%"}} key={idx} value={c} label={c} control={<Radio />}/>)}
@@ -131,6 +138,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
             return <TextField 
                 onChange = {e=>{
                     me.setState({val: e.target.value})
+                    onUpdate(e.target.value)
                 }}
                 {...standard_props}
                 sx = {standard_sx}
@@ -140,6 +148,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
             return <TextField 
                 onChange = {e=>{
                     me.setState({val: Number(e.target.value)})
+                    onUpdate(Number(e.target.value))
                 }}
                 type = "number"
                 {...standard_props}
@@ -152,7 +161,8 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
                 control = {<Switch 
                     checked = {val as boolean}
                     onChange = {e=>{
-                        me.setState({val: e.target.checked})          
+                        me.setState({val: e.target.checked})     
+                        onUpdate(e.target.checked)
                     }}
                 />} 
                 sx = {standard_sx}
@@ -162,17 +172,22 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
     }
 }
 
+
+
+
+
 /** 参数菜单的`props`。 */
 interface DefaultParameterContainerProps{
-    parameters: ParameterList
+    node: Slate.Node & ConceptNode
+    onSave  ?: (parameters: ParameterList)=>void
 }
 
 /** 这个类定义一个菜单组件，作为默认的参数更新器。 
  * 注意，这个类是一个菜单，不包含打开菜单的逻辑。
  */
-class DefaultParameterContainer extends React.Component <DefaultParameterContainerProps>{
-    /** 所有子项的`ref`。 */
-    item_refs: {[key: string] : React.RefObject<ParameterItemComponent>}
+class DefaultParameterContainer extends React.Component <DefaultParameterContainerProps, {
+    parameters: ParameterList
+}>{
 
     /**
      * 参数菜单的构造函数。
@@ -181,87 +196,69 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
     constructor(props: DefaultParameterContainerProps){
         super(props)
 
-        this.item_refs = Object.keys(this.props.parameters).reduce((obj , key)=>{
-            obj[key] = React.createRef<ParameterItemComponent>()
-            return obj
-        } , {} as any)
+        this.state = {
+            parameters: props.node.parameters
+        }
+    }
+    componentDidUpdate(
+        prev_props: DefaultParameterContainerProps,
+    ){
+        // 如果props里面的初始值更新了，那么就以新的初始值开始。
+        if( JSON.stringify(prev_props.node) != JSON.stringify(this.props.node) ){
+            this.setState({
+                parameters: this.props.node.parameters
+            })
+        }
     }
 
     /** 这个函数向外界提供一个完整的更新后的参数列表。 */
-    public get_parameters(){
-        let me = this
-        let ret: any = {}
-        for(let key in this.props.parameters){
-            if(!(me.item_refs[key] && me.item_refs[key].current)){
-                ret[key] = this.props.parameters[key] // 如果这个`ref`还没创建，返回初始值。
-            }
-            else {
-                ret[key] = me.item_refs[key].current.get_item()
-            }
-        }
-        return ret
+    get_parameters(){
+        return this.state.parameters
     }
 
     /**
      * 渲染函数。
      * 注意，这个组件必须被包裹在一个 non_selectable_prop 的元素内部。
-     * @returns 一个菜单，提供各个参数的编辑项。
-     */
+     */ 
     render(){
         let me = this
+        let init_parameters = this.props.node.parameters
 
-        return <List>{Object.keys(me.props.parameters).map((key,idx)=>{
-            return <ListItem key = {idx}>
+        console.log("state.parameters", this.state.parameters)
+        let node_str = JSON.stringify(this.props.node)
+        let onSave = this.props.onSave || (()=>{})
+
+        return <React.Fragment>
+        <List>{Object.keys(init_parameters).map((key,idx)=>{
+            return <ListItem key = {`param-${node_str}-${key}`}>
                 <ParameterItemComponent
-                    ref = {this.item_refs[key]}
-                    name = {key}
-                    parameter_item = {me.props.parameters[key]}
+                    key = {`param-${node_str}-${key}`}
+                    name            = {key}
+                    parameter_item  = {init_parameters[key]}
+                    onUpdate = {(v: string | boolean | number)=>{
+                        me.setState((cur_state => {
+                            let cur_param = cur_state.parameters
+                            let { val, type, ...other_items } = cur_param[key]
+
+                            let new_param = {
+                                ...cur_param , 
+                                [key]: {
+                                    val: v, 
+                                    type: init_parameters[key].type , 
+                                    ...other_items
+                                } as ParameterValue
+                            }
+                            console.log("new_param", new_param)
+                            return {parameters: new_param}
+                        }))
+                    }}
                 />
             </ListItem>
         })}</List>
-    }
-}
-
-
-
-/** 这个组件向具体的编辑器和具体的节点提供`DefaultParameterContainer`。
- * 注意，这个组件不包含打开菜单的逻辑。
- * @param props.editor 这个组件所服务的编辑器。
- * @param props.element 这个组件所服务的节点。
- */
-class DefaultParameterWithEditor extends React.Component<EditorButtonInformation>{
-
-    /** 参数菜单的引用。 */
-    container_ref: React.RefObject<DefaultParameterContainer | null>
-
-    constructor(props: EditorButtonInformation){
-        super(props)
-
-        this.container_ref = React.createRef()
-    }
-
-    get_parameters(){
-        let container = this.get_container()
-        if(container){ // 如果引用已经建立，就直接询问
-            return container.get_parameters()
-        }
-        // 如果引用还未建立，就返回初始值。
-        return this.props.node.parameters
-    }
-
-    get_container(){
-        if(this.container_ref && this.container_ref.current){
-            return this.container_ref.current
-        }
-        return undefined
-    }
-
-    render(){
-        let me = this
-
-        return <DefaultParameterContainer
-            ref = { me.container_ref }
-            parameters = { me.props.node.parameters }
-        />
+        <Button onClick = {()=>{
+            console.log("get_parameters", me.get_parameters())
+            onSave(me.get_parameters())
+        }}>保存</Button>
+        </React.Fragment>
     }
 }

@@ -419,7 +419,6 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     /** 将`root_children`和`root_property`组合成一棵树。 */
     get_root(): Readonly<AbstractNode>{
         let slate = this.get_slate()
-        console.log("get_root slate", slate)
         return {
             ...this.state.root_property ,
             children: slate.children as (SlateReact.ReactEditor & AbstractNode)["children"] , 

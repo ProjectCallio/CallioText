@@ -18,8 +18,12 @@ import {
     create , 
 } from "zustand"
 import {
-    DefaultParameterWithEditor , 
+    DefaultParameterContainer , 
 } from "../../implbase/parameter_edit"
+import {
+    ParameterList , 
+} from "../../core"
+
 
 export {
     UseAreaStore , 
@@ -63,10 +67,14 @@ function Area({
     let cur_node = concept_nodes[concept_nodes.length - 1]
     
     return <Box sx={{
-        width: "10rem" , 
-        height: "10rem" , 
         ...sx
     }}>
-        <DefaultParameterWithEditor node = {cur_node}/>
+        <DefaultParameterContainer 
+            node     = {cur_node}
+            onSave = {(parameters: ParameterList)=>{
+                console.log(parameters)
+                editor.auto_set_parameter(cur_node, parameters)
+            }}
+        />
     </Box>
 }

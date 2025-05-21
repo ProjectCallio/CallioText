@@ -44,7 +44,7 @@ import {
 } from "../../../editor"
 import { AutoIconButton } from "./buttons"
 import {
-    DefaultParameterWithEditor , 
+    DefaultParameterContainer , 
 } from "../../../implbase"
 import { ButtonBase } from "../../../implbase/buttons"
 
@@ -79,7 +79,7 @@ type DefaultRootParameterWithEditorWithDrawerProps = {
 function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWithEditorWithDrawerProps){
     let globalinfo = React.useContext(EditorGlobalInfo)
     let onClose = props.onClose || ((e:any)=>{})
-    let parametereditor_ref = React.useRef<DefaultParameterWithEditor | null>(null)
+    let parametereditor_ref = React.useRef<DefaultParameterContainer | null>(null)
 
     // 记录进入时的光标位置，以便在退出时还原。
     let [enter_selection , set_ec] = React.useState<Slate.BaseSelection | null>(null)
@@ -113,7 +113,10 @@ function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWit
     >
         <Box><StructureTypography>idx: {props.root.idx} [root]</StructureTypography></Box>
         <Divider />
-        <DefaultParameterWithEditor node={props.root} ref={parametereditor_ref}/>
+        <DefaultParameterContainer 
+            node     = {props.root} 
+            ref      = {parametereditor_ref}
+        />
         <Button onClick={onClose}>Close</Button>
     </Drawer></EditorGlobalInfo.Provider>
 }

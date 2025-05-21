@@ -39,7 +39,6 @@ function find_concept_nodes_by_path(root: AbstractNode, path: number[]): Concept
 
     let cur_node: Node = root
     for(let i = 0; i < path.length; i++){
-        console.log("find_concept_nodes_by_path cur_node", cur_node)
         if(!(cur_node.children[path[i]])){
             continue
         }
