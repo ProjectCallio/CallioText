@@ -370,9 +370,9 @@ interface EditorComponent extends TreeOpeationsMixins{
  */
 class EditorComponent extends React.Component<EditorComponentProps , {
     root_property: Omit<AbstractNode , "children">
+    slate: SlateReact.ReactEditor
 
 }>{
-    slate: SlateReact.ReactEditor
 
     constructor(props:EditorComponentProps){
         super(props)
@@ -394,18 +394,18 @@ class EditorComponent extends React.Component<EditorComponentProps , {
             return [children, _] // 把默认根节点拆成儿子和非儿子的部分。
         })()
         
-        this.slate = with_outer_plugin(me , 
-            with_ytext_plugins(me , 
-                withHistory(
-                    SlateReact.withReact(
-                        Slate.createEditor() as SlateReact.ReactEditor
-                    ) 
-                )
-            ) 
-        )
 
         this.state = {
             root_property: props.init_rootproperty || default_root_but_children , 
+            slate: with_outer_plugin(me , 
+                with_ytext_plugins(me , 
+                    withHistory(
+                        SlateReact.withReact(
+                            Slate.createEditor() as SlateReact.ReactEditor
+                        ) 
+                    )
+                ) 
+            )
         }
 
         this.renderElement = this.renderElement.bind(this)
@@ -419,6 +419,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     /** 将`root_children`和`root_property`组合成一棵树。 */
     get_root(): Readonly<AbstractNode>{
         let slate = this.get_slate()
+        console.log("get_root slate", slate)
         return {
             ...this.state.root_property ,
             children: slate.children as (SlateReact.ReactEditor & AbstractNode)["children"] , 
@@ -446,7 +447,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     }
 
     get_slate(){
-        return this.slate
+        return this.state.slate
     }
 
     use_tree_op_mixin(){
@@ -556,6 +557,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                 <SlateReact.Editable
                     style = {{
                         outline: "none" , //阻止默认的黑框
+                        cursor: "text" , 
                     }}
                     
                     renderElement = {this.renderElement}

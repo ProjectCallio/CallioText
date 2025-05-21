@@ -1,7 +1,7 @@
 /**
  * 在sectional editor中，我们提供一个一直存在的区域来编辑参数。
  */
-
+import * as Slate from "slate"
 import * as React from "react"
 import {
     Node , 
@@ -17,18 +17,25 @@ import {
 import {
     create , 
 } from "zustand"
+import {
+    DefaultParameterWithEditor , 
+} from "../../implbase/parameter_edit"
 
 export {
     UseAreaStore , 
     Area , 
 }
 
-let UseAreaStore = create<{
-    editor  : EditorComponent | null
-    set_editor  : (editor: EditorComponent) => void
+const UseAreaStore = create<{
+    editor    : EditorComponent | null
+    selection : Slate.Selection | null
+    set_editor    : (editor: EditorComponent) => void
+    set_selection : (selection: Slate.Selection | null) => void
 }>()((set)=>({
     editor      : null,
-    set_editor  : (editor) => set(state => ({ ...state , editor: editor })),
+    selection   : null,
+    set_editor    : (editor) => set(state => ({ ...state , editor: editor })),
+    set_selection : (selection) => set(state => ({ ...state , selection: selection })),
 }))
 
 function Area({
@@ -36,26 +43,30 @@ function Area({
 }:{
     sx?: BoxProps["sx"]
 }){
-    let editor = UseAreaStore(state => state.editor)
+    let editor    = UseAreaStore(state => state.editor)
+    let selection = UseAreaStore(state => state.selection)
 
-    if(!editor){
-        return <Box sx={{visibility: "hidden"}}></Box>
+    if((!editor) || (!selection)){
+        return <></>
     }
 
-    let slate = editor.get_slate()
-    let cur_path = slate.selection?.anchor.path
+    let cur_path = selection?.anchor.path
     if(!cur_path){
-        return <Box sx={{visibility: "hidden"}}></Box>
+        return <></>
     }
     
     let concept_nodes = find_concept_nodes_by_path(editor.get_root() , cur_path)
+    if(concept_nodes.length == 0){
+        return <></>
+    }
 
+    let cur_node = concept_nodes[concept_nodes.length - 1]
+    
     return <Box sx={{
-        backgroundColor: "red" , 
         width: "10rem" , 
         height: "10rem" , 
         ...sx
     }}>
-        now path: {concept_nodes.length}
+        <DefaultParameterWithEditor node = {cur_node}/>
     </Box>
 }

@@ -9,6 +9,10 @@ import {
     AbstractNode , 
 } from "../../core"
 
+import {
+    Box , 
+} from "@mui/material"
+
 
 import {
     Printer , 
@@ -23,6 +27,10 @@ import {
     make_printerconfig , 
     PartialPrinterConfig , 
 } from "./uibase"
+
+import {
+    Area , 
+} from "../areas"
 
 export {
     DefaultPrinterComponent , 
@@ -77,8 +85,22 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
         let me = this
 
         let config = make_printerconfig(this.props.config)
+        
 
         return <PrinterConfigContext.Provider value = {config}>
+            <Box>
+                <Area sx={{
+                    position: "absolute" , 
+                    top: 0 , 
+                    left: 0 , 
+                    width: "100%" , 
+                    paddingX: "1rem" , 
+                    height: "10rem" , 
+                    backgroundColor: (theme)=>theme.palette.background.paper , 
+                    zIndex: 1000 , 
+                    opacity: 0.8 , 
+                }}/>
+            </Box>
             <PrinterBackgroundPaper>
                 <PrinterComponent 
                     ref     = {me.handle_ref_printercomponent}
