@@ -1,11 +1,12 @@
 /**
  * 在sectional editor中，我们提供一个一直存在的区域来编辑参数。
  */
-import * as Slate from "slate"
 import * as React from "react"
+import * as Slate from "slate"
 import {
     Node , 
     find_concept_nodes_by_path , 
+    ConceptNode , 
 } from "../../core"
 import {
     EditorComponent , 
@@ -13,6 +14,11 @@ import {
 import {
     Box , 
     BoxProps , 
+    Button , 
+    Typography , 
+    Paper , 
+    IconButton , 
+    Stack , 
 } from "@mui/material"
 import {
     create , 
@@ -23,6 +29,10 @@ import {
 import {
     ParameterList , 
 } from "../../core"
+import {
+    NavigateBefore , 
+    NavigateNext , 
+} from "@mui/icons-material"
 
 
 export {
@@ -49,32 +59,70 @@ function Area({
 }){
     let editor    = UseAreaStore(state => state.editor)
     let selection = UseAreaStore(state => state.selection)
+    let [cur_concepts, set_cur_concepts] = React.useState<ConceptNode[]>([])
+    let [cur_level, set_cur_level] = React.useState(0)
 
-    if((!editor) || (!selection)){
+    React.useEffect(()=>{
+        if(!editor || !selection){
+            return 
+        }
+        let cur_path = selection?.anchor.path
+        if(!cur_path){
+            return 
+        }
+        let concept_nodes = find_concept_nodes_by_path(editor.get_root() , cur_path)
+        if(concept_nodes.length == 0){
+            return 
+        }
+        set_cur_level(concept_nodes.length - 1)
+        set_cur_concepts(concept_nodes)
+    }, [editor, selection])
+
+    if(!editor || !selection || cur_concepts.length == 0){
         return <></>
     }
 
-    let cur_path = selection?.anchor.path
-    if(!cur_path){
-        return <></>
-    }
-    
-    let concept_nodes = find_concept_nodes_by_path(editor.get_root() , cur_path)
-    if(concept_nodes.length == 0){
-        return <></>
-    }
+    let concept_num = cur_concepts.length
+    let cur_node = cur_concepts[cur_level % concept_num]
 
-    let cur_node = concept_nodes[concept_nodes.length - 1]
-    
-    return <Box sx={{
-        ...sx
-    }}>
-        <DefaultParameterContainer 
-            node     = {cur_node}
-            onSave = {(parameters: ParameterList)=>{
-                console.log(parameters)
-                editor.auto_set_parameter(cur_node, parameters)
-            }}
-        />
-    </Box>
+    return <Paper 
+        elevation={3} 
+        sx={{
+            p: 2,
+            ...sx
+        }}
+    >
+        <Stack spacing={2}>
+            <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+            }}>
+                <IconButton 
+                    onClick={() => {
+                        set_cur_level((cur_level - 1 + concept_num) % concept_num)
+                    }}
+                >
+                    <NavigateBefore />
+                </IconButton>
+                <Typography variant="h6">
+                    {cur_node.concept || "未命名概念"}
+                </Typography>
+                <IconButton 
+                    onClick={() => {
+                        set_cur_level((cur_level + 1) % concept_num)
+                    }}
+                >
+                    <NavigateNext />
+                </IconButton>
+            </Box>
+            <DefaultParameterContainer 
+                node = {cur_node}
+                onSave = {(parameters: ParameterList) => {
+                    console.log(parameters)
+                    editor.auto_set_parameter(cur_node, parameters)
+                }}
+            />
+        </Stack>
+    </Paper>
 }
