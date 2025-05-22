@@ -88,19 +88,6 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
         
 
         return <PrinterConfigContext.Provider value = {config}>
-            <Box>
-                <Area sx={{
-                    position: "absolute" , 
-                    top: 0 , 
-                    left: 0 , 
-                    height: "100%" , 
-                    width: "20%" , 
-                    paddingX: "1rem" , 
-                    backgroundColor: (theme)=>theme.palette.background.paper , 
-                    zIndex: 1000 , 
-                    opacity: 0.9 , 
-                }}/>
-            </Box>
             <PrinterBackgroundPaper>
                 <PrinterComponent 
                     ref     = {me.handle_ref_printercomponent}

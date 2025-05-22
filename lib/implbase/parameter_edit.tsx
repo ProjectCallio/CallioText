@@ -174,8 +174,6 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
 
 
 
-
-
 /** 参数菜单的`props`。 */
 interface DefaultParameterContainerProps{
     node: Slate.Node & ConceptNode
@@ -224,7 +222,6 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
         let me = this
         let init_parameters = this.props.node.parameters
 
-        console.log("state.parameters", this.state.parameters)
         let node_str = JSON.stringify(this.props.node)
         let onSave = this.props.onSave || (()=>{})
 
