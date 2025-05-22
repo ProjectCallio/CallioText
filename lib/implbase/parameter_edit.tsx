@@ -253,7 +253,6 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
             </ListItem>
         })}</List>
         <Button onClick = {()=>{
-            console.log("get_parameters", me.get_parameters())
             onSave(me.get_parameters())
         }}>保存</Button>
         </React.Fragment>

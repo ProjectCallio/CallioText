@@ -43,7 +43,7 @@ import {
     EditorButtonInformation , 
     DefaultParameterContainer , 
 } from "../../../implbase"
-
+import { UseAreaStore } from "../../areas"
 
 export { 
     DefaultParameterWithEditorWithDrawer , 
@@ -90,6 +90,12 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
                 } , 
                 onExited: () => {
                     if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
+                        // 在更新完毕之后，刷新area。
+                        editor.add_apply_callback(()=>{
+                            UseAreaStore.getState().flush()
+                        })
+
+                        // 在退出时更新所服务的节点的参数。
                         let parameters = parametereditor_ref.current.get_parameters()
                         editor.auto_set_parameter(props.node, parameters)
                     }

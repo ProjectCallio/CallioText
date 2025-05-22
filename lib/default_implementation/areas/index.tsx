@@ -44,13 +44,17 @@ export {
 const UseAreaStore = create<{
     editor    : EditorComponent | null
     selection : Slate.Selection | null
+    version   : number
     set_editor    : (editor: EditorComponent) => void
     set_selection : (selection: Slate.Selection | null) => void
+    flush   : () => void // 强制刷新
 }>()((set)=>({
     editor      : null,
     selection   : null,
+    version     : 0,
     set_editor    : (editor) => set(state => ({ ...state , editor: editor })),
     set_selection : (selection) => set(state => ({ ...state , selection: selection })),
+    flush         : () => set(state => ({ ...state , version: state.version + 1 })),
 }))
 
 function Area({
@@ -60,6 +64,8 @@ function Area({
 }){
     let editor    = UseAreaStore(state => state.editor)
     let selection = UseAreaStore(state => state.selection)
+    let version   = UseAreaStore(state => state.version) // 用于强制刷新
+
     let [cur_concepts, set_cur_concepts] = React.useState<ConceptNode[]>([])
     let [cur_level, set_cur_level] = React.useState(0)
 
@@ -81,6 +87,28 @@ function Area({
         set_cur_level(concept_nodes.length - 1)
         set_cur_concepts(concept_nodes)
     }, [editor, selection])
+
+    React.useEffect(()=>{
+        if(!editor || !selection){
+            set_cur_concepts([])
+            return 
+        }
+        let cur_path = selection?.anchor.path
+        if(!cur_path){
+            set_cur_concepts([])
+            return 
+        }
+        let concept_nodes = find_concept_nodes_by_path(editor.get_root() , cur_path)
+        if(concept_nodes.length == 0){
+            set_cur_concepts([])
+            return 
+        }
+        set_cur_level(cur_level % concept_nodes.length)
+        set_cur_concepts(concept_nodes)
+    }, [version])
+
+    console.log("version", version)
+    console.log("cur_concepts", cur_concepts)
 
     let concept_num = cur_concepts.length
     let cur_node    = concept_num > 0 ? cur_concepts[cur_level % concept_num] : null
