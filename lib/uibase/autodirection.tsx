@@ -50,7 +50,7 @@ function AutoTooltip(props: {
 }){
     let title = props.title || ""
     return <Direction.Consumer>{nowdir => { 
-        return <Tooltip title={title} placement={nowdir == "row" ? "left" : "top"} key="tooltip">
+        return <Tooltip title={title} placement={nowdir == "row" ? "left" : "top"} >
             {props.children}
         </Tooltip>
     }}</Direction.Consumer>

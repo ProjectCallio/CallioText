@@ -15,12 +15,16 @@ import {
     Paper , 
     Card , 
     Container , 
+    useTheme , 
 } from "@mui/material"
+
 import type {
     TypographyProps , 
     PaperProps , 
     BoxProps , 
 } from "@mui/material"
+
+import  Color  from "color"
 
 import {
     EditorConfigContext , 
@@ -106,32 +110,35 @@ const EditorComponentEditingBox = (props: BoxProps & {autogrow?: boolean}) => {
     />
 }
 
+
 let EditorComponentPaperNestLevel = React.createContext<number>(1)
 
 /** 这个组件定义一个用来渲染特殊节点的纸张。 
  * @param props.is_inline 这个组件是否是行内组件。
 */
 const EditorComponentPaper = (
-    props: PaperProps & {is_inline?: boolean, comp?: "card" | "paper"}
+    props: PaperProps & {is_inline?: boolean}
 ) =>{
+    // XXX 目前没有用到level
     let net_level = React.useContext(EditorComponentPaperNestLevel) // 已经嵌套了多少层了
-    let {children , is_inline, comp, ...other_props} = props
+    let {children , is_inline, sx, ...other_props} = props
     
-    let CONT = Paper
-    if(comp == "card"){
-        CONT = Card
-    }
-
     let config = React.useContext(EditorConfigContext)
+    let theme  = useTheme()
 
-    return <CONT 
-        elevation = {net_level + 2}
+    let bgcolor = Color( theme.palette.primary.main )
+    bgcolor = bgcolor.rotate(30 * (net_level-1))
+    bgcolor = bgcolor.alpha(0.3)
+    bgcolor = bgcolor.desaturate(0.5)
+
+    return <Box 
         square 
         {...other_props} // 去掉自己定义的属性。
         sx = {[
             {
                 paddingY : "0.5rem" , 
                 paddingX : "0.25rem" , 
+                backgroundColor: bgcolor.toString() , 
             } , 
             {
                 ...(is_inline
@@ -146,11 +153,11 @@ const EditorComponentPaper = (
                     }
                 ) , 
             } , 
-            ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
+            ...(Array.isArray(sx) ? sx : [sx]) , 
         ]}
-    ><EditorComponentPaperNestLevel.Provider value = {net_level + 2}>
+    ><EditorComponentPaperNestLevel.Provider value = {net_level + 1}>
         {children}
-    </EditorComponentPaperNestLevel.Provider></CONT>
+    </EditorComponentPaperNestLevel.Provider></Box>
 }
 
 /** 对于一个不用纸张作为最外层元素的节点，这个组件用来提供其边框。 */

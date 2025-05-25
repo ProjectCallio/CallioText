@@ -4,4 +4,3 @@ export * from "./texticon"
 export * from "./configbase"
 export * from "./exceptions"
 export * from "./mouseless"
-

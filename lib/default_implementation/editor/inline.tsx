@@ -82,10 +82,10 @@ function get_default_inline_editor({
 
         return <ComponentPaper is_inline>
             <AutoStack force_direction="row">
-                <ComponentEditorBox key="edi">
+                <ComponentEditorBox>
                     <SUR node={node}>{props.children}</SUR>
                 </ComponentEditorBox>
-                <UnselecableBox key="uns">
+                <UnselecableBox>
                     <AutoStack force_direction="row">
                         <Extra node={node}/>
                         <AutoStackedPopperButtonGroupMouseless

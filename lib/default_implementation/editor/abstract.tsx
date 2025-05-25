@@ -310,8 +310,14 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
         return <EditorGlobalInfo.Consumer>{globalinfo=>{
             let editor = globalinfo.editor as EditorComponent
             return <React.Fragment>
-                <Box sx={{marginX: "auto"}} ref={this.boxref}><AutoTooltip title="新建抽象">
-                    <IconButton onClick={()=>this.open()}><AddBoxIcon/></IconButton>
+                <Box sx={{
+                    marginX: "auto" , 
+                }} ref={this.boxref}><AutoTooltip title="新建抽象">
+                    <IconButton onClick={()=>this.open()} sx={{
+                        transform: "scale(0.8)",
+                        transformOrigin: "center center" , 
+                        paddingX: "0.05rem" , 
+                    }}><AddBoxIcon/></IconButton>
                 </AutoTooltip></Box>
                 <DefaultNewAbstract
                     node = {node} 
@@ -366,8 +372,14 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
         return <EditorGlobalInfo.Consumer>{globalinfo=>{
             let editor = globalinfo.editor as EditorComponent
             return <React.Fragment>
-                <Box sx={{marginX: "auto"}} ref={this.boxref}><AutoTooltip title="编辑抽象">
-                    <IconButton onClick={()=>this.open()}><FilterNoneIcon/></IconButton>
+                <Box sx={{
+                    marginX: "auto" , 
+                }} ref={this.boxref}><AutoTooltip title="编辑抽象">
+                    <IconButton onClick={()=>this.open()} sx={{
+                        transform: "scale(0.8)",
+                        transformOrigin: "center center" , 
+                        paddingX: "0.05rem" , 
+                    }}><FilterNoneIcon/></IconButton>
                 </AutoTooltip></Box>
                 <DefaultAbstractEditorGroup 
                     node = {node} 

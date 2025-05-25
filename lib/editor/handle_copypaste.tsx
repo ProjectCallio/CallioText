@@ -48,13 +48,14 @@ function handle_copy(
     }
     const serialized = JSON.stringify(data)
 
-    console.log("handle_copy", data.fragment)
-
     e.clipboardData.setData(
         "application/x-caliotext-fragment", 
         btoa(encodeURIComponent(serialized))
     )
-    e.clipboardData.setData("text/plain", serialized)
+    e.clipboardData.setData(
+        "text/plain", 
+        data.fragment.map(node => Slate.Node.string(node)).join("")
+    )
 
     if(remove_data){
         Slate.Transforms.delete(slate)

@@ -94,9 +94,12 @@ export { get_deafult_group_editor_with_appbar , get_default_group_editor_with_ri
 
 /** 为 Group 类型的节点定制的 Paper ，在节点前后相连时会取消前后距离。 */
 let GroupPaper = (props: PaperProps & {node: GroupNode}) => {
-    let {node, ...other_props} = props
+    let {node, sx, ...other_props} = props
     return <ComponentPaper {...other_props} 
-        sx = { node.relation == "chaining" ? { marginTop: "0" } : {} }
+        sx = {{
+            ...(node.relation == "chaining" ? { marginTop: "0" } : {}),
+            ...sx,
+        }}
     />
 }
 
@@ -129,10 +132,10 @@ function get_deafult_group_editor_with_appbar({
 
         return <GroupPaper node={node}>
             <AutoStack force_direction="column">
-                <UnselecableBox key="uns">
+                <UnselecableBox>
                     <Box sx={{
                         overflow: "auto" , 
-                        marginX: "1rem"
+                        paddingX: "1rem" , 
                     }}><ScrollBarBox><AutoStack>
                         <StructureTypography>{label}</StructureTypography>
                         <ButtonGroup 
@@ -153,8 +156,7 @@ function get_deafult_group_editor_with_appbar({
                         />
                     </AutoStack></ScrollBarBox></Box>
                 </UnselecableBox >
-                <Divider />
-                <ComponentEditorBox autogrow key="edi">
+                <ComponentEditorBox autogrow>
                     <SUR node={node}>{props.children}</SUR>
                 </ComponentEditorBox>
             </AutoStack>

@@ -344,6 +344,7 @@ class ButtonGroup extends React.Component<ButtonGroupProps>{
                 extra_unactivate = {this.props.extra_unactivate}
             />
         })
+        
         if(this.props.autostack){
             return <AutoStack>{ret}</AutoStack>
         }

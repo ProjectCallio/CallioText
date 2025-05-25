@@ -26,6 +26,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
+    "color": "^5.0.0",
     "framer-motion": "^12.12.1",
     "immer": "^10.1.1",
     "jquery": "^3.7.1",

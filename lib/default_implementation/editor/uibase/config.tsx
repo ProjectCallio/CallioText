@@ -4,6 +4,8 @@ import type {
     TypographyConfig , 
 } from "../../../uibase"
 
+import "../../../uibase/fonts.css"
+
 import {
     merge_object , 
 } from "../../../utils"
@@ -64,7 +66,7 @@ const default_editorconfig: EditorConfig =
     } , 
     fonts: {
         body: {
-            fontFamily: "default" , 
+            fontFamily: "sarasa-gothic" , 
             fontSize: "1rem" , 
             lineHeight : "1.5rem" , 
             lineSpacing: "0.00938em" ,    

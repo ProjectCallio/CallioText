@@ -73,9 +73,23 @@ function AutoIconButton(props:{
     let Icon = props.icon
     let component = props.component || "button"
     let icon_props = props.icon_props || {}
+
+    let {sx, ...rest} = icon_props
     
     return <AutoTooltip title={props.title}>
-        <IconButton onClick={props.onClick} size={props.size} component={component} {...icon_props} key="button">
+        <IconButton 
+            onClick     = {props.onClick} 
+            size        = {props.size} 
+            component   = {component} 
+            sx          = {{
+                transform: "scale(0.8)",
+                transformOrigin: "center center" , 
+                paddingX: "0.05rem",
+                
+                ...(sx || {})
+            }}
+            {...rest} 
+        >
             <Icon/>
         </IconButton>
     </AutoTooltip>
@@ -116,7 +130,7 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
         let me = this
 
         return <Box sx={{marginX: "auto"}}>
-            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon}/>
+            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon} />
             <DefaultParameterWithEditorWithDrawer 
                 node = {props.node} 
                 open = {me.state.open} 
@@ -360,10 +374,18 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
     render(): React.ReactNode {
         return <AutoTooltip title = "贴贴">
             <Switch 
-                key = "switch"
                 checked = {this.state.checked} 
                 onChange = {this.switch_check_change} 
-                inputRef = {this.switchref}
+                sx = {{
+                    transform: "scale(0.8)",
+                    transformOrigin: "center center" , 
+                    marginX: "-0.5rem"
+                }}
+                slotProps = {{
+                    input: {
+                        ref: this.switchref
+                    }
+                }}
             />
         </AutoTooltip>
     }
