@@ -66,7 +66,7 @@ const default_editorconfig: EditorConfig =
     } , 
     fonts: {
         body: {
-            fontFamily: "sarasa-gothic" , 
+            fontFamily: "sarasa-mono" , 
             fontSize: "1rem" , 
             lineHeight : "1.5rem" , 
             lineSpacing: "0.00938em" ,    
