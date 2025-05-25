@@ -70,11 +70,11 @@ function AutoIconButton(props:{
     component?: "button" | "span"
     icon_props?: IconButtonProps
 }){
-    let Icon = props.icon
-    let component = props.component || "button"
-    let icon_props = props.icon_props || {}
+    const Icon = props.icon
+    const component = props.component || "button"
+    const icon_props = props.icon_props || {}
 
-    let {sx, ...rest} = icon_props
+    const {sx, ...rest} = icon_props
     
     return <AutoTooltip title={props.title}>
         <IconButton 
@@ -105,7 +105,7 @@ function MyImg(props: {img_url: string}){
  * @param props.node 这个组件所服务的节点。
  * @param props.onExit 抽屉关闭时的行为。
  */
-class DefaultParameterEditButton extends React.PureComponent <EditorButtonInformation & {
+class DefaultParameterEditButton extends React.Component <EditorButtonInformation & {
     onExit?: (e:any)=>void , 
 }, {
     open: boolean
@@ -124,10 +124,19 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
         this.setState({open:true})
     }
 
+    shouldComponentUpdate(
+        nextProps: EditorButtonInformation & {onExit?: (e:any)=>void}, 
+        nextState: {open: boolean}
+    ): boolean {
+        return nextProps.node.parameters !== this.props.node.parameters 
+            || nextState.open !== this.state.open
+    }
+
     render(){
-        let props = this.props
-        let onExit = props.onExit || ((e:any)=>{})
-        let me = this
+        const props = this.props
+        const onExit = props.onExit || ((e:any)=>{})
+        const me = this
+        console.log("render parameter edit")
 
         return <Box sx={{marginX: "auto"}}>
             <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon} />
@@ -146,7 +155,7 @@ class DefaultParameterEditButton extends React.PureComponent <EditorButtonInform
 /** 这个组件提供一个直接删除节点的按钮。 
  * @param props.node 这个组件所服务的节点。
  */
-class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
+class DefaultCloseButton extends React.Component<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
     declare context: React.ContextType<typeof EditorGlobalInfo>
 
@@ -154,10 +163,13 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
         super(props)
         this.run = this.run.bind(this)
     }
+    shouldComponentUpdate(): boolean {
+        return false 
+    }
 
     run(){
-        let globalinfo = this.context
-        let editor = globalinfo.editor
+        const globalinfo = this.context
+        const editor = globalinfo.editor
         if(editor){
             editor.delete_concept_node(this.props.node)
         }
@@ -171,7 +183,7 @@ class DefaultCloseButton extends React.PureComponent<EditorButtonInformation> im
  * @param props.node 这个组件所服务的节点。
  * @param props.puretext 是否将子组件作为纯文本。
  */
-class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformation & {puretext?: boolean}> implements ButtonBase{
+class DefaultSoftDeleteButton extends React.Component<EditorButtonInformation & {puretext?: boolean}> implements ButtonBase{
     static contextType = EditorGlobalInfo
     declare context: React.ContextType<typeof EditorGlobalInfo>
 
@@ -189,8 +201,8 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
 
         if(this.props.puretext){
             // XXX 可能保留内部样式会比较好...
-            let text = Slate.Node.string(this.props.node)
-            let path = slate_concept_node2path(editor.get_root() , this.props.node)
+            const text = Slate.Node.string(this.props.node)
+            const path = slate_concept_node2path(editor.get_root() , this.props.node)
             if(path){
                 editor.delete_node_by_path(path)
                 editor.add_nodes(editor.get_core().create_paragraph(text) , path)
@@ -200,6 +212,11 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
             editor.unwrap_node(this.props.node)
         }
     }
+
+    shouldComponentUpdate(): boolean {
+        return false
+    }
+
     render(): React.ReactNode {
         return <AutoIconButton onClick={this.run} title="解除组件" icon={MoveUpIcon} />
     }
@@ -208,7 +225,7 @@ class DefaultSoftDeleteButton extends React.PureComponent<EditorButtonInformatio
 /** 这个组件提供一个在组件的上新建段落的节点。 
  * @param props.node 这个组件所服务的节点。
  */
-class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
+class NewParagraphButtonUp extends React.Component<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
     declare context: React.ContextType<typeof EditorGlobalInfo>
 
@@ -225,6 +242,11 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
         }
         editor.add_nodes_before(editor.get_core().create_paragraph() , this.props.node )    
     }
+
+    shouldComponentUpdate(): boolean {
+        return false
+    }
+
     render(): React.ReactNode {
         return <AutoIconButton onClick={this.run} title="向上添加段落" icon={NorthIcon} />
     }
@@ -233,7 +255,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 /** 这个组件提供一个在组件的下新建段落的节点。 
  * @param props.node 这个组件所服务的节点。
  */
- class NewParagraphButtonDown extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
+ class NewParagraphButtonDown extends React.Component<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
     declare context: React.ContextType<typeof EditorGlobalInfo>
 
@@ -243,13 +265,18 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
     }
 
     run(){
-        let globalinfo = this.context
-        let editor = globalinfo.editor
+        const globalinfo = this.context
+        const editor = globalinfo.editor
         if(!editor){
             return
         }
         editor.add_nodes_after(editor.get_core().create_paragraph() , this.props.node )    
     }
+
+    shouldComponentUpdate(): boolean {
+        return false
+    }
+
     render(): React.ReactNode {
         return <AutoIconButton onClick={this.run} title="向下添加段落" icon={SouthIcon} />
     }
@@ -259,7 +286,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 /** 这个按钮在一个概念下方复制此概念，并设置同样的参数。 
  * @param props.node 这个组件所服务的节点。
  */
- class CopyButton extends React.PureComponent<EditorButtonInformation> implements ButtonBase{
+ class CopyButton extends React.Component<EditorButtonInformation> implements ButtonBase{
     static contextType = EditorGlobalInfo
     declare context: React.ContextType<typeof EditorGlobalInfo>
 
@@ -268,14 +295,18 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
         this.run = this.run.bind(this)
     }
 
+    shouldComponentUpdate(): boolean {
+        return false
+    }
+
     run(){
-        let globalinfo = this.context
-        let editor = globalinfo.editor
+        const globalinfo = this.context
+        const editor = globalinfo.editor
         if(!editor){
             return
         }
 
-        let node = this.props.node
+        const node = this.props.node
         let new_node: ConceptNode | undefined = undefined
         if(node.type == "group"){
             new_node = editor.get_core().create_group(node.concept, "chaining") // 自动跟上一个节点贴贴
@@ -293,6 +324,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
             editor.add_nodes_after(new_node , this.props.node )    
         }
     }
+
     render(): React.ReactNode {
         return <AutoIconButton onClick={this.run} title="复制此节点" icon={PhoneMissedIcon} />
     }
@@ -302,7 +334,7 @@ class NewParagraphButtonUp extends React.PureComponent<EditorButtonInformation> 
 /** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 
  * @param props.node 服务的节点。
  */
-class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNode | StructNode>, {
+class DefaultSwicth extends React.Component<EditorButtonInformation<GroupNode | StructNode>, {
     checked: boolean
 }> implements ButtonBase{
     static contextType = EditorGlobalInfo
@@ -331,11 +363,11 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
 
     /** 当点击的时候，处理开关的逻辑。 */
     switch_check_change(){
-        let globalinfo = this.context
-        let editor = globalinfo.editor
-        let node = this.props.node
+        const globalinfo = this.context
+        const editor = globalinfo.editor
+        const node = this.props.node
 
-        let checked = this.get_switch()?.checked
+        const checked = this.get_switch()?.checked
         if(checked == undefined || !editor){
             return
         }
@@ -351,7 +383,7 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
     }
 
     update(){
-        let node = this.props.node
+        const node = this.props.node
         // 在节点被外部修改的情况下更新组件状态。主要是为了在撤销操作时正确的操作状态
         if( (node.relation == "chaining") != this.state.checked){ 
             this.setState({checked: node.relation == "chaining"})
@@ -366,7 +398,7 @@ class DefaultSwicth extends React.PureComponent<EditorButtonInformation<GroupNod
     }
     
     run(){
-        let switch_ = this.get_switch()
+        const switch_ = this.get_switch()
         if(switch_){
             switch_.click() // 模拟点击。
         }

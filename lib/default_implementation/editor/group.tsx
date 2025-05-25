@@ -28,6 +28,7 @@ import {
     Card , 
 
     PaperProps ,
+    useTheme ,
 } 
 from "@mui/material"
 
@@ -77,6 +78,8 @@ import {
     SimpleAutoStack , 
     AutoStackedPopper , 
     ScrollBarBox , 
+
+    light_grey,
 } from "../../uibase"
 
 import {
@@ -85,6 +88,9 @@ import {
     AutoStackedPopperButtonGroupMouseless , 
     EditorButtonInformation , 
 } from "../../implbase/buttons"
+
+import Color from "color"
+
 
 import {
     EditorNodeInfoFunction , 
@@ -97,7 +103,10 @@ let GroupPaper = (props: PaperProps & {node: GroupNode}) => {
     let {node, sx, ...other_props} = props
     return <ComponentPaper {...other_props} 
         sx = {{
-            ...(node.relation == "chaining" ? { marginTop: "0" } : {}),
+            ...(node.relation == "chaining" ? { 
+                marginTop: "0" ,
+                borderTop: "1px solid rgba(30, 30, 30, 0.5)" ,
+            } : {}),
             ...sx,
         }}
     />
@@ -122,17 +131,23 @@ function get_deafult_group_editor_with_appbar({
     surrounder      ?: (props: EditorButtonInformation & {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
     // 渲染器
-    let subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        let editor      = props.editor
-        let node        = props.node
-        let parameters  = editor.get_core().get_printer().process_parameters(node)
-        let label       = get_label(node, parameters)
+    const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
+        const editor      = props.editor
+        const node        = props.node
+        const parameters  = editor.get_core().get_printer().process_parameters(node)
+        const label       = get_label(node, parameters)
 
-        let SUR = surrounder
+        const SUR = surrounder
+
+        const theme = useTheme()
+        const bgcolor = light_grey( Color(theme.palette.primary.light) )
 
         return <GroupPaper node={node}>
-            <AutoStack force_direction="column">
-                <UnselecableBox>
+                <AutoStack force_direction="column">
+                <UnselecableBox sx={{
+                    marginX: "0.25rem" , 
+                    backgroundColor: bgcolor.toString() , 
+                }}>
                     <Box sx={{
                         overflow: "auto" , 
                         paddingX: "1rem" , 
@@ -145,7 +160,7 @@ function get_deafult_group_editor_with_appbar({
                                 DefaultParameterEditButton , 
                                 DefaultNewAbstractButton , 
                                 DefaultEditAbstractButton , 
-                                DefaultSwicth , 
+                                DefaultSwicth as ButtonDescription, 
                                 NewParagraphButtonUp , 
                                 NewParagraphButtonDown , 
                                 DefaultCloseButton , 
@@ -182,59 +197,74 @@ function get_default_group_editor_with_rightbar({
 }): EditorRenderer<GroupNode>{
 
     const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        let editor      = props.editor
-        let node        = props.node
-        let parameters  = editor.get_core().get_printer().process_parameters(node)
-        let mylabel     = get_label(node, parameters)
-        let SUR = surrounder
+        const editor      = props.editor
+        const node        = props.node
+        const parameters  = editor.get_core().get_printer().process_parameters(node)
+        const mylabel     = get_label(node, parameters)
+        const SUR = surrounder
 
-        let extra_buttons = rightbar_extra(node, parameters)
+        const extra_buttons = rightbar_extra(node, parameters)
 
         // 根据node子节点数量估计这个组件是长的还是高的。
-        let guess_high = (node.children.reduce((s,x)=>s += (slate_is_concept(x , "group") ? 2 : 1) , 0)) >= 3
+        const guess_high = (node.children.reduce((s,x)=>s += (slate_is_concept(x , "group") ? 2 : 1) , 0)) >= 3
+
+        const title_comp = <StructureTypography variant = "overline">{mylabel}</StructureTypography>
+        const extra_buttons_comp = <ButtonGroup // 额外添加的元素。
+            autostack 
+            node    = {node}
+            buttons = {extra_buttons}
+        />
 
         return <GroupPaper node={node}>
             <SimpleAutoStack force_direction="row">
                 <ComponentEditorBox autogrow key="edit">
                     <SUR node={node}>{props.children}</SUR>
-                </ComponentEditorBox>                
-                <UnselecableBox key="uns">
-                    <AutoStack force_direction = {guess_high ? "column" : "row"}>
-                        <ButtonGroup // 额外添加的元素。
-                            autostack 
-                            node    = {node}
-                            buttons = {extra_buttons}
-                        />
-                        <StructureTypography variant = "overline">{mylabel}</StructureTypography>
-                        <AutoStackedPopperButtonGroupMouseless 
-                            poper_props = {{
-                                sx:{
-                                    opacity: "80%" , 
-                                }
-                            }}
-                            node = {node}
-                            close_on_otherclick 
-                            outer_button = {IconButton}
-                            outer_props = {{
-                                size: "small" , 
-                                children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                            }}
-                            label = "展开"
-                            buttons = {[
-                                DefaultParameterEditButton , 
-                                DefaultNewAbstractButton , 
-                                DefaultEditAbstractButton , 
-                                DefaultSwicth , 
-                                DefaultCloseButton , 
-                                DefaultSoftDeleteButton , 
-                                NewParagraphButtonUp , 
-                                NewParagraphButtonDown , 
-                                CopyButton , 
-                            ]}
-                            idxs = {[extra_buttons.length]} // 从extra_buttons.length开始编号。
-                        /> 
-                    </AutoStack>
-                </UnselecableBox>
+            </ComponentEditorBox>                
+            <UnselecableBox>
+                <AutoStack 
+                    force_direction = {guess_high ? "column" : "row"}
+                    sx = {{
+                        paddingX: "0.25rem" , 
+                        paddingY: "0.15rem" , 
+                        border: "1px solid rgba(30,30,30,0.3)" , 
+                    }}
+                >
+                    {...(guess_high 
+                    ? [ title_comp , extra_buttons_comp]
+                    : [ extra_buttons_comp , title_comp]
+                    )}
+                    <AutoStackedPopperButtonGroupMouseless 
+                        poper_props = {{
+                            sx:{
+                                opacity: "80%" , 
+                            }
+                        }}
+                        node = {node}
+                        close_on_otherclick 
+                        outer_button = {IconButton}
+                        outer_props = {{
+                            size: "small" , 
+                            children: <KeyboardArrowDownIcon fontSize="small"/> , 
+                            sx: {
+                                marginY: "auto" , 
+                            }
+                        }}
+                        label = "展开"
+                        buttons = {[
+                            DefaultParameterEditButton , 
+                            DefaultNewAbstractButton , 
+                            DefaultEditAbstractButton , 
+                            DefaultSwicth as ButtonDescription, 
+                            DefaultCloseButton , 
+                            DefaultSoftDeleteButton , 
+                            NewParagraphButtonUp , 
+                            NewParagraphButtonDown , 
+                            CopyButton , 
+                        ]}
+                        idxs = {[extra_buttons.length]} // 从extra_buttons.length开始编号。
+                    /> 
+                </AutoStack>
+            </UnselecableBox>
             </SimpleAutoStack>
         </GroupPaper>
     }

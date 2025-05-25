@@ -154,13 +154,11 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
 
         let poper = <React.Fragment>
             <AutoTooltip title={props.label}><B 
-                key = "b"
                 onClick     = {this.run.bind(this)}
                 ref         = {this.menu_anchor_ref}
                 {...props.outer_props}
             /></AutoTooltip>
             <AutoStackedPopper 
-                key = "autostackpoper"
                 anchorEl    = {this.get_anchor()} 
                 open        = {this.state.menu_open}
                 {...props.poper_props}
@@ -507,7 +505,10 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
         let idxs = this.get_idxs().slice(1) // 去掉第一个idx之后剩下的
 
         let poper = <Box sx={{
-            border: this.state.active ? "2px solid" : "none" , 
+            border: this.state.active ? "2px solid" : "none",
+            display       : "flex",
+            justifyContent: "center",
+            alignItems    : "center"
         }}>
             <AutoStackedPopperWithButton
                 outer_button        = {this.props.outer_button}

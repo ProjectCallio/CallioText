@@ -15,6 +15,7 @@ import {
     Fade  , 
     PopperProps , 
     Box , 
+    StackProps , 
 } from "@mui/material"
 
 export {
@@ -90,25 +91,33 @@ function AutoStackButtons(props: {
  * @param props.children 子元素。由 React 自动提供。
  * @param props.simple 是否为一个小堆叠，如果为 true ，则子组件不会转向。
  */
-function AutoStack(props: {
+function AutoStack({
+    force_direction , 
+    children , 
+    simple , 
+    ...other_props
+}: {
     force_direction?: DirectionValues
     children?: any
     simple?: boolean
-}){
-    let flip_direction = ! props.simple // 如果是简单版本，就不翻转方向，否则翻转
-
-    let subcomponent = (nowdir: DirectionValues) => {
-        let newdir = flip_direction ? (nowdir == "row" ? "column" : "row") : nowdir
-        return <Direction.Provider value={newdir}><Stack direction={nowdir}>{
-            props.children
-        }</Stack></Direction.Provider>
-    }
-    
-    if(props.force_direction != undefined){
-        return subcomponent(props.force_direction)
+} & StackProps){
+    let flip_direction = ! simple // 如果是简单版本，就不翻转方向，否则翻转
+    let nowdir = React.useContext(Direction)
+    if(force_direction){
+        nowdir = force_direction
     }
 
-    return <Direction.Consumer>{nowdir => subcomponent(nowdir)}</Direction.Consumer> 
+    let newdir = flip_direction ? (nowdir == "row" ? "column" : "row") : nowdir
+
+    let {sx, ...other_stack_props} = other_props
+
+    return <Direction.Provider value={newdir}>
+        <Stack 
+            direction = {nowdir}
+            sx = {sx}
+            {...other_stack_props}
+        >{children}</Stack>
+    </Direction.Provider>
 }
 
 /** 这个组件用于创建一个根据当前方向自动堆叠的对象。子元素不会自动转向。

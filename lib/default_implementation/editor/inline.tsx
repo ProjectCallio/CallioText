@@ -56,6 +56,7 @@ import {
 import {
     EditorNodeInfoFunction , 
 } from "./base"
+import { motion } from "framer-motion"
 
 export { get_default_inline_editor }
 
@@ -80,51 +81,50 @@ function get_default_inline_editor({
         let Extra = rightbar_extra
         let SUR = surrounder
 
-        return <ComponentPaper is_inline>
-            <AutoStack force_direction="row">
-                <ComponentEditorBox>
-                    <SUR node={node}>{props.children}</SUR>
-                </ComponentEditorBox>
-                <UnselecableBox>
-                    <AutoStack force_direction="row">
-                        <Extra node={node}/>
-                        <AutoStackedPopperButtonGroupMouseless
-                            poper_props = {{
-                                sx:{
-                                    opacity: "80%" , 
-                                }
-                            }}
-                            node = {node}
-                            idxs = {[0]}
-                            close_on_otherclick
-                            outer_button = {IconButton}
-                            outer_props = {{
-                                sx: {
-                                    height: "1rem" , 
-                                    width: "1rem" , 
-                                    margin: "0",
-                                } , 
-                                children: <KeyboardArrowDownIcon sx={{height: "1rem"}}/> ,
-                            }} 
-                            // label = {"展开" + (label ? ` / ${label}` : "") }
-                            label = {"展开"}
-                            buttons = {[
-                                DefaultParameterEditButton , 
-                                DefaultCloseButton , 
-                                DefaultSoftDeleteButton , 
-                                DefaultNewAbstractButton , 
-                                DefaultEditAbstractButton , 
-                            ]}
-                        >
-                            <StructureTypography sx={{
-                                marginY: "0.2rem", 
-                                marginX: "auto", 
-                                paddingX: "0.25rem"
-                            }}>{label}</StructureTypography>
-                        </AutoStackedPopperButtonGroupMouseless>
-                    </AutoStack>
-                </UnselecableBox>
-            </AutoStack>
+        return <ComponentPaper is_inline><AutoStack force_direction="row">
+            <ComponentEditorBox>
+                <SUR node={node}>{props.children}</SUR>
+            </ComponentEditorBox>
+            <UnselecableBox>
+                <AutoStack force_direction="row">
+                    <Extra node={node}/>
+                    <AutoStackedPopperButtonGroupMouseless
+                        poper_props = {{
+                            sx:{
+                                opacity: "80%" , 
+                            }
+                        }}
+                        node = {node}
+                        idxs = {[0]}
+                        close_on_otherclick
+                        outer_button = {IconButton}
+                        outer_props = {{
+                            sx: {
+                                height: "1rem" , 
+                                width: "1rem" , 
+                                margin: "0",
+                            } , 
+                            children: <KeyboardArrowDownIcon sx={{height: "1rem"}}/> ,
+                        }} 
+                        // label = {"展开" + (label ? ` / ${label}` : "") }
+                        label = {"展开"}
+                        buttons = {[
+                            DefaultParameterEditButton , 
+                            DefaultCloseButton , 
+                            DefaultSoftDeleteButton , 
+                            DefaultNewAbstractButton , 
+                            DefaultEditAbstractButton , 
+                        ]}
+                    >
+                        <StructureTypography sx={{
+                            marginY: "0.2rem", 
+                            marginX: "auto", 
+                            paddingX: "0.25rem"
+                        }}>{label}</StructureTypography>
+                    </AutoStackedPopperButtonGroupMouseless>
+                </AutoStack>
+            </UnselecableBox>
+        </AutoStack>
         </ComponentPaper>
     }
     return subcomp

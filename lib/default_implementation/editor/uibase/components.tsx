@@ -30,6 +30,10 @@ import {
     EditorConfigContext , 
 } from "./config"
 
+import {
+    light_grey
+} from "../../../uibase"
+
 export { 
     EditorComponentPaper , 
     EditorParagraphBox , 
@@ -43,20 +47,22 @@ export {
 // XXX 可以加入一个通用抽屉...
 
 /** 这个组件定义一个不可被选中的区域。用于 slate 的各种不希望被修改的辅助部分。 */
-const EditorUnselecableBox = (props: BoxProps) => <Box 
+const EditorUnselecableBox = React.memo((props: BoxProps) => <Box 
     contentEditable = {false}
     {...props}
     sx = {[
         {
             userSelect: "none" , 
+            cursor: "default" , 
+            
         } , 
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
     ]}
-/>
+/>)
 
 /** 这个组件定义默认的段落渲染方式。 */
-const EditorParagraphBox = (props: TypographyProps) => {
-    let config = React.useContext(EditorConfigContext)
+const EditorParagraphBox = React.memo((props: TypographyProps) => {
+    const config = React.useContext(EditorConfigContext)
     return <Typography 
         component = {Box}
         {...props}
@@ -68,11 +74,11 @@ const EditorParagraphBox = (props: TypographyProps) => {
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
     />
-}
+})
 
 /** 结构性的文字。 */
-const EditorStructureTypography = (props: TypographyProps) => {
-    let config = React.useContext(EditorConfigContext)
+const EditorStructureTypography = React.memo((props: TypographyProps) => {
+    const config = React.useContext(EditorConfigContext)
     return <Typography 
         component = {Box}
         {...props}
@@ -86,14 +92,14 @@ const EditorStructureTypography = (props: TypographyProps) => {
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
     />
-}
+})
 
 
 /** 这个组件定义可以书写的区域。
  * @param props.autogrow 如果为 true ，则区域会自动横向增长以填满父元素。
  */
-const EditorComponentEditingBox = (props: BoxProps & {autogrow?: boolean}) => {
-    let config = React.useContext(EditorConfigContext)
+const EditorComponentEditingBox = React.memo((props: BoxProps & {autogrow?: boolean}) => {
+    const config = React.useContext(EditorConfigContext)
     return <Box 
         {...{...props , autogrow: undefined}} // 去掉自己定义的属性。
         sx = {[
@@ -108,7 +114,7 @@ const EditorComponentEditingBox = (props: BoxProps & {autogrow?: boolean}) => {
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
     />
-}
+})
 
 
 let EditorComponentPaperNestLevel = React.createContext<number>(1)
@@ -116,23 +122,20 @@ let EditorComponentPaperNestLevel = React.createContext<number>(1)
 /** 这个组件定义一个用来渲染特殊节点的纸张。 
  * @param props.is_inline 这个组件是否是行内组件。
 */
-const EditorComponentPaper = (
+const EditorComponentPaper = React.memo((
     props: PaperProps & {is_inline?: boolean}
 ) =>{
     // XXX 目前没有用到level
-    let net_level = React.useContext(EditorComponentPaperNestLevel) // 已经嵌套了多少层了
-    let {children , is_inline, sx, ...other_props} = props
+    const net_level = React.useContext(EditorComponentPaperNestLevel) // 已经嵌套了多少层了
+    const {children , is_inline, sx, ...other_props} = props
     
-    let config = React.useContext(EditorConfigContext)
-    let theme  = useTheme()
+    const config = React.useContext(EditorConfigContext)
+    const theme  = useTheme()
 
-    let bgcolor = Color( theme.palette.primary.main )
+    let bgcolor = Color( theme.palette.background.paper )
     bgcolor = bgcolor.rotate(30 * (net_level-1))
-    bgcolor = bgcolor.alpha(0.3)
-    bgcolor = bgcolor.desaturate(0.5)
-
+    bgcolor = light_grey(bgcolor)
     return <Box 
-        square 
         {...other_props} // 去掉自己定义的属性。
         sx = {[
             {
@@ -158,11 +161,11 @@ const EditorComponentPaper = (
     ><EditorComponentPaperNestLevel.Provider value = {net_level + 1}>
         {children}
     </EditorComponentPaperNestLevel.Provider></Box>
-}
+})
 
 /** 对于一个不用纸张作为最外层元素的节点，这个组件用来提供其边框。 */
-const EditorComponentBox = (props: BoxProps) => {
-    let config = React.useContext(EditorConfigContext)
+const EditorComponentBox = React.memo((props: BoxProps) => {
+    const config = React.useContext(EditorConfigContext)
     return <Box 
         {...props}
         sx = {[
@@ -172,10 +175,10 @@ const EditorComponentBox = (props: BoxProps) => {
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
     />
-}
+})
 
 /** 包裹整个编辑器的纸张。 */
-const EditorBackgroundPaper = (props: PaperProps) => <Box 
+const EditorBackgroundPaper = React.memo((props: PaperProps) => <Box 
     elevation = {0}
     variant = "outlined"
     // square 
@@ -189,5 +192,5 @@ const EditorBackgroundPaper = (props: PaperProps) => <Box
         },
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
     ]}
-/>
+/>)
 

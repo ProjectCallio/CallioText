@@ -1,15 +1,24 @@
 @font-face {
     font-family: "sarasa-gothic";
-    src: url("/assets/SarasaGothicTC-Regular.ttf") format("truetype");
+    src: url("../assets/fonts/SarasaGothicTC-Regular.ttf") format("truetype");
+    font-display: swap;
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "sarasa-mono";
-    src: url("/assets/SarasaMonoTC-Regular.ttf") format("truetype");
+    src: url("../assets/fonts/SarasaMonoTC-Regular.ttf") format("truetype");
+    font-display: swap;
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "sarasa-ui";
-    src: url("/assets/SarasaUiTC-Bold.ttf") format("truetype");
+    src: url("../assets/fonts/SarasaUiTC-Bold.ttf") format("truetype");
+    font-display: swap;
+    font-weight: bold;
+    font-style: normal;
 }
 
