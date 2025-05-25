@@ -149,8 +149,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
     render() {
     
-        let paper_widths  = {xs: "87%" , md: "90%" , xl: "93%"} // 纸张的宽度，
-        let paper_right   = {xs: "89%" , md: "92%" , xl: "95%"} // 纸张的宽度，
+        let paper_widths  = {xs: "88%" , md: "91%" , xl: "93%"} // 纸张的宽度，
+        let paper_right   = {xs: "89%" , md: "92%" , xl: "94%"} // 纸张的宽度，
         let toolbar_width = {xs: "10%" , md: "7%"  , xl: "5%" } // 工具栏的宽度。
 
         let me                  = this
@@ -184,7 +184,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     width: paper_widths, 
                     display: "flex" ,
                     flexDirection: "column" , 
-                    
+                    border: "1px solid ",
+                    left: "1%",
                 }}>
                     <ScrollBarBox key="area-scroll-1" sx = {{ 
                         overflow: "auto" , 
@@ -236,7 +237,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     top: "1%" , 
                     height: "99%", 
                     left: paper_right, 
-                    width: toolbar_width
+                    width: toolbar_width,
                 }}>{(()=>{
                     let root   = me.get_root()
                     let editor = me.get_editor()

@@ -133,7 +133,7 @@ const EditorComponentPaper = React.memo((
     const theme  = useTheme()
 
     let bgcolor = Color( theme.palette.background.paper )
-    bgcolor = bgcolor.rotate(30 * (net_level-1))
+    bgcolor = bgcolor.rotate(30 * (net_level + 1))
     bgcolor = light_grey(bgcolor)
     return <Box 
         {...other_props} // 去掉自己定义的属性。
@@ -178,19 +178,21 @@ const EditorComponentBox = React.memo((props: BoxProps) => {
 })
 
 /** 包裹整个编辑器的纸张。 */
-const EditorBackgroundPaper = React.memo((props: PaperProps) => <Box 
-    elevation = {0}
-    variant = "outlined"
-    // square 
-    {...props}
-    sx = {[
-        {
-            border: "1px solid" , 
-            width: "100%" , 
-            height: "100%" , 
-            overflow: "hidden" , 
-        },
-        ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
-    ]}
-/>)
+const EditorBackgroundPaper = React.memo((props: PaperProps) => {
+
+    return <Box 
+        elevation = {0}
+        variant = "outlined"
+        // square 
+        {...props}
+        sx = {[
+            {
+                width: "100%" , 
+                height: "100%" , 
+                overflow: "hidden" , 
+            },
+            ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
+        ]}
+    />
+})
 
