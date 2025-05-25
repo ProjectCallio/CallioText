@@ -85,6 +85,9 @@ interface AutoStackedPopperWithButtonProps {
     /** 关闭时的其他行为。 */
     onExit?: ()=>void 
 
+    /** 打开时的其他行为。 */
+    onEnter?: ()=>void 
+
     /** 子元素。 */
     children?: any , 
 }
@@ -109,6 +112,7 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
      * @param props.label 鼠标移上去显示的字样。
      * @param props.close_on_otherclick 是否在点击其他位置时关闭。
      * @param props.onExit 关闭时的其他行为。
+     * @param props.onEnter 打开时的其他行为。
      * @param props.children `children`会被渲染在按钮之前。
      */
     constructor(props: AutoStackedPopperWithButtonProps){
@@ -125,8 +129,10 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
     set_menu_open(open: boolean){
         this.setState({menu_open: open})
         if(!open){ // 正在关闭
-            let onExit = this.props.onExit || (()=>{})
-            onExit()
+            this.props.onExit && this.props.onExit()
+        }
+        if(open){ // 正在打开
+            this.props.onEnter && this.props.onEnter()
         }
     }
 
@@ -150,8 +156,6 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
         let children = props.children || <></>
         let B = props.outer_button
 
-        let globalinfo = this.context
-
         let poper = <React.Fragment>
             <AutoTooltip title={props.label}><B 
                 onClick     = {this.run.bind(this)}
@@ -168,7 +172,9 @@ class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperW
         </React.Fragment>
     
         if(props.close_on_otherclick){
-            return <ClickAwayListener onClickAway={()=>{this.set_menu_open(false)}}><Box>{poper}</Box></ ClickAwayListener>
+            return <ClickAwayListener onClickAway={()=>{this.set_menu_open(false)}}>
+                <Box>{poper}</Box>
+            </ ClickAwayListener>
         }
         return poper
     }
@@ -277,6 +283,8 @@ interface ButtonGroupProps{
     /** 是否自动确定方向。 */
     autostack?: boolean
 
+    simple?: boolean , 
+
 
     /** 要额外执行的`run`函数。 */
     extra_run?: MouselessRun
@@ -344,7 +352,9 @@ class ButtonGroup extends React.Component<ButtonGroupProps>{
         })
         
         if(this.props.autostack){
-            return <AutoStack>{ret}</AutoStack>
+            return <AutoStack 
+                simple = {this.props.simple}
+            >{ret}</AutoStack>
         }
         return ret
     }
@@ -507,8 +517,8 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
         let poper = <Box sx={{
             border: this.state.active ? "2px solid" : "none",
             display       : "flex",
-            justifyContent: "center",
-            alignItems    : "center"
+            justifyContent: "center" ,
+            alignItems    : "center" ,
         }}>
             <AutoStackedPopperWithButton
                 outer_button        = {this.props.outer_button}
@@ -538,7 +548,15 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
 }
 
 
-function MouselessParameterEditor(props: {
+function MouselessParameterEditor({
+    node,
+    parameter_name,
+    idx,
+    label,
+    generate_parameter,
+    width,
+    input,
+}: {
     node: ConceptNode & Slate.Node
     parameter_name: string
     idx: number
@@ -546,17 +564,17 @@ function MouselessParameterEditor(props: {
     generate_parameter?: (arg0: any)=>ParameterList | undefined
     width?: string | number
     input?: boolean // 是否使用input而不是textfield
+    variant?: "standard" | "outlined"
 }){
-    let {node , parameter_name , generate_parameter, idx , label} = props
-
-    let input_ref = React.useRef<HTMLInputElement | null>(null)
-    let [active , set_active] = React.useState(false)
-    let [enter_selection , set_ec] = React.useState<Slate.BaseSelection | undefined>(undefined)
-    let position = get_position(node, idx)
-
-    let [regiester_func, unregister_func] = React.useContext(MouselessRegister)
     
-    let editor = React.useContext(EditorGlobalInfo).editor 
+    const input_ref = React.useRef<HTMLInputElement | null>(null)
+    const [active , set_active] = React.useState(false)
+    const [enter_selection , set_ec] = React.useState<Slate.BaseSelection | undefined>(undefined)
+    const position = get_position(node, idx)
+
+    const [regiester_func, unregister_func] = React.useContext(MouselessRegister)
+    
+    const editor = React.useContext(EditorGlobalInfo).editor 
 
     // 聚焦或取消聚焦输入框。
     function focus_blur_input(focus: boolean){
@@ -592,7 +610,7 @@ function MouselessParameterEditor(props: {
         }
 
         if(new_param){
-            editor.auto_set_parameter(props.node, new_param )
+            editor.auto_set_parameter(node, new_param )
         }
     }
 
@@ -646,14 +664,11 @@ function MouselessParameterEditor(props: {
         return false
     }
 
-    if(props.input){
+    if(input){
         return <Box sx={{
-            border: active ? "2px solid" : "none"
+            border: active ? "2px solid" : "none" , 
+            width: width || "2rem" , 
         }}><Input 
-            sx              = {{
-                width: props.width || "2rem" , 
-                marginBottom: "0.5rem" , 
-            }} 
             size = "small" 
             margin = "none"
             defaultValue    = {param_init} 
@@ -662,17 +677,13 @@ function MouselessParameterEditor(props: {
             onBlur          = {onBlur}
             onKeyDown       = {onKeyDown}
         /></Box>
-    
     }
 
     return <Box sx={{
-        border: active ? "2px solid" : "none"
+        border: active ? "2px solid" : "none" , 
+        width: width || "2rem" , 
     }}><TextField 
-        variant         = "standard" 
-        sx              = {{
-            width: props.width || "2rem" , 
-            marginBottom: "0.5rem" , 
-        }} 
+        variant         = "outlined" 
         size = "small" 
         label           = {<Typography sx={{fontSize: "0.7rem"}}>{label}</Typography>} 
         defaultValue    = {param_init} 

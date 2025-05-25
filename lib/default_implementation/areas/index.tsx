@@ -43,20 +43,38 @@ export {
 
 const UseAreaStore = create<{
     editor    : EditorComponent | null
-    selection : Slate.Selection | null
-    version   : number
-    area_visible : boolean
     set_editor    : (editor: EditorComponent) => void
+
+    selection : Slate.Selection | null
     set_selection : (selection: Slate.Selection | null) => void
+
+    version   : number
     flush         : () => void // 强制刷新
+
+    top_barriers  : string[] // 如果存在障碍物，则不占据顶部区域
+    add_topbarrier    : (barrier: string) => void
+    del_topbarrier : (barrier: string) => void
+
+    area_visible : boolean
 }>()((set)=>({
     editor        : null,
-    selection     : null,
-    version       : 0,
-    area_visible  : true,
     set_editor    : (editor) => set(state => ({ ...state , editor: editor })),
+
+    selection     : null,
     set_selection : (selection) => set(state => ({ ...state , selection: selection })),
+
+    version       : 0,
     flush         : () => set(state => ({ ...state , version: state.version + 1 })),
+
+    top_barriers  : [],
+    add_topbarrier : (barrier: string) => set(state => (
+        { ...state , top_barriers: [...state.top_barriers, barrier] }
+    )),
+    del_topbarrier : (barrier: string) => set(state => (
+        { ...state , top_barriers: state.top_barriers.filter(b => b != barrier) }
+    )),
+
+    area_visible  : true,
 }))
 
 function Area({
@@ -64,15 +82,16 @@ function Area({
 }:{
     sx?: BoxProps["sx"]
 }){
-    let editor    = UseAreaStore(state => state.editor)
-    let selection = UseAreaStore(state => state.selection)
-    let version   = UseAreaStore(state => state.version) // 用于强制刷新
-    let area_visible = UseAreaStore(state => state.area_visible)
+    const editor    = UseAreaStore(state => state.editor)
+    const selection = UseAreaStore(state => state.selection)
+    const version   = UseAreaStore(state => state.version) // 用于强制刷新
+    const area_visible = UseAreaStore(state => state.area_visible)
+    const top_barriers = UseAreaStore(state => state.top_barriers)
 
-    let [cur_concepts, set_cur_concepts] = React.useState<ConceptNode[]>([])
-    let [cur_level, set_cur_level] = React.useState(0)
+    const [cur_concepts, set_cur_concepts] = React.useState<ConceptNode[]>([])
+    const [cur_level, set_cur_level] = React.useState(0)
 
-    let set_concepts = (set_level: boolean)=>{
+    const set_concepts = (set_level: boolean)=>{
         if(!editor || !selection){
             set_cur_concepts([])
             return 
@@ -107,8 +126,10 @@ function Area({
         set_concepts(false)
     }, [version])
 
-    let concept_num = cur_concepts.length
-    let cur_node    = concept_num > 0 ? cur_concepts[cur_level % concept_num] : null
+    const concept_num = cur_concepts.length
+    const cur_node    = concept_num > 0 ? cur_concepts[cur_level % concept_num] : null
+
+    const occupy_top = top_barriers.length <= 0
 
     return <Box>
     <AnimatePresence mode="wait">{(
@@ -117,24 +138,29 @@ function Area({
         <motion.div
             key         = {cur_node.idx}
             initial     = {{ opacity: 0, x: -50 }}
-            animate     = {{ opacity: 1, x: 0 }}
+            animate     = {{ 
+                opacity: 1, 
+                x: 0,
+                top     : occupy_top ? "0" : "20%",
+                height  : occupy_top ? "100%" : "80%"
+            }}
             exit        = {{ opacity: 0, x: -50 }}
             transition  = {{ 
-                duration: 0.2 , 
-                transition: "easeInOut" , 
+                duration: 0.2,
+                transition: "easeInOut"
             }}
             style={{
                 position: "absolute",
+                top     : occupy_top ? "0" : "20%",
+                height  : occupy_top ? "100%" : "80%" , 
                 width: "100%",
-                height: "100%",
-                opacity: 1 ,
-                zIndex: 1000,
+                opacity: 1,
+                zIndex: 1000
             }}
         ><Paper 
             elevation={3} 
             sx={{
                 p: 2,
-                height: "100%",
                 ...sx
             }}
         ><Stack spacing={2}>

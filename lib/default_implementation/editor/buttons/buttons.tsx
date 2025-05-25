@@ -62,7 +62,14 @@ export {
 }
 
 /** 这个函数是一个语法糖，用于自动创建带tooltip的按钮。 */
-function AutoIconButton(props:{
+function AutoIconButton({
+    onClick , 
+    size = "small" , 
+    title , 
+    icon , 
+    component = "button" , 
+    icon_props = {}, 
+}:{
     onClick?: IconButtonProps["onClick"]
     size?: IconButtonProps["size"]
     title?: string
@@ -70,21 +77,19 @@ function AutoIconButton(props:{
     component?: "button" | "span"
     icon_props?: IconButtonProps
 }){
-    const Icon = props.icon
-    const component = props.component || "button"
-    const icon_props = props.icon_props || {}
-
     const {sx, ...rest} = icon_props
+    const Icon = icon
     
-    return <AutoTooltip title={props.title}>
+    return <AutoTooltip title={title}>
         <IconButton 
-            onClick     = {props.onClick} 
-            size        = {props.size} 
+            onClick     = {onClick} 
             component   = {component} 
             sx          = {{
-                transform: "scale(0.8)",
-                transformOrigin: "center center" , 
-                paddingX: "0.05rem",
+                ...(size == "small" ? {
+                    paddingX: "0.05rem",
+                    transform: "scale(0.8)",
+                    transformOrigin: "center center" , 
+                } : {}),
                 
                 ...(sx || {})
             }}
@@ -136,7 +141,6 @@ class DefaultParameterEditButton extends React.Component <EditorButtonInformatio
         const props = this.props
         const onExit = props.onExit || ((e:any)=>{})
         const me = this
-        console.log("render parameter edit")
 
         return <Box sx={{marginX: "auto"}}>
             <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon} />

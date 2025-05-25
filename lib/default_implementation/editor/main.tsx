@@ -215,7 +215,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                                 onFocusChange       = {(e)=>{
                                     onFocusChange()
 
-
                                     let editor = me.get_editor()
                                     if(editor){
                                         let slate = editor.get_slate()    

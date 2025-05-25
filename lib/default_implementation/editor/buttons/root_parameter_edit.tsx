@@ -94,22 +94,28 @@ function DefaultRootParameterWithEditorWithDrawer(props: DefaultRootParameterWit
         ModalProps  = {{
             keepMounted: true,
         }}
-        SlideProps  = {{
-            onEnter: ()=>{
-                set_ec(editor.get_slate().selection)
-            } , 
-            onExited: () => {
-                if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
-                    let parameters = parametereditor_ref.current.get_parameters()
-                    editor.set_root({parameters: {...editor.get_root().parameters, ...parameters}})
+        slotProps = {{
+            transition: {
+                onEnter: ()=>{
+                    set_ec(editor.get_slate().selection)
+                } , 
+                onExited: () => {
+                    if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
+                        let parameters = parametereditor_ref.current.get_parameters()
+                        editor.set_root({parameters: {...editor.get_root().parameters, ...parameters}})
+                    }
+                    SlateReact.ReactEditor.focus(editor.get_slate())
+                    if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
+                        Slate.Transforms.select(editor.get_slate() , enter_selection) // 设置为保存的selection。
+                    }
                 }
-                SlateReact.ReactEditor.focus(editor.get_slate())
-                if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
-                    Slate.Transforms.select(editor.get_slate() , enter_selection) // 设置为保存的selection。
+            }, 
+            paper: {
+                sx: {
+                    width: "40%"
                 }
             }
         }}
-        PaperProps  = {{sx: { width: "40%" }}}
     >
         <Box><StructureTypography>idx: {props.root.idx} [root]</StructureTypography></Box>
         <Divider />
@@ -157,7 +163,7 @@ class DefaultRootParameterEditButton extends React.PureComponent <DefaultRootPar
         let me = this
 
         return <Box sx={{marginX: "auto"}}>
-            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon}/>
+            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon} size="medium"/>
             <DefaultRootParameterWithEditorWithDrawer 
                 root = {props.root} 
                 editor = {props.editor}

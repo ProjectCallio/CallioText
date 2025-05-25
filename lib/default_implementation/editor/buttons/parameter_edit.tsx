@@ -67,24 +67,24 @@ type DefaultParameterWithEditorWithDrawerProps = EditorButtonInformation & {
  * @param props.onClose 抽屉应该关闭时的回调。如果不提供这个参数，抽屉就不会关闭。
  */
 function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorWithDrawerProps){
-    let onClose = props.onClose || ((e:any)=>{})
-    let parametereditor_ref = React.useRef<DefaultParameterContainer | null>(null)
-    
+    const onClose = props.onClose || ((e:any)=>{})
+    const parametereditor_ref = React.useRef<DefaultParameterContainer | null>(null)
+    const globalinfo = React.useContext(EditorGlobalInfo)
+    const editor = globalinfo.editor
+     
     // 记录进入时的光标位置，以便在退出时还原。
-    let [enter_selection , set_ec] = React.useState<Slate.BaseSelection | null>(null)
+    const [enter_selection , set_ec] = React.useState<Slate.BaseSelection | null>(null)
 
-    return <EditorGlobalInfo.Consumer>{globalinfo=>{
-        let editor = globalinfo.editor as EditorComponent
-
-        return <Drawer 
-            anchor      = "left"
-            variant     = "temporary"
-            open        = {props.open}
-            onClose     = {onClose}
-            ModalProps  = {{
-                keepMounted: true,
-            }}
-            SlideProps  = {{
+    return editor && <Drawer 
+        anchor      = "left"
+        variant     = "temporary"
+        open        = {props.open}
+        onClose     = {onClose}
+        ModalProps  = {{
+            keepMounted: true,
+        }}
+        slotProps = {{
+            transition: {
                 onEnter: ()=>{
                     set_ec(editor.get_slate().selection)
                 } , 
@@ -103,18 +103,22 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
                     if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
                         Slate.Transforms.select(editor.get_slate() , enter_selection) // 设置为保存的selection。
                     }
+                }    
+            },
+            paper: {
+                sx: {
+                    width: "40%"
                 }
-            }}
-            PaperProps  = {{sx: { width: "40%" }}}
-        >
-            <Box><StructureTypography>idx: {props.node.idx}</StructureTypography></Box>
-            <Divider />
-            <DefaultParameterContainer 
-                node     = {props.node} 
-                ref      = {parametereditor_ref}
-            />
-            <Button onClick={onClose}>Close</Button>
-        </Drawer>
-    }}</EditorGlobalInfo.Consumer>
+            }
+        }}
+    >
+        <Box><StructureTypography>idx: {props.node.idx}</StructureTypography></Box>
+        <Divider />
+        <DefaultParameterContainer 
+            node     = {props.node} 
+            ref      = {parametereditor_ref}
+        />
+        <Button onClick={onClose}>Close</Button>
+    </Drawer>
 }
 

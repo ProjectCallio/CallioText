@@ -208,31 +208,45 @@ function get_default_group_editor_with_rightbar({
         // 根据node子节点数量估计这个组件是长的还是高的。
         const guess_high = (node.children.reduce((s,x)=>s += (slate_is_concept(x , "group") ? 2 : 1) , 0)) >= 3
 
-        const title_comp = <StructureTypography variant = "overline">{mylabel}</StructureTypography>
-        const extra_buttons_comp = <ButtonGroup // 额外添加的元素。
-            autostack 
-            node    = {node}
-            buttons = {extra_buttons}
-        />
+        const normal_title = <StructureTypography variant = "overline">{mylabel}</StructureTypography>
+        const small_title = <StructureTypography 
+            variant = "overline"
+            sx = {{
+                position: "absolute" , 
+                top: "0" , 
+                right: "0" , 
+                transform: "translate(0, -20%) scale(0.7)" , 
+            }}
+        >{mylabel}</StructureTypography>
 
         return <GroupPaper node={node}>
             <SimpleAutoStack force_direction="row">
                 <ComponentEditorBox autogrow key="edit">
                     <SUR node={node}>{props.children}</SUR>
             </ComponentEditorBox>                
-            <UnselecableBox>
-                <AutoStack 
-                    force_direction = {guess_high ? "column" : "row"}
+            <UnselecableBox sx={{
+                position: "relative" , 
+            }}><AutoStack  // 第一层autostack，必须横向排列
+                force_direction = {"row"}
+                gap = "0.5rem"
+                sx={{
+                    justifyContent: "center" ,
+                    alignItems    : "center" ,        
+                }}
+            >
+                <ButtonGroup // 额外添加的元素。
+                    node    = {node}
+                    buttons = {extra_buttons}
+                />
+                <AutoStack // 第二层autostack，把标签名和按钮组纵向排列
                     sx = {{
                         paddingX: "0.25rem" , 
                         paddingY: "0.15rem" , 
                         border: "1px solid rgba(30,30,30,0.3)" , 
                     }}
                 >
-                    {...(guess_high 
-                    ? [ title_comp , extra_buttons_comp]
-                    : [ extra_buttons_comp , title_comp]
-                    )}
+                    {normal_title}
+                    
                     <AutoStackedPopperButtonGroupMouseless 
                         poper_props = {{
                             sx:{
@@ -264,7 +278,7 @@ function get_default_group_editor_with_rightbar({
                         idxs = {[extra_buttons.length]} // 从extra_buttons.length开始编号。
                     /> 
                 </AutoStack>
-            </UnselecableBox>
+            </AutoStack></UnselecableBox>
             </SimpleAutoStack>
         </GroupPaper>
     }

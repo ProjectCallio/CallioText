@@ -73,9 +73,12 @@ function AutoStackButtons(props: {
     let subcomponent = (nowdir: DirectionValues) => {
         let orientation: "horizontal"|"vertical" = (nowdir == "row") ? "horizontal" : "vertical"
         let newdir = flip_direction ? (nowdir == "row" ? "column" : "row") : nowdir
-        return <Direction.Provider value={newdir}><ButtonGroup orientation={orientation} {...props.buttongroup_props}>{
-            props.children
-        }</ButtonGroup></Direction.Provider>
+        return <Direction.Provider value={newdir}>
+            <ButtonGroup 
+                orientation={orientation} 
+                {...props.buttongroup_props}
+            >{props.children}</ButtonGroup>
+        </Direction.Provider>
     }
     
     if(props.force_direction != undefined){

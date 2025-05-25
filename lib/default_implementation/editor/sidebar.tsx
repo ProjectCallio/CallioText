@@ -34,7 +34,9 @@ import {
     DirectionKey, 
     SwitchPositionFunction , 
 } from "../../uibase/mouseless"
-
+import {
+    UseAreaStore,
+} from "../areas"
 
 export {
     DefaultSidebar , 
@@ -142,7 +144,7 @@ class SideBarContainer extends React.Component<{children: React.ReactNode}>{
         let me = this
         return <ScrollBarBox 
             sx = {{
-                maxWidth: "30rem" , 
+                maxWidth: "50rem" , 
             }}
             overflow = "auto"
         >{me.props.children}</ScrollBarBox>
@@ -207,8 +209,14 @@ function DefaultSidebar(props: {
                 }}
                 label           = {typename}
                 ref             = {refs[typename]}
+                onEnter         = {()=>{
+                    UseAreaStore.getState().add_topbarrier(typename)
+                }}
+                onExit          = {()=>{
+                    UseAreaStore.getState().del_topbarrier(typename)
+                }}
             >{sec_concept_list.map( (sec_ccpt , idx) => 
-                <Box key = {idx}   flexShrink = {0}><MouselessElement 
+                <Box key = {sec_ccpt} flexShrink = {0}><MouselessElement 
                     space = {SPACE}
                     position = {get_position(typename, idx + 1)} // 因为按钮本身要占一个位置，所以子按钮从1开始编号。
                     run = {get_run(editor, typename, idx)}
@@ -217,7 +225,8 @@ function DefaultSidebar(props: {
                         onClick = {e => editor.new_concept_node(typename , sec_ccpt)}
                         variant = "text"
                         sx = {{
-                            marginX: "0.1rem" ,
+                            marginX: "0.1rem",
+                            textTransform: "none"
                         }}
                     >
                         {sec_ccpt}

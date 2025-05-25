@@ -206,7 +206,7 @@ function get_default_struct_editor_with_rightbar({
                                 DefaultParameterEditButton , 
                                 DefaultNewAbstractButton , 
                                 DefaultEditAbstractButton , 
-                                DefaultSwicth , 
+                                DefaultSwicth as ButtonDescription , 
                                 DefaultCloseButton , 
                                 DefaultSoftDeleteButton , 
                                 NewParagraphButtonUp , 

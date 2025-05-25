@@ -73,20 +73,20 @@ function get_default_inline_editor({
 
 }): EditorRenderer<InlineNode>{
     let subcomp = (props: EditorRendererProps<InlineNode>) => {
-        let editor      = props.editor
-        let node        = props.node
-        let parameters  = editor.get_core().get_printer().process_parameters(node)
+        const editor      = props.editor
+        const node        = props.node
+        const parameters  = editor.get_core().get_printer().process_parameters(node)
 
-        let label   = get_label(node, parameters)
-        let Extra = rightbar_extra
-        let SUR = surrounder
+        const label   = get_label(node, parameters)
+        const Extra = rightbar_extra
+        const SUR = surrounder
 
         return <ComponentPaper is_inline><AutoStack force_direction="row">
             <ComponentEditorBox>
                 <SUR node={node}>{props.children}</SUR>
             </ComponentEditorBox>
             <UnselecableBox>
-                <AutoStack force_direction="row">
+                <AutoStack force_direction="row" gap="0.25rem">
                     <Extra node={node}/>
                     <AutoStackedPopperButtonGroupMouseless
                         poper_props = {{
@@ -100,11 +100,12 @@ function get_default_inline_editor({
                         outer_button = {IconButton}
                         outer_props = {{
                             sx: {
-                                height: "1rem" , 
-                                width: "1rem" , 
+                                height: "1.25rem" , 
+                                width: "1.25rem" , 
+                                padding: "0" , 
                                 margin: "0",
                             } , 
-                            children: <KeyboardArrowDownIcon sx={{height: "1rem"}}/> ,
+                            children: <KeyboardArrowDownIcon sx={{height: "1.25rem"}}/> ,
                         }} 
                         // label = {"展开" + (label ? ` / ${label}` : "") }
                         label = {"展开"}

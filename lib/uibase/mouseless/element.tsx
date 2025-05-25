@@ -1,6 +1,7 @@
 import React from "react"
 import {
-    Box , 
+    Box, 
+    BoxProps, 
 } from "@mui/material"
 
 import {
@@ -18,7 +19,7 @@ export type {
     MouselessElementProps , 
 }
 
-interface MouselessElementProps{
+type MouselessElementProps = Omit<BoxProps, "position"> & {
     space: string
     position: string 
     run: MouselessRun
@@ -29,7 +30,8 @@ interface MouselessElementProps{
 }
 
 function MouselessElement(props: MouselessElementProps){
-    let {space, position, run, children, extra_activate, extra_unactivate} = props
+    let {space, position, run, children, extra_activate, extra_unactivate, ...box_props} = props
+    let {sx, ...other_boxprops} = box_props
 
     let [act, set_act] = React.useState(false)
     let [regiester_func, unregister_func] = React.useContext(MouselessRegister)
@@ -57,8 +59,9 @@ function MouselessElement(props: MouselessElementProps){
     }, [])
 
     return <div ref={eleref}><Box sx={{
-        border: act? "2px solid" : "none"
-    }}>
+        border: act? "2px solid" : "none" , 
+        ...sx
+    }} {...other_boxprops}>
         {children}
     </Box></div>
 }
