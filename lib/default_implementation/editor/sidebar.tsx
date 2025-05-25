@@ -210,10 +210,10 @@ function DefaultSidebar(props: {
                 label           = {typename}
                 ref             = {refs[typename]}
                 onEnter         = {()=>{
-                    UseAreaStore.getState().add_topbarrier(typename)
+                    // UseAreaStore.getState().add_topbarrier(typename)
                 }}
                 onExit          = {()=>{
-                    UseAreaStore.getState().del_topbarrier(typename)
+                    // UseAreaStore.getState().del_topbarrier(typename)
                 }}
             >{sec_concept_list.map( (sec_ccpt , idx) => 
                 <Box key = {sec_ccpt} flexShrink = {0}><MouselessElement 

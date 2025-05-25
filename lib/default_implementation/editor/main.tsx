@@ -184,7 +184,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     width: paper_widths, 
                     display: "flex" ,
                     flexDirection: "column" , 
-                    border: "1px solid ",
+                    borderRight: "1px solid ",
                     left: "1%",
                 }}>
                     <ScrollBarBox key="area-scroll-1" sx = {{ 

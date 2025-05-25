@@ -34,165 +34,93 @@ import {
     NavigateNext , 
 } from "@mui/icons-material"
 import { motion, AnimatePresence } from "framer-motion"
-
+import {
+    ParameterArea , 
+} from "./parameter_area"
 
 export {
-    UseAreaStore , 
     Area , 
 }
+export * from "./parameter_area"
+export * from "./base"
 
-const UseAreaStore = create<{
-    editor    : EditorComponent | null
-    set_editor    : (editor: EditorComponent) => void
+function Area(){
 
-    selection : Slate.Selection | null
-    set_selection : (selection: Slate.Selection | null) => void
+    const [dragging, set_dragging]  = React.useState<string | null>(null)
+    const [drag_size, set_drag_size] = React.useState({
+        width: 100,
+        height: 100,
+    })
 
-    version   : number
-    flush         : () => void // 强制刷新
+    const [positions, set_positions] = React.useState({
+        param:{x: 0,y: 0}
+    })
 
-    top_barriers  : string[] // 如果存在障碍物，则不占据顶部区域
-    add_topbarrier    : (barrier: string) => void
-    del_topbarrier : (barrier: string) => void
+    const offset_ref = React.useRef({x: 0, y: 0})
+    const area_ref = React.useRef<HTMLDivElement>(null)
 
-    area_visible : boolean
-}>()((set)=>({
-    editor        : null,
-    set_editor    : (editor) => set(state => ({ ...state , editor: editor })),
+    React.useEffect(()=>{
+        const handle_mousemove = (e: MouseEvent) => {
+            if (!dragging) return 
 
-    selection     : null,
-    set_selection : (selection) => set(state => ({ ...state , selection: selection })),
+            let rect = area_ref.current?.getBoundingClientRect()
+            if(!rect) return
 
-    version       : 0,
-    flush         : () => set(state => ({ ...state , version: state.version + 1 })),
-
-    top_barriers  : [],
-    add_topbarrier : (barrier: string) => set(state => (
-        { ...state , top_barriers: [...state.top_barriers, barrier] }
-    )),
-    del_topbarrier : (barrier: string) => set(state => (
-        { ...state , top_barriers: state.top_barriers.filter(b => b != barrier) }
-    )),
-
-    area_visible  : true,
-}))
-
-function Area({
-    sx , 
-}:{
-    sx?: BoxProps["sx"]
-}){
-    const editor    = UseAreaStore(state => state.editor)
-    const selection = UseAreaStore(state => state.selection)
-    const version   = UseAreaStore(state => state.version) // 用于强制刷新
-    const area_visible = UseAreaStore(state => state.area_visible)
-    const top_barriers = UseAreaStore(state => state.top_barriers)
-
-    const [cur_concepts, set_cur_concepts] = React.useState<ConceptNode[]>([])
-    const [cur_level, set_cur_level] = React.useState(0)
-
-    const set_concepts = (set_level: boolean)=>{
-        if(!editor || !selection){
-            set_cur_concepts([])
-            return 
-        }
-        let cur_path = selection?.anchor.path
-        if(!cur_path){
-            set_cur_concepts([])
-            return 
-        }
-        let concept_nodes = find_concept_nodes_by_path(editor.get_root() , cur_path)
-        if(concept_nodes.length == 0){
-            set_cur_concepts([])
-            return 
+            let new_x = e.clientX - offset_ref.current.x
+            let new_y = e.clientY - offset_ref.current.y
+        
+            new_x = Math.max(0, Math.min(new_x, rect.width - drag_size.width))
+            new_y = Math.max(0, Math.min(new_y, rect.height- drag_size.height))
+                    
+            set_positions(state => ({
+                ...state,
+                [dragging]: {
+                    x: new_x,
+                    y: new_y,
+                }
+            }))
+            e.preventDefault()
+            e.stopPropagation()
         }
 
-        let concept_num = concept_nodes.length
-        if(set_level){
-            set_cur_level(concept_num - 1)
+        const handle_mouseup = (e: MouseEvent) => {
+            set_dragging(null)
         }
-        else{
-            set_cur_level(cur_level % concept_num)
+        window.addEventListener("mousemove", handle_mousemove)
+        window.addEventListener("mouseup", handle_mouseup)
+        
+        return ()=>{
+            window.removeEventListener("mousemove", handle_mousemove)
+            window.removeEventListener("mouseup", handle_mouseup)
         }
-        set_cur_concepts(concept_nodes)
+    }, [dragging])
 
+    const make_ondragstart = (name: keyof typeof positions) => {
+        return (e: React.MouseEvent) => {
+            set_dragging(name)
+            offset_ref.current = {
+                x: e.clientX - positions[name].x,
+                y: e.clientY - positions[name].y,
+            }
+            e.preventDefault()
+            e.stopPropagation()
+        }
     }
 
-    React.useEffect(()=>{
-        set_concepts(true)
-    }, [editor, selection])
-
-    React.useEffect(()=>{
-        set_concepts(false)
-    }, [version])
-
-    const concept_num = cur_concepts.length
-    const cur_node    = concept_num > 0 ? cur_concepts[cur_level % concept_num] : null
-
-    const occupy_top = top_barriers.length <= 0
-
-    return <Box>
-    <AnimatePresence mode="wait">{(
-        editor && selection && concept_num > 0 && cur_node && area_visible 
-    ) && (
-        <motion.div
-            key         = {cur_node.idx}
-            initial     = {{ opacity: 0, x: -50 }}
-            animate     = {{ 
-                opacity: 1, 
-                x: 0,
-                top     : occupy_top ? "0" : "20%",
-                height  : occupy_top ? "100%" : "80%"
-            }}
-            exit        = {{ opacity: 0, x: -50 }}
-            transition  = {{ 
-                duration: 0.2,
-                transition: "easeInOut"
-            }}
-            style={{
-                position: "absolute",
-                top     : occupy_top ? "0" : "20%",
-                height  : occupy_top ? "100%" : "80%" , 
-                width: "100%",
-                opacity: 1,
-                zIndex: 1000
-            }}
-        ><Paper 
-            elevation={3} 
-            sx={{
-                p: 2,
-                ...sx
-            }}
-        ><Stack spacing={2}>
-            <Box sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between"
-            }}>
-                <IconButton 
-                    onClick={() => {
-                        set_cur_level((cur_level - 1 + concept_num) % concept_num)
-                    }}
-                >
-                    <NavigateBefore />
-                </IconButton>
-                <Typography variant="h6">
-                    {cur_node.concept}
-                </Typography>
-                <IconButton 
-                    onClick={() => {
-                        set_cur_level((cur_level + 1) % concept_num)
-                    }}
-                >
-                    <NavigateNext />
-                </IconButton>
-            </Box>
-            <DefaultParameterContainer 
-                node = {cur_node}
-                onSave = {(parameters: ParameterList) => {
-                    editor.auto_set_parameter(cur_node, parameters)
-                }}
-            />
-        </Stack></Paper></motion.div>
-    )}</AnimatePresence></Box>
+    return <Box 
+        ref = {area_ref}
+        sx={{
+            position: "absolute" , 
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+        }}
+    >
+        <ParameterArea 
+            position    = { positions.param           }
+            onDragStart = { make_ondragstart("param") }
+            onSetSize = { set_drag_size }
+        />
+    </Box>
 }
