@@ -20,23 +20,12 @@ import {
     IconButton , 
     Stack , 
 } from "@mui/material"
-import {
-    create , 
-} from "zustand"
-import {
-    DefaultParameterContainer , 
-} from "../../implbase/parameter_edit"
-import {
-    ParameterList , 
-} from "../../core"
-import {
-    NavigateBefore , 
-    NavigateNext , 
-} from "@mui/icons-material"
-import { motion, AnimatePresence } from "framer-motion"
+import {create} from "zustand"
+
 
 export {
     UseAreaStore , 
+    DraggerBox , 
 }
 
 const UseAreaStore = create<{
@@ -58,3 +47,44 @@ const UseAreaStore = create<{
     edit_version       : 0,
     edit_flush         : () => set(state => ({ ...state , edit_version: state.edit_version + 1 })),
 }))
+
+function DraggerBox(props: BoxProps & {
+    onDragStart?: (e: React.MouseEvent<HTMLDivElement>) => void
+    onSetSize  ?: (size: {width: number, height: number}) => void
+    dragging_me?: boolean
+}){
+    const box_ref = React.useRef<HTMLDivElement>(null)
+    let {
+        onDragStart , 
+        onSetSize , 
+        dragging_me , 
+        ...rest_props
+    } = props
+
+    return <Box
+        {...rest_props}
+        sx={{
+            cursor: "move",
+            width: "100%",
+            height: "0.5rem",
+            minHeight: "0.5rem" , 
+            bgcolor: dragging_me ? "grey.400" : "grey.300",
+            borderRadius: "4px",
+            mb: 1,
+            "&:hover": {
+                bgcolor: "grey.400"
+            }
+        }}
+        onMouseDown = {(e: React.MouseEvent<HTMLDivElement>)=>{
+            // XXX 在这里调用onSetSize也许并不合理
+            if(box_ref.current){
+                const rect = box_ref.current.getBoundingClientRect()
+                onSetSize?.({
+                    width : rect.width,
+                    height: rect.height,
+                })
+            }
+            onDragStart?.(e)
+        }}
+    />
+}

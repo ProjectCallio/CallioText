@@ -23,49 +23,6 @@ import {
     EditorCore, 
     EditorComponentProps , 
 } from "../../editor"
-import {
-    ConceptNode , 
-    GroupNode , 
-    Node , 
-    AllConceptTypes , 
-    AllNodeTypes, 
-    AbstractNode,
-} from "../../core"
-
-import { 
-    DefaultParameterEditButton , 
-    DefaultRootParameterEditButton , 
-} from "./buttons"
-import { 
-    AutoStack , 
-    AutoTooltip , 
-    AutoStackedPopper , 
-    AutoStackButtons , 
-} from "../../uibase"
-import {
-    object_foreach , 
-    merge_object ,
-
-} from "../../utils"
-
-import {
-    KeyEventManager , 
-    MouselessElement , 
-    KeyDownUpFunctionProxy , 
-    DirectionKey, 
-} from "../../uibase/mouseless"
-
-import { 
-    EditorBackgroundPaper , 
-    EditorComponentEditingBox  ,
-    EditorConfigContext , 
-    make_editorconfig , 
-    EditorConfig , 
-    PartialEditorConfig , 
-} from "./uibase"
-import { 
-    ScrollBarBox , 
-} from "../../uibase"
 
 import {
     set_normalize_status , 
@@ -74,18 +31,6 @@ import {
 import {
     slate_is_concept , 
 } from "../../editor/utils"
-
-import {
-    DefaultSidebar , 
-    get_mouseless_space as sidebar_get_mouseless_space , 
-} from "./sidebar"
-import {
-    get_mouseless_space as buttons_get_mouseless_space
-} from "../../implbase/buttons"
-
-import {
-    ParameterEdit
-} from "./editbox"
 
 export { 
     IdxConflictSolver ,

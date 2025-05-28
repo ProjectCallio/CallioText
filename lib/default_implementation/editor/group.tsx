@@ -77,7 +77,7 @@ import {
     Direction , 
     SimpleAutoStack , 
     AutoStackedPopper , 
-    ScrollBarBox , 
+    mod_scrollbar , 
 
     light_grey,
 } from "../../uibase"
@@ -148,10 +148,10 @@ function get_deafult_group_editor_with_appbar({
                     marginX: "0.25rem" , 
                     backgroundColor: bgcolor.toString() , 
                 }}>
-                    <Box sx={{
+                    <Box ref={mod_scrollbar} sx={{
                         overflow: "auto" , 
                         paddingX: "1rem" , 
-                    }}><ScrollBarBox><AutoStack>
+                    }}><AutoStack>
                         <StructureTypography>{label}</StructureTypography>
                         <ButtonGroup 
                             node = {node}
@@ -169,7 +169,7 @@ function get_deafult_group_editor_with_appbar({
                                 ... appbar_extra(node, parameters)
                             ]}
                         />
-                    </AutoStack></ScrollBarBox></Box>
+                    </AutoStack></Box>
                 </UnselecableBox >
                 <ComponentEditorBox autogrow>
                     <SUR node={node}>{props.children}</SUR>

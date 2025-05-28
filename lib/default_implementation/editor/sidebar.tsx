@@ -26,8 +26,8 @@ import {
 } from "../../implbase/buttons"
 import { 
     AutoStackButtons, 
-    ScrollBarBox , 
     TextIcon , 
+    mod_scrollbar ,  
 } from "../../uibase"
 import {
     MouselessElement , 
@@ -142,12 +142,13 @@ class SideBarContainer extends React.Component<{children: React.ReactNode}>{
     }
     render(): React.ReactNode {
         let me = this
-        return <ScrollBarBox 
+        return <Box 
+            ref = {mod_scrollbar}
             sx = {{
                 maxWidth: "50rem" , 
             }}
             overflow = "auto"
-        >{me.props.children}</ScrollBarBox>
+        >{me.props.children}</Box>
     }
 }
 

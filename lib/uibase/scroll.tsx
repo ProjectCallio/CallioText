@@ -12,35 +12,51 @@ import "overlayscrollbars/overlayscrollbars.css"
 import { OverlayScrollbars } from "overlayscrollbars"
 
 
-export { ScrollBarBox }
-
-/**
- * 注意，这个里面的所有东西都必须先被box包起来...
- */
-class ScrollBarBox extends React.Component<BoxProps>{
-    os: OverlayScrollbars | undefined
-
-    constructor(props: BoxProps){
-        super(props)
-        this.os = undefined
-    }
-    render(){
-        let {children, ...other_props} = this.props
-        return <Box 
-            {...other_props} 
-            data-overlayscrollbars = "" 
-            ref = {(divref: HTMLDivElement) => {
-                if(!divref){
-                    return
-                }
-                this.os = OverlayScrollbars(divref, {
-                    scrollbars:{
-                        autoHide: "leave", 
-                        autoHideDelay: 700 , 
-                    }
-                })
-            }}
-        >{children}</Box>
-    }
+export {
+    mod_scrollbar , 
+    ScrollBarBox , 
 }
 
+let _oss: OverlayScrollbars[] = []
+function mod_scrollbar(container: HTMLElement | null){
+    if(!container){
+        return
+    }
+    container.setAttribute("data-overlayscrollbars-initialize", "")
+    const os = OverlayScrollbars(container, {
+        scrollbars:{
+            autoHide: "leave", 
+            autoHideDelay: 700 , 
+        }
+    })
+    _oss.push(os)
+}
+
+
+function ScrollBarBox(props: BoxProps){
+    let {ref, ...other_props} = props
+    let os_ref = React.useRef<any>({})
+    return <Box
+        data-overlayscrollbars-initialize
+        {...other_props}
+        ref = {(divref: HTMLDivElement) => {
+            if(!divref){
+                return
+            }
+            os_ref.current = OverlayScrollbars(divref, {
+                scrollbars:{
+                    autoHide: "leave", 
+                    autoHideDelay: 700 , 
+                }
+            })
+
+            if(ref){
+                if(typeof ref === "function"){
+                    ref(divref)
+                } else {
+                    ref.current = divref
+                }
+            }
+        }}
+    />
+}

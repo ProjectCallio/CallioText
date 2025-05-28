@@ -37,6 +37,13 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     ParameterArea , 
 } from "./parameter_area"
+import {
+    ConceptArea , 
+} from "./concept_area"
+
+import {
+    usePersistedState,
+} from "../../uibase"
 
 export {
     Area , 
@@ -44,20 +51,21 @@ export {
 export * from "./parameter_area"
 export * from "./base"
 
-function Area(){
+function Area({area_id = "unique_area"}:{area_id?: string}){
 
-    const [dragging, set_dragging]  = React.useState<string | null>(null)
+    const [dragging, set_dragging]   = React.useState<string | null>(null)
     const [drag_size, set_drag_size] = React.useState({
         width: 100,
         height: 100,
     })
 
-    const [positions, set_positions] = React.useState({
-        param:{x: 0,y: 0}
+    const [positions, set_positions] = usePersistedState(`area-${area_id}/positions`,{
+        param :{x: 0,y: 0} , 
+        concep:{x: 0,y: 0}
     })
 
     const offset_ref = React.useRef({x: 0, y: 0})
-    const area_ref = React.useRef<HTMLDivElement>(null)
+    const area_ref   = React.useRef<HTMLDivElement>(null)
 
     React.useEffect(()=>{
         const handle_mousemove = (e: MouseEvent) => {
@@ -121,6 +129,17 @@ function Area(){
             position    = { positions.param           }
             onDragStart = { make_ondragstart("param") }
             onSetSize = { set_drag_size }
+            zIndex = {1000}
+            area_id = {area_id}
+            dragging_me = {dragging == "param"}
+        />
+        <ConceptArea
+            position    = { positions.concep           }
+            onDragStart = { make_ondragstart("concep") }
+            onSetSize   = { set_drag_size }
+            zIndex = {1001}
+            area_id = {area_id}
+            dragging_me = {dragging == "concep"}
         />
     </Box>
 }

@@ -54,6 +54,9 @@ import {
     KeyDownUpFunctionProxy , 
     DirectionKey, 
 } from "../../uibase/mouseless"
+import {
+    mod_scrollbar , 
+} from "../../uibase"
 
 import { 
     EditorBackgroundPaper , 
@@ -63,9 +66,6 @@ import {
     EditorConfig , 
     PartialEditorConfig , 
 } from "./uibase"
-import { 
-    ScrollBarBox , 
-} from "../../uibase"
 
 import {
     set_normalize_status , 
@@ -82,10 +82,6 @@ import {
 import {
     get_mouseless_space as buttons_get_mouseless_space
 } from "../../implbase/buttons"
-
-import {
-    ParameterEdit
-} from "./editbox"
 
 import {
     UseAreaStore as useAreaStore, 
@@ -118,7 +114,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     onFocusChange: ()=>void
     onSave: ()=> void
 
-    parameteredit_ref: React.RefObject<ParameterEdit | null>
     editor_ref       : React.RefObject<EditorComponent | null>
 
     constructor(props: DefaultEditorComponentprops) {
@@ -129,7 +124,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         this.onFocusChange  = props.onFocusChange || (()=>{})
         this.onSave = props.onSave || (()=>{})
 
-        this.parameteredit_ref  = React.createRef<ParameterEdit | null>()
         this.editor_ref         = React.createRef<EditorComponent | null>()
 
         this.state = {
@@ -159,7 +153,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         // 当焦点发生变化时，更新parameteredit_ref
         let onFocusChange = ()=>{
             me.props.onFocusChange && me.props.onFocusChange()
-            me.parameteredit_ref?.current?.try_update()
         }
 
         return <EditorConfigContext.Provider value={config}>
@@ -177,7 +170,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     }
                 ]}
             >
-                <Box key="area-1" sx = {{ 
+                <Box ref={mod_scrollbar} sx = {{ 
                     position: "absolute" , 
                     top: "1%" , 
                     height: "98%", 
@@ -187,12 +180,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     borderRight: "1px solid ",
                     left: "1%",
                 }}>
-                    <ScrollBarBox key="area-scroll-1" sx = {{ 
-                        overflow: "auto" , 
-                        width: "100%" , 
-                        paddingRight: "1%" , 
-                        flex: 1 , 
-                    }}><EditorComponentEditingBox>
+                    <EditorComponentEditingBox>
                         <KeyDownUpFunctionProxy.Consumer>{([onkeydown , onkeyup])=>{
                             return <EditorComponent
                                 ref 		        = {(editor: EditorComponent)=>{
@@ -229,7 +217,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                             />
                         }}
                         </KeyDownUpFunctionProxy.Consumer>
-                    </EditorComponentEditingBox></ScrollBarBox>
+                    </EditorComponentEditingBox>
                 </Box>
 
                 <Box key="area-2" sx = {{

@@ -37,7 +37,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import {
     UseAreaStore , 
+    DraggerBox , 
 } from "./base"
+import {
+    mod_scrollbar , 
+} from "../../uibase"
 
 export {
     ParameterArea , 
@@ -48,11 +52,17 @@ const ParameterArea = React.memo(({
     onDragStart , 
     position , 
     onSetSize , 
+    zIndex = 1000 , 
+    area_id, 
+    dragging_me , 
 }:{
     paper_sx?: BoxProps["sx"]
     onDragStart?: (e: React.MouseEvent) => void
     position: {x: number, y: number}
     onSetSize?: (size: {width: number, height: number}) => void
+    zIndex?: number
+    area_id: string
+    dragging_me: boolean
 })=>{
     const editor    = UseAreaStore(state => state.editor)
     const selection = UseAreaStore(state => state.selection)
@@ -108,8 +118,10 @@ const ParameterArea = React.memo(({
             top     : position.y,
             left    : position.x,
             width   : "20rem",
-            zIndex  : 1000,
+            zIndex  : zIndex,
             height  : "auto" , 
+            maxHeight: "40rem",
+            overflow: "auto",
             
             padding: "2rem" , 
             ...paper_sx
@@ -133,30 +145,17 @@ const ParameterArea = React.memo(({
                 width   : "100%",
                 height  : "100%" , 
                 opacity: 1,
+
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
             }}
-        ><Stack spacing={2}>
-            <Box 
-                sx={{
-                    width: "100%",
-                    height: "8px",
-                    bgcolor: "grey.300",
-                    cursor: "move",
-                    borderRadius: "4px",
-                    mb: 1,
-                    "&:hover": {
-                        bgcolor: "grey.400"
-                    }
-                }}
-                onMouseDown = {(e)=>{
-                    if(box_ref.current){
-                        const rect = box_ref.current.getBoundingClientRect()
-                        onSetSize?.({
-                            width : rect.width,
-                            height: rect.height,
-                        })
-                    }
-                    onDragStart?.(e)
-                }}
+        >
+
+            <DraggerBox  
+                onSetSize   = {onSetSize} 
+                onDragStart = {onDragStart} 
+                dragging_me = {dragging_me} 
             />
             <Box sx={{
                 display: "flex",
@@ -181,12 +180,16 @@ const ParameterArea = React.memo(({
                     <NavigateNext />
                 </IconButton>
             </Box>
-            <DefaultParameterContainer 
-                node = {cur_node}
-                onSave = {(parameters: ParameterList) => {
-                    editor.auto_set_parameter(cur_node, parameters)
-                }}
-            />
-        </Stack></motion.div>
+            <Box ref = {mod_scrollbar} sx={{
+                overflow: "auto",
+            }}>
+                <DefaultParameterContainer 
+                    node = {cur_node}
+                    onSave = {(parameters: ParameterList) => {
+                        editor.auto_set_parameter(cur_node, parameters)
+                    }}
+                />
+            </Box>
+        </motion.div>
     )}</AnimatePresence></Paper>
 })
