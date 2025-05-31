@@ -52,12 +52,13 @@ function DraggerBox(props: BoxProps & {
     onDragStart?: (e: React.MouseEvent<HTMLDivElement>) => void
     onSetSize  ?: (size: {width: number, height: number}) => void
     dragging_me?: boolean
+    father_ref?: React.RefObject<HTMLDivElement | null>
 }){
-    const box_ref = React.useRef<HTMLDivElement>(null)
     let {
         onDragStart , 
         onSetSize , 
         dragging_me , 
+        father_ref , 
         ...rest_props
     } = props
 
@@ -77,8 +78,8 @@ function DraggerBox(props: BoxProps & {
         }}
         onMouseDown = {(e: React.MouseEvent<HTMLDivElement>)=>{
             // XXX 在这里调用onSetSize也许并不合理
-            if(box_ref.current){
-                const rect = box_ref.current.getBoundingClientRect()
+            if(father_ref?.current){
+                const rect = father_ref.current.getBoundingClientRect()
                 onSetSize?.({
                     width : rect.width,
                     height: rect.height,

@@ -151,11 +151,11 @@ const ParameterArea = React.memo(({
                 gap: "1rem",
             }}
         >
-
             <DraggerBox  
                 onSetSize   = {onSetSize} 
                 onDragStart = {onDragStart} 
                 dragging_me = {dragging_me} 
+                father_ref  = {box_ref}
             />
             <Box sx={{
                 display: "flex",

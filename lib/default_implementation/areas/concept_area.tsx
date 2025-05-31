@@ -97,6 +97,7 @@ const ConceptArea = React.memo(({
         editor 
     ) && (
         <motion.div
+            ref         = {box_ref}
             initial     = {{ opacity: 0 }}
             animate     = {{ opacity: 1 }}
             exit        = {{ opacity: 0 }}
@@ -121,6 +122,7 @@ const ConceptArea = React.memo(({
                 onSetSize   = {onSetSize} 
                 onDragStart = {onDragStart} 
                 dragging_me = {dragging_me} 
+                father_ref  = {box_ref}
             />
 
             <Box sx={{
