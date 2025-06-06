@@ -18,6 +18,12 @@ import {
 
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
+
+import {
+    KeyEventManager , 
+    KeyNames , 
+} from "@ftyyy/mouseless"
+
 import {
     EditorComponent , 
     EditorCore, 
@@ -48,12 +54,7 @@ import {
 
 } from "../../utils"
 
-import {
-    KeyEventManager , 
-    MouselessElement , 
-    KeyDownUpFunctionProxy , 
-    DirectionKey, 
-} from "../../uibase/mouseless"
+
 import {
     mod_scrollbar , 
 } from "../../uibase"
@@ -79,9 +80,6 @@ import {
     DefaultSidebar , 
     get_mouseless_space as sidebar_get_mouseless_space , 
 } from "./sidebar"
-import {
-    get_mouseless_space as buttons_get_mouseless_space
-} from "../../implbase/buttons"
 
 import {
     UseAreaStore as useAreaStore, 
@@ -156,20 +154,16 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         }
 
         return <EditorConfigContext.Provider value={config}>
-        <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>{
-            return <EditorBackgroundPaper>
+        <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>(
+            <EditorBackgroundPaper>
             <KeyEventManager
-                spaces = {[
-                    sidebar_get_mouseless_space() , 
-                    buttons_get_mouseless_space(me.get_editor) , 
+                spaces = {[]}
+                preventing_default = {[
+                    [KeyNames.ctrl, KeyNames.s] , 
+                    [KeyNames.alt , KeyNames.q] ,
+                    [KeyNames.alt , KeyNames.w] , 
                 ]}
-                non_space_oprations = {[
-                    {
-                        key: "s" , 
-                        on_activate: ()=>{me.onSave()}
-                    }
-                ]}
-            >
+            >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} sx = {{ 
                     position: "absolute" , 
                     top: "1%" , 
@@ -181,42 +175,39 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     left: "1%",
                 }}>
                     <EditorComponentEditingBox>
-                        <KeyDownUpFunctionProxy.Consumer>{([onkeydown , onkeyup])=>{
-                            return <EditorComponent
-                                ref 		        = {(editor: EditorComponent)=>{
-                                    me.editor_ref.current = editor
-                                    if(!me.state.editor_ready){
-                                        // 强制刷新一下
-                                        me.setState({editor_ready: true})
-                                    }
-                                }} 
+                        <EditorComponent
+                            ref 		        = {(editor: EditorComponent)=>{
+                                me.editor_ref.current = editor
+                                if(!me.state.editor_ready){
+                                    // 强制刷新一下
+                                    me.setState({editor_ready: true})
+                                }
+                            }} 
 
-                                editorcore          = {me.props.editorcore}
-                                plugin              = {me.props.plugin}
-                                init_rootchildren   = {me.props.init_rootchildren}
-                                init_rootproperty   = {me.props.init_rootproperty}
+                            editorcore          = {me.props.editorcore}
+                            plugin              = {me.props.plugin}
+                            init_rootchildren   = {me.props.init_rootchildren}
+                            init_rootproperty   = {me.props.init_rootproperty}
 
-                                onKeyPress          = {me.props.onKeyPress}
-                                onUpdate            = {(v: any)=>{
-                                    me.props.onUpdate && me.props.onUpdate(v)
-                                    conflictcheck()
-                                }}
-                                onFocusChange       = {(e)=>{
-                                    onFocusChange()
+                            onKeyPress          = {me.props.onKeyPress}
+                            onUpdate            = {(v: any)=>{
+                                me.props.onUpdate && me.props.onUpdate(v)
+                                conflictcheck()
+                            }}
+                            onFocusChange       = {(e)=>{
+                                onFocusChange()
 
-                                    let editor = me.get_editor()
-                                    if(editor){
-                                        let slate = editor.get_slate()    
-                                        useAreaStore.getState().set_selection(slate.selection)
-                                        useAreaStore.getState().set_editor(editor)
-                                    }
-                                }}
-                                
-                                onKeyDown           = {onkeydown}
-                                onKeyUp             = {onkeyup}
-                            />
-                        }}
-                        </KeyDownUpFunctionProxy.Consumer>
+                                let editor = me.get_editor()
+                                if(editor){
+                                    let slate = editor.get_slate()    
+                                    useAreaStore.getState().set_selection(slate.selection)
+                                    useAreaStore.getState().set_editor(editor)
+                                }
+                            }}
+                            
+                            onKeyDown           = {onkeydown}
+                            onKeyUp             = {onkeyup}
+                        />
                     </EditorComponentEditingBox>
                 </Box>
 
@@ -244,10 +235,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         {me.props.extra_buttons}
                     </AutoStack>
                 })()}</Box>
-
-            </KeyEventManager>
+            </React.Fragment>)}</KeyEventManager>
             </EditorBackgroundPaper>
-        }}</IdxConflictSolver>
+        )}</IdxConflictSolver>
         </EditorConfigContext.Provider>
     }
 }

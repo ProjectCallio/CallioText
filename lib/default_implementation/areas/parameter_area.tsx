@@ -117,10 +117,9 @@ const ParameterArea = React.memo(({
             position: "absolute",
             top     : position.y,
             left    : position.x,
-            width   : "20rem",
+            width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             height  : "auto" , 
-            maxHeight: "40rem",
             overflow: "auto",
             
             padding: "2rem" , 
@@ -182,6 +181,7 @@ const ParameterArea = React.memo(({
             </Box>
             <Box ref = {mod_scrollbar} sx={{
                 overflow: "auto",
+                maxHeight: "calc(min(40rem, 50vh))",
             }}>
                 <DefaultParameterContainer 
                     node = {cur_node}

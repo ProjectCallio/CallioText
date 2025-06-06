@@ -8,7 +8,7 @@ export {
 class UnexpectedParametersError extends Error{
     constructor(msg: string){
         super(msg)
-        Object.setPrototypeOf(this, UnexpectedParametersError.prototype);
+        Object.setPrototypeOf(this, UnexpectedParametersError.prototype)
     }
 }
 
@@ -16,7 +16,7 @@ class UnexpectedParametersError extends Error{
 class BadNodeError extends Error{
     constructor(msg: string){
         super(msg)
-        Object.setPrototypeOf(this, BadNodeError.prototype);
+        Object.setPrototypeOf(this, BadNodeError.prototype)
     }
 }
 
@@ -25,7 +25,7 @@ class BadNodeError extends Error{
 class ImpossibleError extends Error{
     constructor(msg: string){
         super(msg)
-        Object.setPrototypeOf(this, ImpossibleError.prototype);
+        Object.setPrototypeOf(this, ImpossibleError.prototype)
     }
 }
 

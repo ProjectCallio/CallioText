@@ -85,7 +85,7 @@ const ConceptArea = React.memo(({
             position: "absolute",
             top     : position.y,
             left    : position.x,
-            width   : "20rem",
+            width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             
             padding: "2rem" , 
@@ -110,7 +110,7 @@ const ConceptArea = React.memo(({
                 width   : "100%",
                 opacity: 1,
 
-                maxHeight: "40rem", 
+                maxHeight: "calc(min(40rem, 70vh))", 
                 overflow: "hidden",
 
                 display: "flex",
