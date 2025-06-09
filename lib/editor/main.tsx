@@ -27,21 +27,7 @@ import {
 } from "../core"
 
 import {
-    Printer, 
-} from "../printer"
-
-import {
-    EditorRenderer , 
-    EditorRendererProps , 
-} from "./editor_renderer"
-
-import {
     slate_is_concept , 
-    slate_is_paragraph , 
-    slate_is_same_concept_node , 
-    slate_is_text , 
-    slate_get_node_type, 
-    DoSomething, 
 } from "./utils"
 
 import {
@@ -61,18 +47,12 @@ import {
 } from "./globalinfo"
 
 import {
-    gene_idx , 
-} from "../utils"
-
-import {
     handle_copy , 
     handle_paste , 
 } from "./handle_copypaste"
 
 import {
     EditorCore  ,
-    EditorRendererDict,
-    EditorDefaultRendererDict,
 } from "./editorcore"
 
 export {

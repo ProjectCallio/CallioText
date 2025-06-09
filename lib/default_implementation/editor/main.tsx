@@ -39,25 +39,22 @@ import {
 } from "../../core"
 
 import { 
+    AutoStack , 
+    mod_scrollbar , 
+} from "../../uibase"
+
+import {
+    get_mouseless_space as buttons_get_mouseless_space, 
+} from "../../implbase/buttons"
+
+import { 
     DefaultParameterEditButton , 
     DefaultRootParameterEditButton , 
 } from "./buttons"
-import { 
-    AutoStack , 
-    AutoTooltip , 
-    AutoStackedPopper , 
-    AutoStackButtons , 
-} from "../../uibase"
-import {
-    object_foreach , 
-    merge_object ,
-
-} from "../../utils"
-
 
 import {
-    mod_scrollbar , 
-} from "../../uibase"
+    UseAreaStore as useAreaStore, 
+} from "../areas"
 
 import { 
     EditorBackgroundPaper , 
@@ -69,21 +66,9 @@ import {
 } from "./uibase"
 
 import {
-    set_normalize_status , 
-    get_normalize_status , 
-} from "../../editor/plugins"
-import {
-    slate_is_concept , 
-} from "../../editor/utils"
-
-import {
     DefaultSidebar , 
     get_mouseless_space as sidebar_get_mouseless_space , 
 } from "./sidebar"
-
-import {
-    UseAreaStore as useAreaStore, 
-} from "../areas"
 
 import {
     IdxConflictSolver , 
@@ -140,16 +125,16 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     }
 
     render() {
+        const me                  = this
     
-        let paper_widths  = {xs: "88%" , md: "91%" , xl: "93%"} // 纸张的宽度，
-        let paper_right   = {xs: "89%" , md: "92%" , xl: "94%"} // 纸张的宽度，
-        let toolbar_width = {xs: "10%" , md: "7%"  , xl: "5%" } // 工具栏的宽度。
+        const paper_widths  = {xs: "88%" , md: "91%" , xl: "93%"} // 纸张的宽度，
+        const paper_right   = {xs: "89%" , md: "92%" , xl: "94%"} // 纸张的宽度，
+        const toolbar_width = {xs: "10%" , md: "7%"  , xl: "5%" } // 工具栏的宽度。
 
-        let me                  = this
-        let config              = make_editorconfig(this.props.config)
+        const config              = make_editorconfig(this.props.config)
 
         // 当焦点发生变化时，更新parameteredit_ref
-        let onFocusChange = ()=>{
+        const onFocusChange = ()=>{
             me.props.onFocusChange && me.props.onFocusChange()
         }
 
@@ -157,7 +142,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>(
             <EditorBackgroundPaper>
             <KeyEventManager
-                spaces = {[]}
+                spaces = {[
+                    buttons_get_mouseless_space(me.get_editor),
+                ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
                     [KeyNames.alt , KeyNames.q] ,

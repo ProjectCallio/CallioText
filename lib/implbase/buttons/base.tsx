@@ -8,6 +8,14 @@ import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
 import {
+    useSpaceNavigatorOnMoveRegister ,
+    useKeyHoldingState , 
+    useSpaceNavigatorState,  
+    useKeyEventsHandlerRegister,
+    KeyNames, 
+} from "@ftyyy/mouseless"
+
+import {
     ConceptNode , 
     ParameterList , 
     ParameterValue, 
@@ -19,17 +27,10 @@ import {
 } from "../../editor"
 
 import {
-    MouselessElement , 
-    MouselessRegister, 
-    MouselessRegisterFunction, 
-    MouselessUnRegisterFunction , 
-    MouselessActivateOperation , 
-    MouselessUnActivateOperation , 
-    MouselessRun , 
-} from "../../uibase/mouseless"
-import {
-    SPACE , 
     get_position , 
+    decode_position , 
+    SPACE_NAME , 
+    HOLDING , 
 } from "./mouseless"
 
 import { 
@@ -50,315 +51,94 @@ import {
     Input , 
 } from "@mui/material"
 
-export type {
+import {
     EditorButtonInformation , 
-    ButtonBase ,     
     ButtonDescription , 
-    ButtonGroupProps , 
     AutoStackedPopperWithButtonProps , 
-}
+    AutoStackedPopperWithButton , 
+} from "./components"
 
 export {
     ButtonGroup , 
     AutoStackedPopperButtonGroupMouseless , 
     MouselessParameterEditor , 
-    AutoStackedPopperWithButton , 
 }
 
-/** 折叠起来的按钮组的`props`。 */
-interface AutoStackedPopperWithButtonProps {
-    /** 用来展开菜单的按钮的类型。 */
-    outer_button: any 
-
-    /** 用来展开菜单的按钮的`props`。 */
-    outer_props?: any 
-    
-    /** 传递给弹出框的`props` */
-    poper_props?: Omit<Omit<Omit<AutoStackedPopperProps , "ref"> , "anchorEl"> , "open">
-
-    /** 鼠标移上去显示的字样。 */
-    label?: string 
-
-    /** 是否在点击其他位置时关闭。 */
-    close_on_otherclick?: boolean
-
-    /** 关闭时的其他行为。 */
-    onExit?: ()=>void 
-
-    /** 打开时的其他行为。 */
-    onEnter?: ()=>void 
-
-    /** 子元素。 */
-    children?: any , 
-}
-
-/**
- * 这个组件定义一个折叠起来的按钮组。
- */
-class AutoStackedPopperWithButton extends React.PureComponent<AutoStackedPopperWithButtonProps, {
-    menu_open: boolean
-}>{
-
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
-
-    menu_anchor_ref: React.RefObject<HTMLAnchorElement | null>
-
-    /**
-     * 创建一个折叠起来的按钮组，且通过无鼠标的方式来操作。
-     * @param props.outer_button 用来展开菜单的按钮的类型。
-     * @param props.outer_props 用来展开菜单的按钮的`props`。
-     * @param props.poper_props 传递给弹出框的`props`
-     * @param props.label 鼠标移上去显示的字样。
-     * @param props.close_on_otherclick 是否在点击其他位置时关闭。
-     * @param props.onExit 关闭时的其他行为。
-     * @param props.onEnter 打开时的其他行为。
-     * @param props.children `children`会被渲染在按钮之前。
-     */
-    constructor(props: AutoStackedPopperWithButtonProps){
-        super(props)
-
-        this.state = {
-            menu_open: false , 
-        }
-
-        this.menu_anchor_ref = React.createRef()
-    }
-
-    /** 打开菜单。 */
-    set_menu_open(open: boolean){
-        this.setState({menu_open: open})
-        if(!open){ // 正在关闭
-            this.props.onExit && this.props.onExit()
-        }
-        if(open){ // 正在打开
-            this.props.onEnter && this.props.onEnter()
-        }
-    }
-
-    /** 获得按钮组件，作为菜单组件的定位。 */
-    get_anchor(){
-        if(this.menu_anchor_ref && this.menu_anchor_ref.current){
-            return this.menu_anchor_ref.current
-        }
-        return undefined
-    }
-
-    /** 模拟点击行为，切换菜单的关闭/打开。 
-     * @param _ 这是无鼠标操作的接口规定的参数，没有实际意义。
-    */
-    run(_: any = undefined){
-        this.set_menu_open(!this.state.menu_open)
-    }
-
-    render(){
-        let props = this.props
-        let children = props.children || <></>
-        let B = props.outer_button
-
-        let poper = <React.Fragment>
-            <AutoTooltip title={props.label}><B 
-                onClick     = {this.run.bind(this)}
-                ref         = {this.menu_anchor_ref}
-                {...props.outer_props}
-            /></AutoTooltip>
-            <AutoStackedPopper 
-                anchorEl    = {this.get_anchor()} 
-                open        = {this.state.menu_open}
-                {...props.poper_props}
-            >
-                {children}
-            </AutoStackedPopper>
-        </React.Fragment>
-    
-        if(props.close_on_otherclick){
-            return <ClickAwayListener onClickAway={()=>{this.set_menu_open(false)}}>
-                <Box>{poper}</Box>
-            </ ClickAwayListener>
-        }
-        return poper
-    }
-}
-
-
-/** 所有按钮组件的通用信息。 */
-interface EditorButtonInformation<NodeType extends ConceptNode = ConceptNode>{
-
-    /** 按钮所服务的节点。 */
-    node: Slate.Node & NodeType
-}
-
-
-/** 所有按钮的父类。 */
-interface ButtonBase{
-    run: (e?: React.KeyboardEvent<HTMLDivElement>)=>void
-}
-
-interface MouselessButtonProps<OtherPropsType = {}>{
-
-    /** 这个按钮的编号。 */
-    idx: number
-
-    /** 这个按钮所服务的节点。 */
+function ButtonGroup({
+    buttons, 
+    node,
+    autostack = false,
+    simple = false,
+}:{
+    buttons: React.ReactNode[]
     node: Slate.Node & ConceptNode
-    
-    /** 建立按钮时除了`node`之外还要往里面传入哪些参数。 */
-    other_props?: OtherPropsType
-
-    /** 一个按钮的无鼠标代理。 */
-    component: any
-
-    /** 要额外执行的`run`函数。 */
-    extra_run?: MouselessRun
-
-    /** 要额外执行的`activate`函数。 */
-    extra_activate?: MouselessActivateOperation
-
-    /** 要额外执行的`unactivate`函数。 */
-    extra_unactivate?: MouselessUnActivateOperation
-
-}
-
-/** 将一个按钮包装成一个无鼠标元素。 */
-class MouselessButton<OtherPropsType = {}> extends React.Component<
-    MouselessButtonProps<OtherPropsType>
->{
-
-    childref: React.RefObject<any>
-
-    constructor(props: MouselessButtonProps<OtherPropsType>){
-        super(props)
-
-        this.childref = React.createRef<any>()
-    }
-
-    run(e?: React.KeyboardEvent<HTMLDivElement>){
-        if(this.childref && this.childref.current){
-            this.childref.current.run(e)
-        }
-        if(this.props.extra_run){
-            this.props.extra_run(e)
-        }
-    }
-
-    render(){
-        let C = this.props.component
-        let other_props = this.props.other_props || {} as OtherPropsType
-        
-        return <MouselessElement
-            space       = {SPACE}
-            run         = {this.run.bind(this)}
-            position    = {get_position(this.props.node,this.props.idx)}
-
-            extra_activate      = {this.props.extra_activate}
-            extra_unactivate    = {this.props.extra_unactivate}
-        >
-            <C node={this.props.node} {...other_props} ref={this.childref}/>
-        </MouselessElement>    
-    }
-}
-
-
-type ButtonDescriptionWithProps<OtherPropsType = {}> = {
-    other_props?: OtherPropsType
-    component:  React.ComponentType<EditorButtonInformation & OtherPropsType> 
-
-    /** 是否要跳过无鼠标操作的选择。 */
-    skip_mouseless?: boolean
-} 
-
-/** 描述一个按钮。 */
-type ButtonDescription<OtherPropsType = {}> = (
-    ButtonDescriptionWithProps<OtherPropsType>
-    | React.ComponentType   <EditorButtonInformation & OtherPropsType> 
-)
-
-interface ButtonGroupProps{
-    buttons: ButtonDescription[]
-    node: Slate.Node & ConceptNode
-    
-    /** 在无鼠标操作中的编号。 */
-    idxs?: number[]
-
-    /** 是否自动确定方向。 */
     autostack?: boolean
+    simple?: boolean
+}){
 
-    simple?: boolean , 
+    const button_cnt = buttons.length
+    const [space, position] = useSpaceNavigatorState()
+    const [sel_button, set_sel_button] = React.useState<number | undefined>(undefined)
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
+    const refs = React.useRef<HTMLDivElement[]>([])
 
-    /** 要额外执行的`run`函数。 */
-    extra_run?: MouselessRun
+    // 设置当前选中的按钮
+    React.useEffect(()=>{   
+        if(space != SPACE_NAME || !position){
+            set_sel_button(undefined)
+            return 
+        }
 
+        const [node_idx, button_idx] = decode_position(position)
+        if(node_idx != node.idx){
+            set_sel_button(undefined)
+            return 
+        }
 
-    /** 要额外执行的`activate`函数。 */
-    extra_activate?: MouselessActivateOperation
+        const act_but_idx = (button_idx % button_cnt + button_cnt) % button_cnt
+        set_sel_button(act_but_idx)
 
-    /** 要额外执行的`unactivate`函数。 */
-    extra_unactivate?: MouselessUnActivateOperation
-}
-class ButtonGroup extends React.Component<ButtonGroupProps>{
-    constructor(props: ButtonGroupProps){
-        super(props)
+    } , [space, position, button_cnt, node.idx])
+
+    // 设置选中按钮的行为
+    React.useEffect(()=>{
+        const handler = ()=>{
+            if(sel_button == undefined || !refs.current[sel_button]){
+                return 
+            }
+            // refs.current[sel_button].click()
+            console.log("now click", sel_button)
+        }
+
+        add_handler(HOLDING, KeyNames.enter, false, handler)
+        return ()=>{
+            del_handler(HOLDING, KeyNames.enter, false, handler)
+        }
+    } , [
+        add_handler, 
+        del_handler, 
+        sel_button , 
+    ])
+
+    const ret = <React.Fragment>
+        {buttons.map((button, idx)=>{
+            return <div 
+                key = {idx} 
+                ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
+                style={{
+                    border: sel_button == idx ? "2px solid" : "none" , 
+                }}
+            >{button}</div>
+        })}
+    </React.Fragment>
+
+    if(autostack){
+        return <AutoStack simple={simple}>{ret}</AutoStack>
     }
-    render(){
-        let buttons = this.props.buttons
-        let node = this.props.node
-
-        let idxs = this.props.idxs || []
-        if(idxs.length == 0){
-            idxs = [0]
-        }
-        while(idxs.length < buttons.length){
-            idxs = [...idxs, Math.max(...idxs) + 1] // 每次加入最大元素+1。
-        }
-
-        let ret = Object.keys(buttons).map((_subidx)=>{
-            let subidx = parseInt(_subidx)
-
-            function has_props(bd: ButtonDescription): bd is ButtonDescriptionWithProps<any> {
-                return !!( (bd as any)["component"] )
-            }
-            
-            let res_other_props     = {} 
-            let ResComponent: React.ComponentType<EditorButtonInformation & any> = ()=><></>
-            let res_skip_mouseless  = false // 是否跳过无鼠标
-
-            let but_desc = buttons[subidx]
-            if(has_props(but_desc)){ // 如果是object描述
-                let {other_props, component, skip_mouseless} = but_desc
-                res_other_props    = other_props || {}
-                ResComponent       = component
-                res_skip_mouseless = skip_mouseless || false
-            }
-            else{
-                ResComponent = but_desc as React.ComponentType<EditorButtonInformation & any>
-            }
-
-            if(res_skip_mouseless){
-                return <ResComponent key={subidx} node={node} {...res_other_props}/> // 单独创建元素，不套上mouseless。
-            }
-            
-            return <MouselessButton 
-                key         = {subidx}
-                node        = {node}
-                idx         = {idxs[subidx]}
-                other_props = {res_other_props}
-                component   = {ResComponent}
-
-                extra_run        = {this.props.extra_run}
-                extra_activate   = {this.props.extra_activate}
-                extra_unactivate = {this.props.extra_unactivate}
-            />
-        })
-        
-        if(this.props.autostack){
-            return <AutoStack 
-                simple = {this.props.simple}
-            >{ret}</AutoStack>
-        }
-        return ret
-    }
+    return ret
 }
+
 
 /** 折叠起来的按钮组的`props`。 */
 interface AutoStackedPopperButtonGroupMouselessProps {
@@ -393,6 +173,10 @@ interface AutoStackedPopperButtonGroupMouselessProps {
     idxs?: number []
 }
 
+
+// TODO fix below
+// TODO 也许需要一个可以动态变化nodelist的mouseless？
+
 /**
  * 这个组件定义一个折叠起来的按钮组，并可以通过无鼠标的方式操作。
  * 在使用时，不仅需要传入一系列按钮的定义，还需要传入一系列编号，包括这个容器本身的编号和每个组件的编号。
@@ -402,7 +186,6 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
     active: boolean
 }>{
 
-    static contextType = MouselessRegister
     button_ref: React.RefObject<AutoStackedPopperWithButton | null>
 
     /**
@@ -455,7 +238,7 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
     }
 
     get_position(){
-        return get_position(this.props.node, this.get_idxs()[0]) // 自己使用idxs[0]作为位置。
+        return get_position(this.props.node.idx, this.get_idxs()[0]) // 自己使用idxs[0]作为位置。
     }
 
     /** 这个函数需要在每个子按钮被取消激活时调用，作用是检测当前位置是否还在节点内，如果不在就自动关闭菜单。 */
@@ -514,7 +297,7 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
 
         let idxs = this.get_idxs().slice(1) // 去掉第一个idx之后剩下的
 
-        let poper = <Box sx={{
+        return <Box sx={{
             border: this.state.active ? "2px solid" : "none",
             display       : "flex",
             justifyContent: "center" ,
@@ -542,8 +325,6 @@ class AutoStackedPopperButtonGroupMouseless extends React.Component<AutoStackedP
                 </Box>
             </AutoStackedPopperWithButton>
         </Box>
-    
-        return poper
     }
 }
 
@@ -570,7 +351,7 @@ function MouselessParameterEditor({
     const input_ref = React.useRef<HTMLInputElement | null>(null)
     const [active , set_active] = React.useState(false)
     const [enter_selection , set_ec] = React.useState<Slate.BaseSelection | undefined>(undefined)
-    const position = get_position(node, idx)
+    const position = get_position(node.idx, idx)
 
     const [regiester_func, unregister_func] = React.useContext(MouselessRegister)
     
