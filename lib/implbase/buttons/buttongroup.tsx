@@ -137,8 +137,9 @@ function ButtonGroup({
     ])
 
     const ret = <React.Fragment>
-    {buttons.map((button, idx)=>{
+        {buttons.map((button, idx)=>{
             return <div 
+                    key = {idx}
                     ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
                     style={{
                         border: cur_selected == idx ? "2px solid" : "none" , 

@@ -7,11 +7,14 @@ import {
 
 import {
     EditorComponent , 
-    EditorCore , 
 } from "./main"
+import {
+    EditorCore , 
+} from "./editorcore"
 
 export {
     EditorGlobalInfo , 
+    useEditor , 
 }
 
 export type {
@@ -24,5 +27,12 @@ interface EditorGlobalInfoType{
     "core"   ?: EditorCore ,                         // 这一项提供所有节点的环境。
 }
 
-let EditorGlobalInfo = React.createContext<EditorGlobalInfoType>({})
+const EditorGlobalInfo = React.createContext<EditorGlobalInfoType>({})
 
+function useEditor(){
+    const editor = React.useContext(EditorGlobalInfo)
+    if(!editor){
+        throw new Error("Not in a `EditorGlobalInfo` context.")
+    }
+    return editor
+}

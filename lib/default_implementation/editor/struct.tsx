@@ -48,8 +48,10 @@ import {
 } from "./buttons"
 
 import {
-    EditorButtonInformation , 
-} from "../../implbase/buttons"
+    ButtonGroup , 
+    FoldedButtonGroup , 
+    ConceptSubcomponentInformation , 
+} from "../../implbase"
 
 import { 
     DefaultNewAbstractButton , 
@@ -63,6 +65,7 @@ import {
     SimpleAutoStack , 
     AutoStackedPopper , 
     UnexpectedParametersError , 
+    with_partial_props , 
 } from "../../uibase"
 
 import { 
@@ -74,12 +77,6 @@ import {
     EditorComponentBox as ComponentBox , 
     EditorStructureTypography as StructureTypography , 
 } from "./uibase"
-
-import {
-    ButtonGroup , 
-    ButtonDescription , 
-    AutoStackedPopperButtonGroupMouseless , 
-} from "../../implbase/buttons"
 
 import {
     EditorNodeInfoFunction , 
@@ -112,8 +109,8 @@ function get_default_struct_editor_with_rightbar({
     get_label       ?: EditorNodeInfoFunction<StructNode, string> , 
     get_numchildren ?: EditorNodeInfoFunction<StructNode, number> , 
     get_widths      ?: EditorNodeInfoFunction<StructNode, number[]> ,
-    rightbar_extra  ?: EditorNodeInfoFunction<StructNode, ButtonDescription []> , 
-    surrounder      ?: (props: EditorButtonInformation<StructNode> & {children: any}) => any , 
+    rightbar_extra  ?: EditorNodeInfoFunction<StructNode, React.ReactNode[]> , 
+    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any , 
 }): EditorRenderer<StructNode>{
 
     return (props: EditorRendererProps<StructNode>) => {
@@ -186,33 +183,33 @@ function get_default_struct_editor_with_rightbar({
                             autostack 
                             node = {node}
                             buttons = {rightbar_extra(node, parameters)}
+                            level = {0}
                         />
                         <StructureTypography sx={{marginX: "auto"}}>{mylabel}</StructureTypography>
-                        <AutoStackedPopperButtonGroupMouseless 
-                            poper_props = {{
+                        <FoldedButtonGroup 
+                            popper_props = {{
                                 sx:{
                                     opacity: "80%" , 
                                 }
                             }}
                             node = {node}
-                            close_on_otherclick 
-                            outer_button = {IconButton}
-                            outer_props = {{
+                            button_comp = {with_partial_props(IconButton, {
                                 size: "small" , 
                                 children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                            }}
+                            })}
                             label = "展开"
                             buttons = {[
-                                DefaultParameterEditButton , 
-                                DefaultNewAbstractButton , 
-                                DefaultEditAbstractButton , 
-                                DefaultSwicth as ButtonDescription , 
-                                DefaultCloseButton , 
-                                DefaultSoftDeleteButton , 
-                                NewParagraphButtonUp , 
-                                NewParagraphButtonDown , 
-                                CopyButton , 
+                                <DefaultParameterEditButton node={node} /> , 
+                                <DefaultNewAbstractButton node={node} /> , 
+                                <DefaultEditAbstractButton node={node} /> , 
+                                <DefaultSwicth node={node} /> , 
+                                <DefaultCloseButton node={node} /> , 
+                                <DefaultSoftDeleteButton node={node} /> , 
+                                <NewParagraphButtonUp node={node} /> , 
+                                <NewParagraphButtonDown node={node} /> , 
+                                <CopyButton node={node} /> , 
                             ]}
+                            level = {1}
                         /> 
                     </AutoStack>
                 </UnselecableBox>

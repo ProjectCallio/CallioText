@@ -15,5 +15,4 @@ export type {
 
 interface ConceptSubcomponentInformation{
     node: Slate.Node & ConceptNode , 
-    editor: EditorComponent , 
 }

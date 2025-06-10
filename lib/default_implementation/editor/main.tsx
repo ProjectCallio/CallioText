@@ -22,6 +22,11 @@ import * as SlateReact from "slate-react"
 import {
     KeyEventManager , 
     KeyNames , 
+    useKeyEventsHandlerRegister,
+    useKeyEvents , 
+    useKeyHoldingState,
+    useUpDownHandlers , 
+    useKeyDownUpProxy , 
 } from "@ftyyy/mouseless"
 
 import {
@@ -45,6 +50,7 @@ import {
 
 import {
     get_mouseless_space as buttons_get_mouseless_space, 
+    HOLDING as buttons_holding,
 } from "../../implbase/buttons"
 
 import { 
@@ -85,6 +91,46 @@ type DefaultEditorComponentprops = EditorComponentProps & {
         button: React.ReactElement
         run: ()=>void
     }[]
+}
+
+function Test(){
+
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
+    const holding_keys = useKeyEvents((store)=>{
+        return store.holding_keys
+    })
+    const is_holding = useKeyHoldingState(buttons_holding)
+    const [onkeydown, onkeyup] = useKeyDownUpProxy()
+
+    console.log("holding_keys", holding_keys)
+    console.log("is_holding", holding_keys)
+
+    React.useEffect(()=>{   
+        const handler = ()=>{
+            console.log("handler")
+        }
+        add_handler(buttons_holding, "", false, handler)
+        return ()=>{
+            del_handler(buttons_holding, "", false, handler)
+        }
+    } , [])
+
+    return <Box 
+        sx={{
+            position: "absolute",
+            top: "100px",
+            left: "100px",
+            width: "100px",
+            height: "100px",
+            backgroundColor: "red",
+            zIndex: 1000,
+        }}
+        tabIndex = {0}
+        onKeyDown = {onkeydown}
+        onKeyUp = {onkeyup}
+    >
+        hahah
+    </Box>
 }
 
 /** 
@@ -147,11 +193,13 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
-                    [KeyNames.alt , KeyNames.q] ,
+                    buttons_holding ,
                     [KeyNames.alt , KeyNames.w] , 
+                    [KeyNames.alt , KeyNames.e] , 
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
-                <Box ref={mod_scrollbar} sx = {{ 
+                <Test />
+                <Box ref={mod_scrollbar} tabIndex={0} sx={{ 
                     position: "absolute" , 
                     top: "1%" , 
                     height: "98%", 
@@ -176,7 +224,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                             init_rootchildren   = {me.props.init_rootchildren}
                             init_rootproperty   = {me.props.init_rootproperty}
 
-                            onKeyPress          = {me.props.onKeyPress}
                             onUpdate            = {(v: any)=>{
                                 me.props.onUpdate && me.props.onUpdate(v)
                                 conflictcheck()
@@ -192,7 +239,10 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                                 }
                             }}
                             
-                            onKeyDown           = {onkeydown}
+                            onKeyDown           = {(e)=>{
+                                console.log("onKeyDown", e.key)
+                                return onkeydown(e)
+                            }}
                             onKeyUp             = {onkeyup}
                         />
                     </EditorComponentEditingBox>

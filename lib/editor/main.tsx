@@ -132,9 +132,6 @@ interface EditorComponentProps{
     /** 按键弹起的回调。 */
     onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void
 
-    /** 按键按下弹起的回调。 */
-    onKeyPress?: (e: React.KeyboardEvent<HTMLDivElement>) => void
-
     /** 改变光标位置的回调。 */
     onFocusChange?: (editor?: EditorComponent)=>void
     
@@ -149,9 +146,6 @@ interface EditorComponent extends TreeOpeationsMixins{
 
     /** 按键弹起的回调。 */
     onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void
-
-    /** 按键按下弹起的回调。 */
-    onKeyPress: (e: React.KeyboardEvent<HTMLDivElement>) => void
 
     /** 改变光标位置的回调。 */
     onFocusChange: (editor?: EditorComponent)=>void
@@ -169,11 +163,10 @@ class EditorComponent extends React.Component<EditorComponentProps , {
     constructor(props:EditorComponentProps){
         super(props)
 
-        this.onUpdate       = props.onUpdate        || (()=>{})
-        this.onKeyDown      = props.onKeyDown       || (()=>{})
-        this.onKeyUp        = props.onKeyUp         || (()=>{})
-        this.onKeyPress     = props.onKeyPress      || (()=>{})
-        this.onFocusChange  = props.onFocusChange   || (()=>{})
+        this.onUpdate       = props.onUpdate        ?? (()=>{})
+        this.onKeyDown      = props.onKeyDown       ?? (()=>{})
+        this.onKeyUp        = props.onKeyUp         ?? (()=>{})
+        this.onFocusChange  = props.onFocusChange   ?? (()=>{})
         this.use_tree_op_mixin()
         
         let me = this

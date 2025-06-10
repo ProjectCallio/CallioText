@@ -107,6 +107,7 @@ function onMoveMaker(get_editor: ()=>EditorComponent | undefined, trigger_key: K
             new_level ++
         }
 
+
         return get_position(now_node_idx, new_level, new_idx)
     }
 }
@@ -156,9 +157,12 @@ function get_mouseless_space(get_editor: ()=>EditorComponent | undefined): Space
     return {
         name: SPACE_NAME ,
         holding: HOLDING , 
-        nodes: [] , // 这个是可以留空的（大概）...
+        nodes: ["1"] , // 这个是可以留空的（大概）...
     
-        onStart: (from)=>( onStart(from) ?? "_no_action" ) , 
+        onStart: (from)=>{
+            console.log("onStart", from)
+            return "1"
+        } , 
     
         // 这个是用来描述按钮的。
         edges: [

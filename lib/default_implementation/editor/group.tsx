@@ -78,6 +78,7 @@ import {
     SimpleAutoStack , 
     AutoStackedPopper , 
     mod_scrollbar , 
+    with_partial_props,
 
     light_grey,
 } from "../../uibase"
@@ -130,9 +131,9 @@ function get_deafult_group_editor_with_appbar({
     surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
     // 渲染器
-    const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        const editor      = props.editor
-        const node        = props.node
+    const subcomp = ({
+        editor, node, children
+    }: EditorRendererProps<Slate.Node & GroupNode>) => {
         const parameters  = editor.get_core().get_printer().process_parameters(node)
         const label       = get_label(node, parameters)
 
@@ -172,7 +173,7 @@ function get_deafult_group_editor_with_appbar({
                     </AutoStack></Box>
                 </UnselecableBox >
                 <ComponentEditorBox autogrow>
-                    <SUR node={node} editor={editor}>{props.children}</SUR>
+                    <SUR node={node}>{children}</SUR>
                 </ComponentEditorBox>
             </AutoStack>
         </GroupPaper>
@@ -192,8 +193,8 @@ function get_default_group_editor_with_rightbar({
     surrounder      = (props) => <>{props.children}</>
 }: {
     get_label       ?: EditorNodeInfoFunction<GroupNode, string> ,  
-    rightbar_extra  ?: EditorNodeInfoFunction<GroupNode, ButtonDescription[]> , 
-    surrounder      ?: (props: EditorButtonInformation & {children: any}) => any ,
+    rightbar_extra  ?: EditorNodeInfoFunction<GroupNode, React.ReactNode[]> , 
+    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
 
     const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
@@ -236,6 +237,7 @@ function get_default_group_editor_with_rightbar({
             >
                 <ButtonGroup // 额外添加的元素。
                     node    = {node}
+                    level   = {0}
                     buttons = {extra_buttons}
                 />
                 <AutoStack // 第二层autostack，把标签名和按钮组纵向排列
@@ -247,35 +249,34 @@ function get_default_group_editor_with_rightbar({
                 >
                     {normal_title}
                     
-                    <AutoStackedPopperButtonGroupMouseless 
-                        poper_props = {{
+                    <FoldedButtonGroup 
+                        popper_props = {{
                             sx:{
                                 opacity: "80%" , 
                             }
                         }}
                         node = {node}
-                        close_on_otherclick 
-                        outer_button = {IconButton}
-                        outer_props = {{
+                        button_comp = {with_partial_props(IconButton, {
                             size: "small" , 
                             children: <KeyboardArrowDownIcon fontSize="small"/> , 
                             sx: {
                                 marginY: "auto" , 
                             }
-                        }}
+                        })}
                         label = "展开"
                         buttons = {[
-                            DefaultParameterEditButton , 
-                            DefaultNewAbstractButton , 
-                            DefaultEditAbstractButton , 
-                            DefaultSwicth as ButtonDescription, 
-                            DefaultCloseButton , 
-                            DefaultSoftDeleteButton , 
-                            NewParagraphButtonUp , 
-                            NewParagraphButtonDown , 
-                            CopyButton , 
+                            <DefaultParameterEditButton node={node} /> , 
+                            <DefaultNewAbstractButton   node={node} /> , 
+                            <DefaultEditAbstractButton  node={node} /> , 
+                            <DefaultSwicth              node={node} /> , 
+                            <DefaultCloseButton         node={node} /> , 
+                            <DefaultSoftDeleteButton    node={node} /> , 
+                            <NewParagraphButtonUp       node={node} /> , 
+                            <NewParagraphButtonDown     node={node} /> , 
+                            <CopyButton                 node={node} /> , 
+                            ... extra_buttons
                         ]}
-                        idxs = {[extra_buttons.length]} // 从extra_buttons.length开始编号。
+                        level = {1}
                     /> 
                 </AutoStack>
             </AutoStack></UnselecableBox>

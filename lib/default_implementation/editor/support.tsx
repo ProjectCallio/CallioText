@@ -10,7 +10,6 @@ import {
     Box , 
     Stack , 
     Button , 
-    ButtonGroup , 
     Divider , 
     IconButton , 
     Grid , 
@@ -42,6 +41,7 @@ import {
     AutoStack , 
     AutoTooltip , 
     Direction  , 
+    with_partial_props , 
 } from "../../uibase"
 import {  
     DefaultCloseButton , 
@@ -50,9 +50,10 @@ import {
     NewParagraphButtonDown , 
 } from "./buttons"
 import {
-    AutoStackedPopperButtonGroupMouseless , 
-    EditorButtonInformation , 
-} from "../../implbase/buttons"
+    ButtonGroup , 
+    FoldedButtonGroup , 
+    ConceptSubcomponentInformation , 
+} from "../../implbase"
 import { 
     EditorComponentPaper as ComponentPaper , 
     EditorUnselecableBox as UnselecableBox , 
@@ -93,22 +94,21 @@ function get_default_spliter_editor({
                 }}>
                     <AutoStack force_direction="row">
                         <StructureTypography>{title}</StructureTypography>
-                        <AutoStackedPopperButtonGroupMouseless 
+                        <FoldedButtonGroup 
+                            level = {1}
                             node = {node}
-                            close_on_otherclick 
-                            outer_button = {IconButton}
-                            outer_props = {{
+                            button_comp = {with_partial_props(IconButton, {
                                 size: "small" , 
                                 children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                            }}
+                            })}
                             label = "展开"
                             buttons = {[
-                                DefaultParameterEditButton , 
-                                DefaultNewAbstractButton , 
-                                DefaultEditAbstractButton , 
-                                DefaultCloseButton , 
-                                NewParagraphButtonUp , 
-                                NewParagraphButtonDown , 
+                                <DefaultParameterEditButton node={node} /> , 
+                                <DefaultNewAbstractButton node={node} /> , 
+                                <DefaultEditAbstractButton node={node} /> , 
+                                <DefaultCloseButton node={node} /> , 
+                                <NewParagraphButtonUp node={node} /> , 
+                                <NewParagraphButtonDown node={node} /> , 
                             ]}
                         /> 
                     </AutoStack>
@@ -131,7 +131,7 @@ function get_default_display_editor({
 } : {
     get_label       ?: EditorNodeInfoFunction<SupportNode , string> , 
     is_empty        ?: EditorNodeInfoFunction<SupportNode , boolean> , 
-    render_element  ?: (props: EditorButtonInformation<SupportNode>)=>any , 
+    render_element  ?: (props: ConceptSubcomponentInformation)=>any , 
 }){
     return (props: EditorRendererProps<SupportNode>) => {
         let editor      = props.editor
@@ -150,23 +150,22 @@ function get_default_display_editor({
                 </Box>
                 <AutoStack force_direction = {empty ? "row" : "column"}>
                     <StructureTypography sx={{marginY: "0.2rem", marginX: "auto"}}>{label}</StructureTypography>
-                    <AutoStackedPopperButtonGroupMouseless 
+                    <FoldedButtonGroup 
                         node = {node}
-                        close_on_otherclick 
-                        outer_button = {IconButton}
-                        outer_props = {{
+                        button_comp = {with_partial_props(IconButton, {
                             size: "small" , 
                             children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                        }}
+                        })}
                         label = "展开"
                         buttons = {[
-                            DefaultParameterEditButton , 
-                            DefaultNewAbstractButton , 
-                            DefaultEditAbstractButton , 
-                            DefaultCloseButton , 
-                            NewParagraphButtonUp , 
-                            NewParagraphButtonDown , 
+                            <DefaultParameterEditButton node={node} /> , 
+                            <DefaultNewAbstractButton node={node} /> , 
+                            <DefaultEditAbstractButton node={node} /> , 
+                            <DefaultCloseButton node={node} /> , 
+                            <NewParagraphButtonUp node={node} /> , 
+                            <NewParagraphButtonDown node={node} /> , 
                         ]}
+                        level = {1}
                     /> 
                 </AutoStack>
             </AutoStack>

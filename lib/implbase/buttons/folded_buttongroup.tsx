@@ -36,8 +36,6 @@ import {
     AutoTooltip , 
     Direction , 
     AutoStack , 
-    AutoStackedPopper , 
-    AutoStackedPopperProps , 
 } from "../../uibase"
 import { 
     Tooltip , 
@@ -49,6 +47,7 @@ import {
     TextField , 
     Input , 
     Popper , 
+    PopperProps , 
 } from "@mui/material"
 
 import {
@@ -73,11 +72,22 @@ function FoldedButtonGroup({
     node,
 
     level , 
+    popper_props , 
+    button_comp , 
+    label , 
+    children = <></>,
 }:{
     buttons : React.ReactNode[]
     node    : Slate.Node & ConceptNode
 
     level   : number
+    popper_props ?: Omit<PopperProps, "open" | "anchorEl" | "children">
+    button_comp  ?: React.ComponentType<{
+        onClick: (e: any)=>void, 
+        ref: React.RefObject<HTMLButtonElement | null>
+    }>
+    label ?: string
+    children ?: React.ReactNode
 }){
     const direction = React.useContext(Direction)
     const [menu_open, set_menu_open] = React.useState(false)
@@ -137,18 +147,23 @@ function FoldedButtonGroup({
         cur_selected , 
     ])
 
-    return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}><React.Fragment>
-        <Button
-            ref = {anchor_ref}
-            onClick = {()=>{set_menu_open(!menu_open)}}
-        >
-            open
-        </Button>
+    const ButtonComp = button_comp || Button
+
+    return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
+        <div>
+        <AutoTooltip title={label}>
+            <ButtonComp
+                ref = {anchor_ref}
+                onClick = {()=>{set_menu_open(!menu_open)}}
+            />
+        </AutoTooltip>
         <Popper
             open     = {menu_open}
             anchorEl = {anchor_ref.current}
             placement = "bottom-start"
+            {...popper_props}
         >
+            {children}
             <ButtonGroup
                 buttons = {buttons}
                 node    = {node}
@@ -157,6 +172,7 @@ function FoldedButtonGroup({
                 simple
             />
         </Popper>
-    </React.Fragment></ClickAwayListener>
+        </div>
+    </ClickAwayListener>
 }
 

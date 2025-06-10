@@ -40,8 +40,8 @@ import {
 import type { EditorRendererProps , EditorRenderer } from "../../editor"
 
 import {
-    EditorButtonInformation , 
-} from "../../implbase/buttons"
+    ConceptSubcomponentInformation , 
+} from "../../implbase"
 
 import {
     EditorNodeInfoFunction , 
@@ -272,11 +272,11 @@ function DefaultAbstractEditorGroup(props: {node: Slate.Node & ConceptNode, anch
  * @param props.editor 这个组件所服务的编辑器。
  * @returns 一个渲染了两个 Button 的 
  */
-class DefaultNewAbstractButton extends React.Component<EditorButtonInformation , {
+class DefaultNewAbstractButton extends React.Component<ConceptSubcomponentInformation , {
     ae: HTMLElement | undefined
 }>{
     boxref: React.RefObject<HTMLDivElement | null>
-    constructor(props: EditorButtonInformation){
+    constructor(props: ConceptSubcomponentInformation){
         super(props)
 
         this.state = {
@@ -334,11 +334,11 @@ class DefaultNewAbstractButton extends React.Component<EditorButtonInformation ,
  * @param props.editor 这个组件所服务的编辑器。
  * @returns 
  */
- class DefaultEditAbstractButton extends React.Component<EditorButtonInformation , {
+ class DefaultEditAbstractButton extends React.Component<ConceptSubcomponentInformation , {
     ae: HTMLElement | undefined
  }>{
     boxref: React.RefObject<HTMLDivElement | null>
-    constructor(props: EditorButtonInformation){
+    constructor(props: ConceptSubcomponentInformation){
         super(props)
 
         this.state = {

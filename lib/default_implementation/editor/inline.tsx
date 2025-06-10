@@ -37,10 +37,10 @@ import {
 } from "./buttons"
 
 import {
-    AutoStackedPopperButtonGroupMouseless, 
-    EditorButtonInformation , 
-    AutoStackedPopperWithButton, 
-} from "../../implbase/buttons"
+    ButtonGroup , 
+    FoldedButtonGroup , 
+    ConceptSubcomponentInformation , 
+} from "../../implbase"
 
 import { DefaultEditAbstractButton, DefaultNewAbstract, DefaultNewAbstractButton } from "./abstract"
 import { AutoStackedPopper , SimpleAutoStack , AutoStack , AutoTooltip  } from "../../uibase"
@@ -56,6 +56,10 @@ import {
 import {
     EditorNodeInfoFunction , 
 } from "./base"
+
+import {
+    with_partial_props,
+} from "../../uibase"
 import { motion } from "framer-motion"
 
 export { get_default_inline_editor }
@@ -68,8 +72,8 @@ function get_default_inline_editor({
     rightbar_extra  = (props) => <></> , 
 }: {
     get_label       ?: EditorNodeInfoFunction<InlineNode, string> , 
-    surrounder      ?: (props: EditorButtonInformation & {children: any}) => any , 
-    rightbar_extra  ?: (props: EditorButtonInformation) => any  , 
+    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any , 
+    rightbar_extra  ?: (props: ConceptSubcomponentInformation) => any  , 
 
 }): EditorRenderer<InlineNode>{
     let subcomp = (props: EditorRendererProps<InlineNode>) => {
@@ -88,17 +92,14 @@ function get_default_inline_editor({
             <UnselecableBox>
                 <AutoStack force_direction="row" gap="0.25rem">
                     <Extra node={node}/>
-                    <AutoStackedPopperButtonGroupMouseless
-                        poper_props = {{
+                    <FoldedButtonGroup
+                        popper_props = {{
                             sx:{
                                 opacity: "80%" , 
                             }
                         }}
                         node = {node}
-                        idxs = {[0]}
-                        close_on_otherclick
-                        outer_button = {IconButton}
-                        outer_props = {{
+                        button_comp = {with_partial_props(IconButton, {
                             sx: {
                                 height: "1.25rem" , 
                                 width: "1.25rem" , 
@@ -106,23 +107,24 @@ function get_default_inline_editor({
                                 margin: "0",
                             } , 
                             children: <KeyboardArrowDownIcon sx={{height: "1.25rem"}}/> ,
-                        }} 
+                        })} 
                         // label = {"展开" + (label ? ` / ${label}` : "") }
                         label = {"展开"}
                         buttons = {[
-                            DefaultParameterEditButton , 
-                            DefaultCloseButton , 
-                            DefaultSoftDeleteButton , 
-                            DefaultNewAbstractButton , 
-                            DefaultEditAbstractButton , 
+                            <DefaultParameterEditButton node={node} /> , 
+                            <DefaultCloseButton         node={node} /> , 
+                            <DefaultSoftDeleteButton    node={node} /> , 
+                            <DefaultNewAbstractButton   node={node} /> , 
+                            <DefaultEditAbstractButton node={node} /> , 
                         ]}
+                        level = {1}
                     >
                         <StructureTypography sx={{
                             marginY: "0.2rem", 
                             marginX: "auto", 
                             paddingX: "0.25rem"
                         }}>{label}</StructureTypography>
-                    </AutoStackedPopperButtonGroupMouseless>
+                    </FoldedButtonGroup>
                 </AutoStack>
             </UnselecableBox>
         </AutoStack>
