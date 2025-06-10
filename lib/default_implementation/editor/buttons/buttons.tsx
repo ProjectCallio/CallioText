@@ -45,11 +45,6 @@ import {
 import { AutoTooltip , Direction , AutoStack , AutoStackedPopper , AutoStackedPopperProps } from "../../../uibase"
 import { DefaultParameterWithEditorWithDrawer } from "./parameter_edit" 
 
-import {
-    EditorButtonInformation , 
-    ButtonBase , 
-} from "../../../implbase/buttons"
-
 export {    
     DefaultParameterEditButton , 
     DefaultCloseButton , 

@@ -84,10 +84,9 @@ import {
 
 import {
     ButtonGroup , 
-    ButtonDescription , 
-    AutoStackedPopperButtonGroupMouseless , 
-    EditorButtonInformation , 
-} from "../../implbase/buttons"
+    FoldedButtonGroup , 
+    ConceptSubcomponentInformation , 
+} from "../../implbase"
 
 import Color from "color"
 
@@ -127,8 +126,8 @@ function get_deafult_group_editor_with_appbar({
     surrounder    = (props) => <>{props.children}</>
 }: {
     get_label       ?: EditorNodeInfoFunction<GroupNode, string> ,  
-    appbar_extra    ?: EditorNodeInfoFunction<GroupNode, ButtonDescription[]> , 
-    surrounder      ?: (props: EditorButtonInformation & {children: any}) => any ,
+    appbar_extra    ?: EditorNodeInfoFunction<GroupNode, React.ReactNode[]> , 
+    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
     // 渲染器
     const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
@@ -155,24 +154,25 @@ function get_deafult_group_editor_with_appbar({
                         <StructureTypography>{label}</StructureTypography>
                         <ButtonGroup 
                             node = {node}
-                            idxs = {[0]}
+                            level = {0}
+
                             buttons = {[
-                                DefaultParameterEditButton , 
-                                DefaultNewAbstractButton , 
-                                DefaultEditAbstractButton , 
-                                DefaultSwicth as ButtonDescription, 
-                                NewParagraphButtonUp , 
-                                NewParagraphButtonDown , 
-                                DefaultCloseButton , 
-                                DefaultSoftDeleteButton , 
-                                CopyButton , 
+                                <DefaultParameterEditButton node={node} /> , 
+                                <DefaultNewAbstractButton   node={node} /> , 
+                                <DefaultEditAbstractButton  node={node} /> , 
+                                <DefaultSwicth              node={node} /> , 
+                                <NewParagraphButtonUp       node={node} /> , 
+                                <NewParagraphButtonDown     node={node} /> , 
+                                <DefaultCloseButton         node={node} /> , 
+                                <DefaultSoftDeleteButton    node={node} /> , 
+                                <CopyButton                 node={node} /> , 
                                 ... appbar_extra(node, parameters)
                             ]}
                         />
                     </AutoStack></Box>
                 </UnselecableBox >
                 <ComponentEditorBox autogrow>
-                    <SUR node={node}>{props.children}</SUR>
+                    <SUR node={node} editor={editor}>{props.children}</SUR>
                 </ComponentEditorBox>
             </AutoStack>
         </GroupPaper>

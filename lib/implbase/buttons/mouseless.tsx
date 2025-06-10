@@ -1,6 +1,6 @@
 /**
  * 这个模块规定每个概念节点的按钮栏的无鼠标操作。
- * 约定1：位置用`[节点编号,按钮编号]`来表示。
+ * 约定1：位置用`[节点编号,按钮组层次,按钮编号]`来表示。其中按钮层次以`0`开始。
  * 约定2：每个概念节点都有按钮。按钮编号用整数表示。在实际取得按钮的时候取模。
  * @module
  */
@@ -37,11 +37,11 @@ export {
 const SPACE_NAME = "buttons"
 const HOLDING = [KeyNames.alt, KeyNames.q]
 
-function get_position(node_idx: string , position_idx: number): string{
-    return JSON.stringify([node_idx, position_idx])
+function get_position(node_idx: string , level: number,position_idx: number): string{
+    return JSON.stringify([node_idx, level, position_idx])
 }
-function decode_position(position: string): [string, number]{
-    return JSON.parse(position) as [string, number]
+function decode_position(position: string): [string, number, number]{
+    return JSON.parse(position) as [string, number, number]
 }
 
 /** 这个函数是位置函数的备用方案，当在祖先节点中找不到一个带无鼠标元素的概念节点时，就去兄弟节点中找。 */
@@ -76,7 +76,7 @@ function get_brother_concept(editor: EditorComponent): NodeName | undefined{
     if(!res_node){
         return undefined
     }
-    return get_position(res_node.idx, 0)
+    return get_position(res_node.idx, 0, 0)
 }
 
 function onMoveMaker(get_editor: ()=>EditorComponent | undefined, trigger_key: KeyName){
@@ -90,17 +90,24 @@ function onMoveMaker(get_editor: ()=>EditorComponent | undefined, trigger_key: K
         }
 
         // 获得当前激活位置。
-        let [now_node_idx, now_button_idx] = decode_position(from)
+        let [now_node_idx, now_level, now_button_idx] = decode_position(from)
 
         let new_idx = now_button_idx
-        if(trigger_key == KeyNames.ArrowLeft || trigger_key == KeyNames.ArrowUp){
+        let new_level = now_level
+        if(trigger_key == KeyNames.ArrowLeft){
             new_idx --
         }
-        if(trigger_key == KeyNames.ArrowRight || trigger_key == KeyNames.ArrowDown){
+        if(trigger_key == KeyNames.ArrowRight){
             new_idx ++
         }
+        if(trigger_key == KeyNames.ArrowUp){
+            new_level --
+        }
+        if(trigger_key == KeyNames.ArrowDown){
+            new_level ++
+        }
 
-        return get_position(now_node_idx, new_idx)
+        return get_position(now_node_idx, new_level, new_idx)
     }
 }
 
@@ -139,7 +146,7 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
             }
         }
 
-        return get_position(now_idx, 0)
+        return get_position(now_idx, 0, 0)
     }
 }
 
