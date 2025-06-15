@@ -96,6 +96,7 @@ function get_default_spliter_editor({
                         <StructureTypography>{title}</StructureTypography>
                         <FoldedButtonGroup 
                             level = {1}
+                            max_level = {1}
                             node = {node}
                             button_comp = {with_partial_props(IconButton, {
                                 size: "small" , 
@@ -166,6 +167,7 @@ function get_default_display_editor({
                             <NewParagraphButtonDown node={node} /> , 
                         ]}
                         level = {1}
+                        max_level = {1}
                     /> 
                 </AutoStack>
             </AutoStack>

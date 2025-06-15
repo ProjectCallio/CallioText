@@ -72,6 +72,7 @@ function FoldedButtonGroup({
     node,
 
     level , 
+    max_level , 
     popper_props , 
     button_comp , 
     label , 
@@ -81,6 +82,7 @@ function FoldedButtonGroup({
     node    : Slate.Node & ConceptNode
 
     level   : number
+    max_level: number
     popper_props ?: Omit<PopperProps, "open" | "anchorEl" | "children">
     button_comp  ?: React.ComponentType<{
         onClick: (e: any)=>void, 
@@ -168,6 +170,7 @@ function FoldedButtonGroup({
                 buttons = {buttons}
                 node    = {node}
                 level   = {level}
+                max_level = {max_level}
                 autostack 
                 simple
             />

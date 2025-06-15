@@ -41,6 +41,7 @@ function get_position(node_idx: string , level: number,position_idx: number): st
     return JSON.stringify([node_idx, level, position_idx])
 }
 function decode_position(position: string): [string, number, number]{
+
     return JSON.parse(position) as [string, number, number]
 }
 
@@ -123,6 +124,7 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
             return undefined
         }
 
+
         const path2node = (path: number[]): Slate.Node & Node=> (
             Slate.Editor.node(editor.get_slate(), path)[0] as Slate.Node & Node
         )
@@ -133,10 +135,12 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
             now_path = now_path.slice(0,now_path.length-1) // 反复向上寻找，直到找到一个概念节点。
         }
         let now_node = path2node(now_path)
+        console.log("onStartMaker: now_node", now_node)
         // 如果退到了根节点，就说明没有找到概念节点，那么就返回兄弟节点。
         if(now_path.length == 0 || !slate_is_concept(now_node)){ 
             return get_brother_concept(editor) ?? last
         }
+        console.log("onStartMaker: now_node good")
 
         let now_idx = now_node.idx
 
@@ -146,6 +150,7 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
                 return last 
             }
         }
+        console.log("onStartMaker: position", get_position(now_idx, 0, 0))
 
         return get_position(now_idx, 0, 0)
     }
@@ -157,12 +162,9 @@ function get_mouseless_space(get_editor: ()=>EditorComponent | undefined): Space
     return {
         name: SPACE_NAME ,
         holding: HOLDING , 
-        nodes: ["1"] , // 这个是可以留空的（大概）...
+        nodes: [] , // 这个是可以留空的（大概）...
     
-        onStart: (from)=>{
-            console.log("onStart", from)
-            return "1"
-        } , 
+        onStart: (from)=> onStartMaker(get_editor)(from) ?? "_no_action", 
     
         // 这个是用来描述按钮的。
         edges: [

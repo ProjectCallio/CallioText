@@ -155,7 +155,8 @@ function get_deafult_group_editor_with_appbar({
                         <StructureTypography>{label}</StructureTypography>
                         <ButtonGroup 
                             node = {node}
-                            level = {0}
+                            level     = {0}
+                            max_level = {0}
 
                             buttons = {[
                                 <DefaultParameterEditButton node={node} /> , 
@@ -238,6 +239,7 @@ function get_default_group_editor_with_rightbar({
                 <ButtonGroup // 额外添加的元素。
                     node    = {node}
                     level   = {0}
+                    max_level = {0}
                     buttons = {extra_buttons}
                 />
                 <AutoStack // 第二层autostack，把标签名和按钮组纵向排列
@@ -277,6 +279,7 @@ function get_default_group_editor_with_rightbar({
                             ... extra_buttons
                         ]}
                         level = {1}
+                        max_level = {1}
                     /> 
                 </AutoStack>
             </AutoStack></UnselecableBox>

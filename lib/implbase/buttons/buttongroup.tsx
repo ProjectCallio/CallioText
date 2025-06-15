@@ -39,6 +39,7 @@ import {
     AutoStack , 
     AutoStackedPopper , 
     AutoStackedPopperProps , 
+    click_all , 
 } from "../../uibase"
 import { 
     Tooltip , 
@@ -69,6 +70,7 @@ function ButtonGroup({
     node,
 
     level , 
+    max_level , 
 
     autostack = false,
     simple = false,
@@ -77,6 +79,7 @@ function ButtonGroup({
     node    : Slate.Node & ConceptNode
 
     level   : number
+    max_level: number
 
     autostack?: boolean
     simple?: boolean
@@ -100,10 +103,18 @@ function ButtonGroup({
 
         // 在纵向排列的时候，要交换level跟button_idx。
         let [node_idx, level_idx, button_idx] = decode_position(cur_position)
-        if(direction == "column"){
-            let swap = level
-            level = button_idx
+        if(direction == "row"){
+            let swap = level_idx
+            level_idx = button_idx
             button_idx = swap
+        }
+        const M = Math.max(max_level  + 1, 1)
+        level_idx = ((level_idx % M) + M) % M 
+
+        if(node.idx == "232467525"){
+            console.log("ButtonGroup: direction", direction)
+            console.log("ButtonGroup: level_idx", level_idx)
+            console.log("ButtonGroup: button_idx", button_idx)
         }
 
         if(node_idx != node.idx || level_idx != level){
@@ -122,8 +133,8 @@ function ButtonGroup({
             if(cur_selected == undefined || !refs.current[cur_selected]){
                 return 
             }
-            // refs.current[sel_button].click()
-            console.log("now click", cur_selected)
+            const div = refs.current[cur_selected]
+            click_all(div)
         }
 
         add_handler(HOLDING, KeyNames.enter, false, handler)

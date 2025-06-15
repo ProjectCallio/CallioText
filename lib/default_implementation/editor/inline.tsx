@@ -118,6 +118,7 @@ function get_default_inline_editor({
                             <DefaultEditAbstractButton node={node} /> , 
                         ]}
                         level = {1}
+                        max_level = {1}
                     >
                         <StructureTypography sx={{
                             marginY: "0.2rem", 

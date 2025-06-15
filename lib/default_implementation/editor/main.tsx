@@ -93,46 +93,6 @@ type DefaultEditorComponentprops = EditorComponentProps & {
     }[]
 }
 
-function Test(){
-
-    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
-    const holding_keys = useKeyEvents((store)=>{
-        return store.holding_keys
-    })
-    const is_holding = useKeyHoldingState(buttons_holding)
-    const [onkeydown, onkeyup] = useKeyDownUpProxy()
-
-    console.log("holding_keys", holding_keys)
-    console.log("is_holding", holding_keys)
-
-    React.useEffect(()=>{   
-        const handler = ()=>{
-            console.log("handler")
-        }
-        add_handler(buttons_holding, "", false, handler)
-        return ()=>{
-            del_handler(buttons_holding, "", false, handler)
-        }
-    } , [])
-
-    return <Box 
-        sx={{
-            position: "absolute",
-            top: "100px",
-            left: "100px",
-            width: "100px",
-            height: "100px",
-            backgroundColor: "red",
-            zIndex: 1000,
-        }}
-        tabIndex = {0}
-        onKeyDown = {onkeydown}
-        onKeyUp = {onkeyup}
-    >
-        hahah
-    </Box>
-}
-
 /** 
  * 这个组件提供一个开箱即用的默认编辑器组件。
  */
@@ -198,7 +158,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     [KeyNames.alt , KeyNames.e] , 
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
-                <Test />
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 
                     position: "absolute" , 
                     top: "1%" , 
@@ -239,10 +198,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                                 }
                             }}
                             
-                            onKeyDown           = {(e)=>{
-                                console.log("onKeyDown", e.key)
-                                return onkeydown(e)
-                            }}
+                            onKeyDown           = {onkeydown}
                             onKeyUp             = {onkeyup}
                         />
                     </EditorComponentEditingBox>

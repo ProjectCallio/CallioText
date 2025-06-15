@@ -184,6 +184,7 @@ function get_default_struct_editor_with_rightbar({
                             node = {node}
                             buttons = {rightbar_extra(node, parameters)}
                             level = {0}
+                            max_level = {0}
                         />
                         <StructureTypography sx={{marginX: "auto"}}>{mylabel}</StructureTypography>
                         <FoldedButtonGroup 
@@ -210,6 +211,7 @@ function get_default_struct_editor_with_rightbar({
                                 <CopyButton node={node} /> , 
                             ]}
                             level = {1}
+                            max_level = {1}
                         /> 
                     </AutoStack>
                 </UnselecableBox>
