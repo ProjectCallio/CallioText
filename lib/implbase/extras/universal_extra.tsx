@@ -17,8 +17,13 @@ import {
 } from "@ftyyy/mouseless"
 
 import {
+    EditorComponent,
     slate_is_concept , 
 } from "../../editor"
+
+import {
+    ConceptNode,
+} from "../../core"
 
 import {
     useNode, 
@@ -49,12 +54,16 @@ function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
 
 function UniversalExtra({
     width = "1rem",
-    onActivate = ()=>{},
+    variation = "standard",
+    extra_small = false,
+    onActivate   = ()=>{},
     onDeactivate = ()=>{},
 }: {
     width?: string
-    onActivate?: (value: string) => void
-    onDeactivate?: (value: string) => void
+    variation?: "standard" | "outlined" | "filled"
+    extra_small?: boolean
+    onActivate  ?: (value: string, editor: EditorComponent, node: ConceptNode & Slate.Node) => void
+    onDeactivate?: (value: string, editor: EditorComponent, node: ConceptNode & Slate.Node) => void
 }) {
     const node = useNode()
     const editor = useEditor()
@@ -97,7 +106,7 @@ function UniversalExtra({
     }, [editor, node.idx])
 
     const handle_blur = React.useCallback(()=>{
-        onDeactivate(value)
+        onDeactivate(value, editor, node)
 
         const slate = editor.get_slate()
         console.log("slate instance:", slate)
@@ -126,14 +135,14 @@ function UniversalExtra({
         if(activated){
             set_activated(false)
         }
-    }, [onDeactivate, editor, value, selection])
+    }, [onDeactivate, editor, value, selection, node])
 
     const handle_focus = React.useCallback(()=>{
-        onActivate(value)
+        onActivate(value, editor, node)
         if(!activated){
             set_activated(true)
         }
-    }, [onActivate, value])
+    }, [onActivate, value, editor, node])
 
     React.useEffect(()=>{
         add_handler(ActivateKeys, "", false, handle_keyevent)
@@ -160,27 +169,41 @@ function UniversalExtra({
             width: width,
             height: "100%",
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
         }}
     >
-            <TextField
-                inputRef = {div_ref}
-                value    = {value}
-                onChange = {(e: React.ChangeEvent<HTMLInputElement>) => {
-                    set_value(e.target.value)
-                }}
-                size = "small"
-                label = "suffix"
-                fullWidth
+        <TextField
+            variant = {variation}
+            inputRef = {div_ref}
+            value    = {value}
+            onChange = {(e: React.ChangeEvent<HTMLInputElement>) => {
+                set_value(e.target.value)
+            }}
+            size = "small"
+            label = "suffix"
+            fullWidth
 
-                onBlur    = {handle_blur}
-                onFocus   = {handle_focus}
+            onBlur    = {handle_blur}
+            onFocus   = {handle_focus}
 
-                onKeyDown = {(e)=>{
-                    if(e.key == "w" && e.altKey){ // XXX 草...
-                        set_activated(false)
+            onKeyDown = {(e)=>{
+                if(e.key == "w" && e.altKey){ // XXX 草...
+                    set_activated(false)
+                }
+            }}
+            sx={{
+                ...(extra_small && {
+                    height: "1rem",
+                    transform: "translateY(-0.6rem) scale(0.8)",
+                }),
+            }}
+            slotProps={{
+                input: {
+                    sx: {
+                        borderRadius: "0",
                     }
-                }}
-            />
+                }
+            }}
+        />
     </Box>
 }
