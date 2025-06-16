@@ -57,11 +57,6 @@ import {
     ActivateKeys as extras_keys,
 } from "../../implbase/extras/mouseless"
 
-import { 
-    DefaultParameterEditButton , 
-    DefaultRootParameterEditButton , 
-} from "./buttons"
-
 import {
     UseAreaStore as useAreaStore, 
 } from "../areas"
@@ -77,7 +72,7 @@ import {
 
 import {
     DefaultSidebar , 
-    get_mouseless_space as sidebar_get_mouseless_space , 
+    SPACE as sidebar_space , 
 } from "./sidebar"
 
 import {
@@ -88,13 +83,9 @@ export { DefaultEditorComponent }
 
 type DefaultEditorComponentprops = EditorComponentProps & {
     config?: PartialEditorConfig
-    extra_buttons?: any
     onSave?: ()=>void // 保存时操作。
 
-    sidebar_extra?: (editor: EditorComponent)=>{
-        button: React.ReactElement
-        run: ()=>void
-    }[]
+    sidebar_extras?: (({editor}: {editor: EditorComponent}) => React.ReactNode)[]
 }
 
 /** 
@@ -130,10 +121,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         return this.editor_ref?.current || undefined
     }
 
-    get_root(): AbstractNode | undefined{
-        return this.get_editor()?.get_root()
-    }
-
     render() {
         const me                  = this
     
@@ -154,11 +141,13 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             <KeyEventManager
                 spaces = {[
                     buttons_get_mouseless_space(me.get_editor),
+                    sidebar_space,
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
                     buttons_holding ,
                     extras_keys , 
+                    sidebar_space.holding,
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 
@@ -214,21 +203,16 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     left: paper_right, 
                     width: toolbar_width,
                 }}>{(()=>{
-                    let root   = me.get_root()
                     let editor = me.get_editor()
 
-                    if(!(editor && root)){
+                    if(!editor){
                         return <></>
                     }
                     return <AutoStack force_direction="column">
-                        <DefaultRootParameterEditButton root={root} editor={editor}/>
-                        <Divider />
                         <DefaultSidebar 
-                            editor = {me.get_editor() as EditorComponent}
-                            extra  = {me.props.sidebar_extra}
+                            editor = {editor}
+                            extras = {me.props.sidebar_extras}
                         />
-                        {me.props.extra_buttons?.length > 0 ? <Divider /> : <></>}
-                        {me.props.extra_buttons}
                     </AutoStack>
                 })()}</Box>
             </React.Fragment>)}</KeyEventManager>

@@ -160,10 +160,6 @@ function UniversalExtra({
         }
     }, [activated])
 
-    if(node.idx == "44273106"){
-        console.log("UniversalExtra: activated", activated)
-    }
-
     return <Box 
         sx = {{
             width: width,

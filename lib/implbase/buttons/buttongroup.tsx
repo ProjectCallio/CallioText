@@ -113,11 +113,7 @@ function ButtonGroup({
         return ()=>{
             del_handler(HOLDING, KeyNames.enter, false, handler)
         }
-    } , [
-        add_handler, 
-        del_handler, 
-        cur_selected , 
-    ])
+    } , [cur_selected])
 
     const ret = React.useMemo(()=>{
         return <React.Fragment>

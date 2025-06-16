@@ -4,7 +4,10 @@ export {
 
 function click_all(element: HTMLElement | null) {
     // 先触发当前元素的点击
-    element?.click()
+    const click_func = element?.click
+    if(click_func && typeof click_func === "function"){
+        click_func.bind(element)()
+    }
     
     // 获取所有子元素
     const children = element?.children

@@ -85,6 +85,7 @@ const FoldedButtonGroup = React.memo(({
     // 设置当前选中的按钮
     React.useEffect(()=>{
         if(cur_space != SPACE_NAME || !cur_position){
+            set_menu_open(false)
             return 
         }
 
@@ -103,8 +104,6 @@ const FoldedButtonGroup = React.memo(({
         if(flag != menu_open){
             set_menu_open(flag)
         }
-
-
     } , [cur_space, cur_position, level, my_nodeidx, menu_open ])
 
     const ButtonComp = button_comp || Button
