@@ -54,18 +54,14 @@ function ButtonGroup({
     level , 
     max_level , 
 
-    autostack = false,
-    simple = false,
+    direction = "row",
 }:{
-    buttons : React.ReactNode[]
+    buttons  : React.ReactNode[]
+    direction?: "row" | "column"
 
     level   : number
     max_level: number
-
-    autostack?: boolean
-    simple?: boolean
 }){
-    const direction                    = React.useContext(Direction)
     const node                         = useNode()
 
     const [cur_space , cur_position]   = useSpaceNavigatorState()
@@ -85,11 +81,7 @@ function ButtonGroup({
 
         // 在纵向排列的时候，要交换level跟button_idx。
         let [node_idx, level_idx, button_idx] = decode_position(cur_position)
-        const is_column = (
-            (  simple  && direction == "column") || 
-            ((!simple) && direction == "row")
-        )
-        if(is_column){
+        if(direction == "column"){
             let swap = level_idx
             level_idx = button_idx
             button_idx = swap
@@ -105,7 +97,7 @@ function ButtonGroup({
         const act_but_idx = (button_idx % button_cnt + button_cnt) % button_cnt
         set_cur_selected(act_but_idx)
 
-    } , [cur_space, cur_position, level, button_cnt, node.idx ])
+    } , [cur_space, cur_position, level, button_cnt, node.idx, direction ])
 
     // 设置选中按钮的行为
     React.useEffect(()=>{
@@ -129,7 +121,11 @@ function ButtonGroup({
 
     const ret = React.useMemo(()=>{
         return <React.Fragment>
-        {buttons.map((button, idx)=>{
+        </React.Fragment>
+    } , [buttons, cur_selected])
+
+    return <AutoStack direction = {direction}>{
+        buttons.map((button, idx)=>{
             return <div 
                 key = {idx}
                 ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
@@ -137,13 +133,7 @@ function ButtonGroup({
                     border: cur_selected == idx ? "2px solid" : "none" , 
                 }}
             >{button}</div>
-        })}
-        </React.Fragment>
-    } , [buttons, cur_selected])
-
-    if(autostack){
-        return <AutoStack simple={simple}>{ret}</AutoStack>
-    }
-    return ret
+        })
+    }</AutoStack>
 }
 

@@ -5,6 +5,10 @@
  * @module
  */
 
+/*
+    XXX 这个按钮组层次本来的设计是可以有多层按钮，但是现在看来好像没有必要。
+ */
+
 import React from "react"
 import * as Slate from "slate"
 import {
@@ -135,12 +139,11 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
             now_path = now_path.slice(0,now_path.length-1) // 反复向上寻找，直到找到一个概念节点。
         }
         let now_node = path2node(now_path)
-        console.log("onStartMaker: now_node", now_node)
+
         // 如果退到了根节点，就说明没有找到概念节点，那么就返回兄弟节点。
         if(now_path.length == 0 || !slate_is_concept(now_node)){ 
             return get_brother_concept(editor) ?? last
         }
-        console.log("onStartMaker: now_node good")
 
         let now_idx = now_node.idx
 
@@ -150,7 +153,6 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
                 return last 
             }
         }
-        console.log("onStartMaker: position", get_position(now_idx, 0, 0))
 
         return get_position(now_idx, 0, 0)
     }
@@ -164,7 +166,7 @@ function get_mouseless_space(get_editor: ()=>EditorComponent | undefined): Space
         holding: HOLDING , 
         nodes: [] , // 这个是可以留空的（大概）...
     
-        onStart: (from)=> onStartMaker(get_editor)(from) ?? "_no_action", 
+        onStart: (from)=> onStart(from) ?? "_no_action", 
     
         // 这个是用来描述按钮的。
         edges: [

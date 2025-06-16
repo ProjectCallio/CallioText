@@ -92,7 +92,6 @@ import {
     useParameters , 
     useEditor , 
     NodeInfoProvider , 
-
 } from "../../implbase"
 
 import Color from "color"
@@ -143,10 +142,6 @@ function get_deafult_group_editor_with_appbar({
 
         const theme   = useTheme()
         const bgcolor = React.useMemo(()=>light_grey( Color(theme.palette.primary.light) ), [theme])
-
-        if(node.idx == "232467525"){
-            console.log("node cate", node.parameters?.category)
-        }
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
@@ -235,61 +230,61 @@ function get_default_group_editor_with_rightbar({
         , [GetLabel])
 
         return <NodeInfoProvider node={node}>
-        <GroupPaper>
-        <SimpleAutoStack force_direction="row">
+            <GroupPaper>
+            <SimpleAutoStack force_direction="row">
 
-            <ComponentEditorBox autogrow key="edit">
-                <SUR>{props.children}</SUR>
-            </ComponentEditorBox>
+                <ComponentEditorBox autogrow key="edit">
+                    <SUR>{props.children}</SUR>
+                </ComponentEditorBox>
 
-            {Extra && <UnselecableBox>
-                <Extra/>
-            </UnselecableBox>}
+                {Extra && <UnselecableBox>
+                    <Extra />
+                </UnselecableBox>}
 
-            <UnselecableBox sx={{
-                position: "relative" , 
-            }}><AutoStack // 第二层autostack，把标签名和按钮组纵向排列
-                force_direction = {"column"}
-                sx = {{
-                    paddingX: "0.25rem" , 
-                    paddingY: "0.15rem" , 
-                    border: "1px solid rgba(30,30,30,0.3)" , 
-                }}
-            >
-                {normal_title}
-                
-                <FoldedButtonGroup 
-                    level     = {0}
-                    max_level = {0}
-                    popper_props = {React.useMemo(()=>({
-                        sx:{
-                            opacity: "80%" , 
-                        }
-                    }), [])}
-                    button_comp = {React.useMemo(()=>(with_partial_props(IconButton, {
-                        size: "small" , 
-                        children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                        sx: {
-                            marginY: "auto" , 
-                        }
-                    })), [])}
-                    label = "展开"
-                    buttons = {[
-                        <DefaultParameterEditButton/> , 
-                        <DefaultNewAbstractButton  /> , 
-                        <DefaultEditAbstractButton /> , 
-                        <DefaultSwicth             /> , 
-                        <DefaultCloseButton        /> , 
-                        <DefaultSoftDeleteButton   /> , 
-                        <NewParagraphButtonUp      /> , 
-                        <NewParagraphButtonDown    /> , 
-                        <CopyButton                /> , 
-                        ... buttons_extra.map(B => <B/>)
-                    ]}
-                /> 
-            </AutoStack></UnselecableBox>
-        </SimpleAutoStack>
-        </GroupPaper>
+                <UnselecableBox sx={{
+                    position: "relative" , 
+                }}><AutoStack // 第二层autostack，把标签名和按钮组纵向排列
+                    force_direction = {"column"}
+                    sx = {{
+                        paddingX: "0.25rem" , 
+                        paddingY: "0.15rem" , 
+                        border: "1px solid rgba(30,30,30,0.3)" , 
+                    }}
+                >
+                    {normal_title}
+                    
+                    <FoldedButtonGroup 
+                        level     = {0}
+                        max_level = {0}
+                        popper_props = {React.useMemo(()=>({
+                            sx:{
+                                opacity: "80%" , 
+                            }
+                        }), [])}
+                        button_comp = {React.useMemo(()=>(with_partial_props(IconButton, {
+                            size: "small" , 
+                            children: <KeyboardArrowDownIcon fontSize="small"/> , 
+                            sx: {
+                                marginY: "auto" , 
+                            }
+                        })), [])}
+                        label = "展开"
+                        buttons = {[
+                            <DefaultParameterEditButton/> , 
+                            <DefaultNewAbstractButton  /> , 
+                            <DefaultEditAbstractButton /> , 
+                            <DefaultSwicth             /> , 
+                            <DefaultCloseButton        /> , 
+                            <DefaultSoftDeleteButton   /> , 
+                            <NewParagraphButtonUp      /> , 
+                            <NewParagraphButtonDown    /> , 
+                            <CopyButton                /> , 
+                            ... buttons_extra.map(B => <B/>)
+                        ]}
+                    /> 
+                </AutoStack></UnselecableBox>
+            </SimpleAutoStack>
+            </GroupPaper>
         </NodeInfoProvider>
     }
     return subcomp

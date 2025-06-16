@@ -1,0 +1,186 @@
+/**
+ * 这个模块给editor组件提供一个通用的编辑器，这个编辑器可以用来快速编辑参数。
+ */
+
+import * as React from "react"
+import * as Slate from "slate"
+import * as ReactSlate from "slate-react"
+import {
+    Box, 
+    TextField , 
+} from "@mui/material"
+
+import {
+    useKeyEventsHandlerRegister,
+    KeyNames,
+    useKeyDownUpProxy , 
+} from "@ftyyy/mouseless"
+
+import {
+    slate_is_concept , 
+} from "../../editor"
+
+import {
+    useNode, 
+    useParameters, 
+    useEditor, 
+} from "../hooks"
+
+import {
+    ActivateKeys,
+} from "./mouseless"
+
+export {
+    UniversalExtra , 
+}
+
+interface UniversalExtraProps {
+    width?: number
+}
+
+function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
+    const nodeEntry = Slate.Editor.node(slate, point.path)
+    if (!nodeEntry) return false
+  
+    const [node] = nodeEntry
+    return Slate.Text.isText(node) && point.offset === node.text.length
+  }
+  
+
+function UniversalExtra({
+    width = "1rem",
+    onActivate = ()=>{},
+    onDeactivate = ()=>{},
+}: {
+    width?: string
+    onActivate?: (value: string) => void
+    onDeactivate?: (value: string) => void
+}) {
+    const node = useNode()
+    const editor = useEditor()
+
+    const [value, set_value] = React.useState("")
+    const [activated, set_activated] = React.useState(false)
+
+    // 记录selection，以便在失焦时恢复。
+    const [selection, set_selection] = React.useState<Slate.Selection | undefined>(undefined)
+
+    const div_ref = React.useRef<HTMLDivElement>(null)
+
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
+
+    const handle_keyevent = React.useCallback(()=>{
+        let selection = editor.get_slate().selection
+        if(!selection){ // 如果光标不在编辑器上
+            return undefined
+        }
+
+        const path2node = (path: number[]): Slate.Node & Node=> (
+            Slate.Editor.node(editor.get_slate(), path)[0] as Slate.Node & Node
+        )
+
+        // 向上寻找第一个概念节点。
+        let now_path = selection.anchor.path 
+        while(now_path.length > 0 && !slate_is_concept(path2node(now_path))){
+            now_path = now_path.slice(0,now_path.length-1) 
+        }
+        let now_node = path2node(now_path)
+
+
+        if(node.idx != (now_node as any).idx){
+            return
+        }
+
+        set_activated(activated => !activated)
+        set_selection(selection)
+
+    }, [editor, node.idx])
+
+    const handle_blur = React.useCallback(()=>{
+        onDeactivate(value)
+
+        const slate = editor.get_slate()
+        console.log("slate instance:", slate)
+        console.log("selection:", selection)
+        
+        if(selection){
+            setTimeout(() => { // 延迟执行，等待React渲染完毕
+                ReactSlate.ReactEditor.focus(slate)
+                Slate.Transforms.select(slate, selection)
+
+                
+                // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
+                Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
+                Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
+
+                
+                // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
+                // 这个好像是slate的bug...
+                const at_end = is_textend(slate, selection.focus)
+                if(at_end){
+                    Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
+                }
+              
+            }, 0)
+        }
+        if(activated){
+            set_activated(false)
+        }
+    }, [onDeactivate, editor, value, selection])
+
+    const handle_focus = React.useCallback(()=>{
+        onActivate(value)
+        if(!activated){
+            set_activated(true)
+        }
+    }, [onActivate, value])
+
+    React.useEffect(()=>{
+        add_handler(ActivateKeys, "", false, handle_keyevent)
+
+        return ()=>{
+            del_handler(ActivateKeys, "", false, handle_keyevent)
+        }
+    }, [handle_keyevent])
+
+    React.useEffect(()=>{   
+        if(activated){
+            div_ref.current?.focus()
+        }else{
+            div_ref.current?.blur()
+        }
+    }, [activated])
+
+    if(node.idx == "44273106"){
+        console.log("UniversalExtra: activated", activated)
+    }
+
+    return <Box 
+        sx = {{
+            width: width,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column"
+        }}
+    >
+            <TextField
+                inputRef = {div_ref}
+                value    = {value}
+                onChange = {(e: React.ChangeEvent<HTMLInputElement>) => {
+                    set_value(e.target.value)
+                }}
+                size = "small"
+                label = "suffix"
+                fullWidth
+
+                onBlur    = {handle_blur}
+                onFocus   = {handle_focus}
+
+                onKeyDown = {(e)=>{
+                    if(e.key == "w" && e.altKey){ // XXX 草...
+                        set_activated(false)
+                    }
+                }}
+            />
+    </Box>
+}

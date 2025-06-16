@@ -51,7 +51,11 @@ import {
 import {
     get_mouseless_space as buttons_get_mouseless_space, 
     HOLDING as buttons_holding,
-} from "../../implbase/buttons"
+} from "../../implbase/buttons/mouseless"
+
+import {
+    ActivateKeys as extras_keys,
+} from "../../implbase/extras/mouseless"
 
 import { 
     DefaultParameterEditButton , 
@@ -154,8 +158,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
                     buttons_holding ,
-                    [KeyNames.alt , KeyNames.w] , 
-                    [KeyNames.alt , KeyNames.e] , 
+                    extras_keys , 
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 

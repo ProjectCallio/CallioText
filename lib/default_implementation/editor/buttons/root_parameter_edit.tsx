@@ -46,7 +46,6 @@ import { AutoIconButton } from "./buttons"
 import {
     DefaultParameterContainer , 
 } from "../../../implbase"
-import { ButtonBase } from "../../../implbase/buttons"
 
 export { 
     DefaultRootParameterWithEditorWithDrawer , 
@@ -142,7 +141,7 @@ interface DefaultRootParameterEditButtonProps{
  */
 class DefaultRootParameterEditButton extends React.PureComponent <DefaultRootParameterEditButtonProps, {
     open: boolean
-}> implements ButtonBase {
+}> {
     constructor(props: DefaultRootParameterEditButtonProps){
         super(props)
 

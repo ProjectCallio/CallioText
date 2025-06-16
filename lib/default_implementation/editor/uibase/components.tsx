@@ -50,7 +50,6 @@ const EditorUnselecableBox = React.memo((props: BoxProps) => <Box
         {
             userSelect: "none" , 
             cursor: "default" , 
-            
         } , 
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
     ]}

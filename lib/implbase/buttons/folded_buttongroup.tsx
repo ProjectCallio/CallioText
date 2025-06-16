@@ -16,6 +16,7 @@ import {
     Input , 
     Popper , 
     PopperProps , 
+    Paper , 
 } from "@mui/material"
 
 import {
@@ -110,34 +111,36 @@ const FoldedButtonGroup = React.memo(({
 
     return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
         <Box>
-        <AutoTooltip title={label}>
-            <Box ref = {(el)=>{
-                    if(!el || el === anchor_ref.current){
-                        return 
-                    }
-                    anchor_ref.current = el as HTMLDivElement
-                    set_version(version + 1)
-                }}>
-            <ButtonComp
-                onClick = {()=>{set_menu_open(!menu_open)}}
-            />
-            </Box>
-        </AutoTooltip>
-        <Popper
-            open     = {menu_open}
-            anchorEl = {anchor_ref.current}
-            placement = "bottom-start"
-            {...popper_props}
-        >
-            {children}
-            <ButtonGroup
-                buttons = {buttons}
-                level   = {level}
-                max_level = {max_level}
-                autostack 
-                simple
-            />
-        </Popper>
+            <AutoTooltip title={label}>
+                <Box ref = {(el)=>{
+                        if(!el || el === anchor_ref.current){
+                            return 
+                        }
+                        anchor_ref.current = el as HTMLDivElement
+                        set_version(version + 1)
+                    }}>
+                <ButtonComp
+                    onClick = {()=>{set_menu_open(!menu_open)}}
+                />
+                </Box>
+            </AutoTooltip>
+            <Popper
+                open     = {menu_open}
+                anchorEl = {anchor_ref.current}
+                placement = "bottom-start"
+                {...popper_props}
+                disablePortal
+            ><Paper sx={{
+                border: "1px solid" , 
+            }}>
+                {children}
+                <ButtonGroup
+                    buttons = {buttons}
+                    level   = {level}
+                    max_level = {max_level}
+                    direction = "column"
+                />
+            </Paper></Popper>
         </Box>
     </ClickAwayListener>
 })
