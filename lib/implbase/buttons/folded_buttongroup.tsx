@@ -5,38 +5,6 @@
 import React from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
-
-import {
-    useSpaceNavigatorOnMoveRegister ,
-    useKeyHoldingState , 
-    useSpaceNavigatorState,  
-    useKeyEventsHandlerRegister,
-    KeyNames, 
-} from "@ftyyy/mouseless"
-
-import {
-    ConceptNode , 
-    ParameterList , 
-    ParameterValue, 
-} from "../../core"
-
-import {
-    EditorComponent ,
-    EditorGlobalInfo ,
-} from "../../editor"
-
-import {
-    get_position , 
-    decode_position , 
-    SPACE_NAME , 
-    HOLDING , 
-} from "./mouseless"
-
-import { 
-    AutoTooltip , 
-    Direction , 
-    AutoStack , 
-} from "../../uibase"
 import { 
     Tooltip , 
     IconButton , 
@@ -51,25 +19,40 @@ import {
 } from "@mui/material"
 
 import {
-    EditorButtonInformation , 
-    ButtonDescription , 
-    AutoStackedPopperWithButtonProps , 
-    AutoStackedPopperWithButton , 
-} from "./components"
+    useSpaceNavigatorOnMoveRegister ,
+    useKeyHoldingState , 
+    useSpaceNavigatorState,  
+    useKeyEventsHandlerRegister,
+    KeyNames, 
+} from "@ftyyy/mouseless"
 
-import { produce } from "immer"
+
+import {
+    decode_position , 
+    SPACE_NAME , 
+    HOLDING , 
+} from "./mouseless"
+
+import { 
+    AutoTooltip , 
+    click_all, 
+    Direction , 
+} from "../../uibase"
 
 import {
     ButtonGroup , 
 } from "./buttongroup"
 
+import {
+    useNode ,
+} from "../../implbase"
+
 export {
     FoldedButtonGroup , 
 }
 
-function FoldedButtonGroup({
+const FoldedButtonGroup = React.memo(({
     buttons, 
-    node,
 
     level , 
     max_level , 
@@ -79,85 +62,66 @@ function FoldedButtonGroup({
     children = <></>,
 }:{
     buttons : React.ReactNode[]
-    node    : Slate.Node & ConceptNode
 
     level   : number
     max_level: number
     popper_props ?: Omit<PopperProps, "open" | "anchorEl" | "children">
     button_comp  ?: React.ComponentType<{
         onClick: (e: any)=>void, 
-        ref: React.RefObject<HTMLButtonElement | null>
     }>
     label ?: string
     children ?: React.ReactNode
-}){
+})=>{
     const direction = React.useContext(Direction)
+    const my_nodeidx = useNode(node=>node.idx)
     const [menu_open, set_menu_open] = React.useState(false)
 
     const [cur_space , cur_position]   = useSpaceNavigatorState()
-    const [cur_selected, set_cur_selected] = React.useState<number | undefined>(undefined)
-
-    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
     
-    const button_cnt = buttons.length // 作为组件的按钮数量
-    const button_refs = React.useRef<HTMLDivElement[]>([])
-
-    const anchor_ref = React.useRef<HTMLButtonElement>(null)
+    const anchor_ref = React.useRef<HTMLDivElement>(null)
+    const [version, set_version] = React.useState(0)
 
     // 设置当前选中的按钮
     React.useEffect(()=>{
-        if(cur_space != SPACE_NAME || !cur_position || !menu_open){
-            set_cur_selected(undefined)
+        if(cur_space != SPACE_NAME || !cur_position){
             return 
         }
 
         // 在纵向排列的时候，要交换level跟button_idx。
         let [node_idx, level_idx, button_idx] = decode_position(cur_position)
-        if(direction == "column"){
-            let swap = level
-            level = button_idx
+        const is_column = ( direction == "column")
+        if(is_column){
+            let swap = level_idx
+            level_idx = button_idx
             button_idx = swap
         }
+        const M = Math.max(max_level  + 1, 1)
+        level_idx = ((level_idx % M) + M) % M 
 
-        if(node_idx != node.idx || level_idx != level){
-            set_cur_selected(undefined)
-            return 
+        const flag = (node_idx == my_nodeidx && level_idx == level)
+        if(flag != menu_open){
+            set_menu_open(flag)
         }
 
-        const act_but_idx = (button_idx % button_cnt + button_cnt) % button_cnt
-        set_cur_selected(act_but_idx)
 
-    } , [cur_space, cur_position, level, button_cnt, node.idx ])
-
-    // 设置选中按钮的行为
-    React.useEffect(()=>{
-        const handler = ()=>{
-            if(cur_selected == undefined || !button_refs.current[cur_selected]){
-                return 
-            }
-            // refs.current[sel_button].click()
-            console.log("now click", cur_selected)
-        }
-
-        add_handler(HOLDING, KeyNames.enter, false, handler)
-        return ()=>{
-            del_handler(HOLDING, KeyNames.enter, false, handler)
-        }
-    } , [
-        add_handler, 
-        del_handler, 
-        cur_selected , 
-    ])
+    } , [cur_space, cur_position, level, my_nodeidx, menu_open ])
 
     const ButtonComp = button_comp || Button
 
     return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
-        <div>
+        <Box>
         <AutoTooltip title={label}>
+            <Box ref = {(el)=>{
+                    if(!el || el === anchor_ref.current){
+                        return 
+                    }
+                    anchor_ref.current = el as HTMLDivElement
+                    set_version(version + 1)
+                }}>
             <ButtonComp
-                ref = {anchor_ref}
                 onClick = {()=>{set_menu_open(!menu_open)}}
             />
+            </Box>
         </AutoTooltip>
         <Popper
             open     = {menu_open}
@@ -168,14 +132,12 @@ function FoldedButtonGroup({
             {children}
             <ButtonGroup
                 buttons = {buttons}
-                node    = {node}
                 level   = {level}
                 max_level = {max_level}
                 autostack 
                 simple
             />
         </Popper>
-        </div>
+        </Box>
     </ClickAwayListener>
-}
-
+})

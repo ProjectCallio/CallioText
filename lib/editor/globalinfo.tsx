@@ -30,7 +30,7 @@ interface EditorGlobalInfoType{
 const EditorGlobalInfo = React.createContext<EditorGlobalInfoType>({})
 
 function useEditor(){
-    const editor = React.useContext(EditorGlobalInfo)
+    const editor = React.useContext(EditorGlobalInfo).editor
     if(!editor){
         throw new Error("Not in a `EditorGlobalInfo` context.")
     }

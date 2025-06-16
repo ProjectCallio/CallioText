@@ -39,7 +39,9 @@ import {
 import {
     ButtonGroup , 
     FoldedButtonGroup , 
-    ConceptSubcomponentInformation , 
+    EditorNodeInfoFunction , 
+    useNode , 
+    NodeInfoProvider , 
 } from "../../implbase"
 
 import { DefaultEditAbstractButton, DefaultNewAbstract, DefaultNewAbstractButton } from "./abstract"
@@ -53,9 +55,6 @@ import {
     EditorComponentBox as ComponentBox , 
     EditorStructureTypography as StructureTypography , 
 } from "./uibase"
-import {
-    EditorNodeInfoFunction , 
-} from "./base"
 
 import {
     with_partial_props,
@@ -69,36 +68,38 @@ export { get_default_inline_editor }
 function get_default_inline_editor({
     get_label       = (n,p)=>p.label, 
     surrounder      = (props) => <React.Fragment>{props.children}</React.Fragment> , 
-    rightbar_extra  = (props) => <></> , 
+    rightbar_extra  = () => <></> , 
 }: {
     get_label       ?: EditorNodeInfoFunction<InlineNode, string> , 
-    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any , 
-    rightbar_extra  ?: (props: ConceptSubcomponentInformation) => any  , 
+    surrounder      ?: (props: {children?: any}) => any , 
+    rightbar_extra  ?: () => any  , 
 
 }): EditorRenderer<InlineNode>{
     let subcomp = (props: EditorRendererProps<InlineNode>) => {
         const editor      = props.editor
         const node        = props.node
-        const parameters  = editor.get_core().get_printer().process_parameters(node)
+        const parameters  = React.useMemo(()=>(
+            editor.get_core().get_printer().process_parameters(node)
+        ), [editor, node])
 
-        const label   = get_label(node, parameters)
+        const label   = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
         const Extra = rightbar_extra
-        const SUR = surrounder
+        const SUR   = surrounder
 
-        return <ComponentPaper is_inline><AutoStack force_direction="row">
+        return <NodeInfoProvider node={node}>
+        <ComponentPaper is_inline><AutoStack force_direction="row">
             <ComponentEditorBox>
-                <SUR node={node}>{props.children}</SUR>
+                <SUR>{props.children}</SUR>
             </ComponentEditorBox>
             <UnselecableBox>
                 <AutoStack force_direction="row" gap="0.25rem">
-                    <Extra node={node}/>
+                    <Extra/>
                     <FoldedButtonGroup
                         popper_props = {{
                             sx:{
                                 opacity: "80%" , 
                             }
                         }}
-                        node = {node}
                         button_comp = {with_partial_props(IconButton, {
                             sx: {
                                 height: "1.25rem" , 
@@ -111,14 +112,14 @@ function get_default_inline_editor({
                         // label = {"展开" + (label ? ` / ${label}` : "") }
                         label = {"展开"}
                         buttons = {[
-                            <DefaultParameterEditButton node={node} /> , 
-                            <DefaultCloseButton         node={node} /> , 
-                            <DefaultSoftDeleteButton    node={node} /> , 
-                            <DefaultNewAbstractButton   node={node} /> , 
-                            <DefaultEditAbstractButton node={node} /> , 
+                            <DefaultParameterEditButton /> , 
+                            <DefaultCloseButton /> , 
+                            <DefaultSoftDeleteButton /> , 
+                            <DefaultNewAbstractButton /> , 
+                            <DefaultEditAbstractButton /> , 
                         ]}
-                        level = {1}
-                        max_level = {1}
+                        level = {0}
+                        max_level = {0}
                     >
                         <StructureTypography sx={{
                             marginY: "0.2rem", 
@@ -130,6 +131,7 @@ function get_default_inline_editor({
             </UnselecableBox>
         </AutoStack>
         </ComponentPaper>
+        </NodeInfoProvider>
     }
     return subcomp
 }

@@ -3,66 +3,69 @@
  * @module
  */
 
-import React, {useEffect, useState} from "react"
+import * as React from "react"
+import * as Slate from "slate"
 
 import { 
-    Card , 
-    TextField ,
-    Drawer , 
-    Button , 
-    Typography , 
-    Tooltip , 
-    IconButton , 
-    ClickAwayListener  , 
-    Box , 
-    Switch , 
+    Card, 
+    TextField,
+    Drawer, 
+    Button, 
+    Typography, 
+    Tooltip, 
+    IconButton, 
+    ClickAwayListener, 
+    Box, 
+    Switch, 
+    IconButtonProps, 
 } from "@mui/material"
-import type { IconButtonProps  } from "@mui/material"
 
 import {
-    Close as CloseIcon , 
-    Settings as SettingsIcon , 
-    North as NorthIcon , 
-    South as SouthIcon , 
-    MoveUp as MoveUpIcon  , 
+    Close as CloseIcon, 
+    Settings as SettingsIcon, 
+    North as NorthIcon, 
+    South as SouthIcon, 
+    MoveUp as MoveUpIcon, 
     PhoneMissed as PhoneMissedIcon
-}
-from "@mui/icons-material"
+} from "@mui/icons-material"
 
-
-import * as Slate from "slate"
 import {
-    GroupNode , 
-    Node , 
-    StructNode , 
-    ConceptNode , 
+    GroupNode, 
+    Node, 
+    StructNode, 
+    ConceptNode, 
 } from "../../../core"
 import { 
-    EditorComponent , 
-    EditorGlobalInfo , 
-    slate_concept_node2path , 
+    EditorComponent, 
+    EditorGlobalInfo, 
+    slate_concept_node2path, 
 } from "../../../editor"
-import { AutoTooltip , Direction , AutoStack , AutoStackedPopper , AutoStackedPopperProps } from "../../../uibase"
+import { AutoTooltip, Direction, AutoStack, AutoStackedPopper, AutoStackedPopperProps } from "../../../uibase"
 import { DefaultParameterWithEditorWithDrawer } from "./parameter_edit" 
+import {
+    useNode, 
+    useParameters, 
+    useEditor, 
+} from "../../../implbase"
 
 export {    
-    DefaultParameterEditButton , 
-    DefaultCloseButton , 
-    NewParagraphButtonUp , 
-    NewParagraphButtonDown , 
-    DefaultSwicth , 
-    AutoIconButton , 
-    DefaultSoftDeleteButton , 
-    CopyButton , 
+    DefaultParameterEditButton, 
+    DefaultCloseButton, 
+    NewParagraphButtonUp, 
+    NewParagraphButtonDown, 
+    DefaultSwicth, 
+    AutoIconButton, 
+    DefaultSoftDeleteButton, 
+    CopyButton, 
 }
 
 /** 这个函数是一个语法糖，用于自动创建带tooltip的按钮。 */
 function AutoIconButton({
-    onClick , 
-    size = "small" , 
-    title , 
-    icon , 
-    component = "button" , 
+    onClick, 
+    size = "small", 
+    title, 
+    icon, 
+    component = "button", 
     icon_props = {}, 
 }:{
     onClick?: IconButtonProps["onClick"]
@@ -83,7 +86,7 @@ function AutoIconButton({
                 ...(size == "small" ? {
                     paddingX: "0.05rem",
                     transform: "scale(0.8)",
-                    transformOrigin: "center center" , 
+                    transformOrigin: "center center", 
                 } : {}),
                 
                 ...(sx || {})
@@ -99,329 +102,183 @@ function MyImg(props: {img_url: string}){
     return <img src={props.img_url}></img>
 }
 
-
 /**
  * 这个组件向具体的编辑器和具体的节点提供 DefaultParameterContainer ，同时还提供一个按钮。
- * @param props.node 这个组件所服务的节点。
  * @param props.onExit 抽屉关闭时的行为。
  */
-class DefaultParameterEditButton extends React.Component <EditorButtonInformation & {
-    onExit?: (e:any)=>void , 
-}, {
-    open: boolean
-}> implements ButtonBase {
-    constructor(props: EditorButtonInformation & {onExit?: (e:any)=>void}){
-        super(props)
+function DefaultParameterEditButton({ onExit }: { onExit?: (e: any) => void }) {
+    const [open, set_open] = React.useState(false)
+    const node = useNode()
 
-        this.state = {
-            open: false
-        }
-
-        this.run = this.run.bind(this)
-    }
-
-    run(){
-        this.setState({open:true})
-    }
-
-    shouldComponentUpdate(
-        nextProps: EditorButtonInformation & {onExit?: (e:any)=>void}, 
-        nextState: {open: boolean}
-    ): boolean {
-        return nextProps.node.parameters !== this.props.node.parameters 
-            || nextState.open !== this.state.open
-    }
-
-    render(){
-        const props = this.props
-        const onExit = props.onExit || ((e:any)=>{})
-        const me = this
-
-        return <Box sx={{marginX: "auto"}}>
-            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon} />
-            <DefaultParameterWithEditorWithDrawer 
-                node = {props.node} 
-                open = {me.state.open} 
-                onClose = {(e:any)=>{ 
-                    onExit(e)
-                    me.setState({open:false})
-                }} 
-            />
-        </ Box>
-    }
+    return <Box sx={{ marginX: "auto" }}>
+        <AutoIconButton onClick={()=>{set_open(true)}} title="设置参数" icon={SettingsIcon} />
+        <DefaultParameterWithEditorWithDrawer 
+            node = {node} 
+            open = {open} 
+            onClose = {(e: any) => { 
+                onExit?.(e)
+                set_open(false)
+            }} 
+        />
+    </Box>
 }
 
-/** 这个组件提供一个直接删除节点的按钮。 
- * @param props.node 这个组件所服务的节点。
- */
-class DefaultCloseButton extends React.Component<EditorButtonInformation> implements ButtonBase{
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
+/** 这个组件提供一个直接删除节点的按钮。 */
+function DefaultCloseButton() {
+    const node = useNode()
+    const globalinfo = React.useContext(EditorGlobalInfo)
+    const editor = globalinfo.editor
 
-    constructor(props: EditorButtonInformation){
-        super(props)
-        this.run = this.run.bind(this)
-    }
-    shouldComponentUpdate(): boolean {
-        return false 
-    }
-
-    run(){
-        const globalinfo = this.context
-        const editor = globalinfo.editor
+    const run = () => {
         if(editor){
-            editor.delete_concept_node(this.props.node)
+            editor.delete_concept_node(node)
         }
     }
-    render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run} title="删除组件" icon={CloseIcon} />
-    }
+
+    return <AutoIconButton onClick={run} title="删除组件" icon={CloseIcon} />
 }
 
-/** 这个组件提供一个删除节点，但是将其子节点移动到节点外的按钮。 
- * @param props.node 这个组件所服务的节点。
- * @param props.puretext 是否将子组件作为纯文本。
- */
-class DefaultSoftDeleteButton extends React.Component<EditorButtonInformation & {puretext?: boolean}> implements ButtonBase{
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
+/** 这个组件提供一个删除节点，但是将其子节点移动到节点外的按钮。 */
+function DefaultSoftDeleteButton({ puretext }: { puretext?: boolean }) {
+    const node = useNode()
+    const editor = useEditor()
 
-    constructor(props: EditorButtonInformation & {puretext?: boolean}){
-        super(props)
-        this.run = this.run.bind(this)
-    }
-
-    run(){
-        let globalinfo = this.context
-        let editor = globalinfo.editor
+    const run = () => {
         if(!editor){
             return
         }
 
-        if(this.props.puretext){
-            // XXX 可能保留内部样式会比较好...
-            const text = Slate.Node.string(this.props.node)
-            const path = slate_concept_node2path(editor.get_root() , this.props.node)
+        if(puretext){
+            const text = Slate.Node.string(node)
+            const path = slate_concept_node2path(editor.get_root(), node)
             if(path){
                 editor.delete_node_by_path(path)
-                editor.add_nodes(editor.get_core().create_paragraph(text) , path)
+                editor.add_nodes(editor.get_core().create_paragraph(text), path)
             }
         }
         else{
-            editor.unwrap_node(this.props.node)
+            editor.unwrap_node(node)
         }
     }
 
-    shouldComponentUpdate(): boolean {
-        return false
-    }
-
-    render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run} title="解除组件" icon={MoveUpIcon} />
-    }
+    return <AutoIconButton onClick={run} title="解除组件" icon={MoveUpIcon} />
 }
 
-/** 这个组件提供一个在组件的上新建段落的节点。 
- * @param props.node 这个组件所服务的节点。
- */
-class NewParagraphButtonUp extends React.Component<EditorButtonInformation> implements ButtonBase{
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
+/** 这个组件提供一个在组件的上新建段落的节点。 */
+function NewParagraphButtonUp() {
+    const node = useNode()
+    const editor = useEditor()
 
-    constructor(props: EditorButtonInformation){
-        super(props)
-        this.run = this.run.bind(this)
-    }
-
-    run(){
-        let globalinfo = this.context
-        let editor = globalinfo.editor
+    const run = () => {
         if(!editor){
             return
         }
-        editor.add_nodes_before(editor.get_core().create_paragraph() , this.props.node )    
+        editor.add_nodes_before(editor.get_core().create_paragraph(), node)    
     }
 
-    shouldComponentUpdate(): boolean {
-        return false
-    }
-
-    render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run} title="向上添加段落" icon={NorthIcon} />
-    }
+    return <AutoIconButton onClick={run} title="向上添加段落" icon={NorthIcon} />
 }
 
-/** 这个组件提供一个在组件的下新建段落的节点。 
- * @param props.node 这个组件所服务的节点。
- */
- class NewParagraphButtonDown extends React.Component<EditorButtonInformation> implements ButtonBase{
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
+/** 这个组件提供一个在组件的下新建段落的节点。 */
+function NewParagraphButtonDown() {
+    const node = useNode()
+    const editor = useEditor()
 
-    constructor(props: EditorButtonInformation){
-        super(props)
-        this.run = this.run.bind(this)
-    }
-
-    run(){
-        const globalinfo = this.context
-        const editor = globalinfo.editor
+    const run = () => {
         if(!editor){
             return
         }
-        editor.add_nodes_after(editor.get_core().create_paragraph() , this.props.node )    
+        editor.add_nodes_after(editor.get_core().create_paragraph(), node)    
     }
 
-    shouldComponentUpdate(): boolean {
-        return false
-    }
-
-    render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run} title="向下添加段落" icon={SouthIcon} />
-    }
+    return <AutoIconButton onClick={run} title="向下添加段落" icon={SouthIcon} />
 }
 
+/** 这个按钮在一个概念下方复制此概念，并设置同样的参数。 */
+function CopyButton() {
+    const node = useNode()
+    const editor = useEditor()
 
-/** 这个按钮在一个概念下方复制此概念，并设置同样的参数。 
- * @param props.node 这个组件所服务的节点。
- */
- class CopyButton extends React.Component<EditorButtonInformation> implements ButtonBase{
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
-
-    constructor(props: EditorButtonInformation){
-        super(props)
-        this.run = this.run.bind(this)
-    }
-
-    shouldComponentUpdate(): boolean {
-        return false
-    }
-
-    run(){
-        const globalinfo = this.context
-        const editor = globalinfo.editor
+    const run = () => {
         if(!editor){
             return
         }
 
-        const node = this.props.node
         let new_node: ConceptNode | undefined = undefined
         if(node.type == "group"){
-            new_node = editor.get_core().create_group(node.concept, "chaining") // 自动跟上一个节点贴贴
-            new_node.parameters = JSON.parse( JSON.stringify(node.parameters) )
+            new_node = editor.get_core().create_group(node.concept, "chaining")
+            new_node.parameters = JSON.parse(JSON.stringify(node.parameters))
         }
         else if(node.type == "structure"){
             new_node = editor.get_core().create_structure(node.concept, "chaining")
-            new_node.parameters = JSON.parse( JSON.stringify(node.parameters) )
+            new_node.parameters = JSON.parse(JSON.stringify(node.parameters))
         }
         else if(node.type == "support"){
             new_node = editor.get_core().create_support(node.concept)
-            new_node.parameters = JSON.parse( JSON.stringify(node.parameters) )
+            new_node.parameters = JSON.parse(JSON.stringify(node.parameters))
         }
         if(new_node){
-            editor.add_nodes_after(new_node , this.props.node )    
+            editor.add_nodes_after(new_node, node)    
         }
     }
 
-    render(): React.ReactNode {
-        return <AutoIconButton onClick={this.run} title="复制此节点" icon={PhoneMissedIcon} />
-    }
+    return <AutoIconButton onClick={run} title="复制此节点" icon={PhoneMissedIcon} />
 }
 
+/** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 */
+function DefaultSwicth() {
+    const node = useNode<GroupNode | StructNode>()
+    const editor = useEditor()
+    const [checked, set_checked] = React.useState(node.relation == "chaining")
+    const switchref = React.useRef<HTMLInputElement | null>(null)
 
-/** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 
- * @param props.node 服务的节点。
- */
-class DefaultSwicth extends React.Component<EditorButtonInformation<GroupNode | StructNode>, {
-    checked: boolean
-}> implements ButtonBase{
-    static contextType = EditorGlobalInfo
-    declare context: React.ContextType<typeof EditorGlobalInfo>
-
-    switchref: React.RefObject<HTMLInputElement | null>
-
-    constructor(props: EditorButtonInformation<GroupNode | StructNode>){
-        super(props)
-
-        this.state = {
-            checked: props.node.relation == "chaining" , 
-        }
-
-        this.switchref = React.createRef<HTMLInputElement>()
-
-        this.switch_check_change = this.switch_check_change.bind(this)
+    const get_switch = (): HTMLInputElement | undefined => {
+        return switchref.current || undefined
     }
 
-    get_switch(): HTMLInputElement | undefined{
-        if(this.switchref && this.switchref.current){
-            return this.switchref.current // 反正就是第一个children
-        }
-        return undefined
-    }
-
-    /** 当点击的时候，处理开关的逻辑。 */
-    switch_check_change(){
-        const globalinfo = this.context
-        const editor = globalinfo.editor
-        const node = this.props.node
-
-        const checked = this.get_switch()?.checked
+    const switch_check_change = () => {
+        const checked = get_switch()?.checked
         if(checked == undefined || !editor){
             return
         }
-        this.setState({checked: checked})
+        set_checked(checked)
 
-        // constraints会自动处理更改，不用担心
-        if(checked){ // 从关到开
-            editor.set_node(node , { relation: "chaining" } )
+        if(checked){
+            editor.set_node(node, { relation: "chaining" })
         }
         else{
-            editor.set_node(node , { relation: "separating" })
+            editor.set_node(node, { relation: "separating" })
         }
     }
 
-    update(){
-        const node = this.props.node
-        // 在节点被外部修改的情况下更新组件状态。主要是为了在撤销操作时正确的操作状态
-        if( (node.relation == "chaining") != this.state.checked){ 
-            this.setState({checked: node.relation == "chaining"})
+    React.useEffect(() => {
+        if((node.relation == "chaining") != checked){ 
+            set_checked(node.relation == "chaining")
         }
-    }
+    }, [node])
 
-    componentDidMount(): void {
-        this.update()
-    }
-    componentDidUpdate(): void {
-        this.update()
-    }
-    
-    run(){
-        const switch_ = this.get_switch()
+    const run = () => {
+        const switch_ = get_switch()
         if(switch_){
-            switch_.click() // 模拟点击。
+            switch_.click()
         }
     }
-    render(): React.ReactNode {
-        return <AutoTooltip title = "贴贴">
-            <Switch 
-                checked = {this.state.checked} 
-                onChange = {this.switch_check_change} 
-                sx = {{
-                    transform: "scale(0.8)",
-                    transformOrigin: "center center" , 
-                    marginX: "-0.5rem"
-                }}
-                slotProps = {{
-                    input: {
-                        ref: this.switchref
-                    }
-                }}
-            />
-        </AutoTooltip>
-    }
+
+    return <AutoTooltip title = "贴贴">
+        <Switch 
+            onClick = {run}
+            checked = {checked} 
+            onChange = {switch_check_change} 
+            sx = {{
+                transform: "scale(0.8)",
+                transformOrigin: "center center", 
+                marginX: "-0.5rem"
+            }}
+            slotProps = {{
+                input: {
+                    ref: switchref
+                }
+            }}
+        />
+    </AutoTooltip>
 }
-
-
-
-

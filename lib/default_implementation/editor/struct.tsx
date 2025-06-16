@@ -50,7 +50,9 @@ import {
 import {
     ButtonGroup , 
     FoldedButtonGroup , 
-    ConceptSubcomponentInformation , 
+    EditorNodeInfoFunction , 
+    useNode , 
+    NodeInfoProvider , 
 } from "../../implbase"
 
 import { 
@@ -78,16 +80,15 @@ import {
     EditorStructureTypography as StructureTypography , 
 } from "./uibase"
 
-import {
-    EditorNodeInfoFunction , 
-} from "./base"
-
 export { get_default_struct_editor_with_rightbar }
 
 /** 为 Struct 类型的节点定制的 Paper ，在节点前后相连时会取消前后距离。 */
-let StructPaper = (props: PaperProps & {node: StructNode}) => <ComponentPaper {...props} 
-    sx = { props.node.relation == "chaining" ? { marginTop: "0" } : {} }
-/>
+function StructPaper(props: PaperProps){
+    const node = useNode<StructNode>()
+    return <ComponentPaper {...props} 
+        sx = { node.relation == "chaining" ? { marginTop: "0" } : {} }
+    />
+}
 
 /** 这个函数返回一个默认的结构节点组件。这个节点需要用户确定其子节点数量以及每个子节点的宽度，并自动创建和删除子节点，使得子节点的
  *  数量和给定的一致，并且自动调整子节点的宽度。
@@ -110,34 +111,40 @@ function get_default_struct_editor_with_rightbar({
     get_numchildren ?: EditorNodeInfoFunction<StructNode, number> , 
     get_widths      ?: EditorNodeInfoFunction<StructNode, number[]> ,
     rightbar_extra  ?: EditorNodeInfoFunction<StructNode, React.ReactNode[]> , 
-    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any , 
+    surrounder      ?: (props: {children: any}) => any , 
 }): EditorRenderer<StructNode>{
 
     return (props: EditorRendererProps<StructNode>) => {
-        let editor      = props.editor
-        let node        = props.node
-        let editorcore  = editor.get_core()
-        let parameters  = editorcore.get_printer().process_parameters(node)
+        const editor      = props.editor
+        const node        = props.node
+        const editorcore  = editor.get_core()
+        const parameters  = React.useMemo(()=>(
+            editorcore.get_printer().process_parameters(node)
+        ), [editor, node])
 
-        let mylabel = get_label(node, parameters)
-        let SUR     = surrounder
+        const mylabel = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
+        const SUR     = surrounder
 
-        let mychildren = node.children
-        let mypath = slate_concept_node2path(editor.get_slate() , node)
+        const mychildren = React.useMemo(()=>node.children, [node])
+        const mypath = React.useMemo(()=>slate_concept_node2path(editor.get_slate() , node), [editor, node])
         if(!mypath){
             throw new UnexpectedParametersError("这这不能")
         }
-        let num_children = get_numchildren(node, parameters)
-        if(num_children < 0){
-            num_children = mychildren.length
-        }
+        let num_children = React.useMemo(()=>{
+            let val = get_numchildren(node, parameters)
+            val = val < 0 ? mychildren.length : val
+            return val
+        }, [get_numchildren, node, parameters, mychildren.length])
 
         // 获得并规范元素的相对长度。
-        let widths = get_widths(node, parameters)
-        widths = widths.splice(0,num_children) // 确保为widths元素不少
-        while(widths.length < num_children) // 确保widths元素不多
-            widths.push(1)
-        let widthsum = widths.reduce( (s,x)=>s+x , 0 ) // 求所有元素的和。
+        let [widths, widthsum] = React.useMemo(()=>{
+            let val = get_widths(node, parameters)
+            val = val.splice(0,num_children) // 确保为widths元素不少
+            while(val.length < num_children) // 确保widths元素不多
+                val.push(1)
+            let widthsum = val.reduce( (s,x)=>s+x , 0 ) // 求所有元素的和。
+            return [val, widthsum]
+        }, [get_widths, node, parameters, num_children])
 
         React.useEffect(()=>{
             // 规范子节点数量。
@@ -155,67 +162,56 @@ function get_default_struct_editor_with_rightbar({
                 }
                 editor.add_nodes(new_nodes, [...mypath, mychildren.length]) // 在最后一个节点后面添加节点
             }
-        })
+        } , [editor, num_children, mychildren, mypath, editorcore])
 
 
-        return <StructPaper node={node}>
-            <AutoStack force_direction="row">
+        return <NodeInfoProvider node={node}>
+        <StructPaper><AutoStack force_direction="row">
+            
+            <Grid container columns={widthsum} sx={{width: "100%"}}>
+                {widths.map((width,idx)=>{   
+                    let child = (props.children as any)?.[idx]
+                    if(!child){
+                        return <></>
+                    }
+                    return <Grid key={idx} size={{xs: width}}>
+                        <ComponentEditorBox autogrow >
+                            <SUR>{child}</SUR>
+                        </ComponentEditorBox>
+                    </Grid>
+                })}
+            </Grid>
                 
-                <Grid container columns={widthsum} sx={{width: "100%"}}>
-                    {widths.map((width,idx)=>{   
-                        let child = (props.children as any)?.[idx]
-                        if(!child){
-                            return <></>
+            <UnselecableBox><AutoStack>
+                <StructureTypography sx={{marginX: "auto"}}>{mylabel}</StructureTypography>
+                <FoldedButtonGroup 
+                    popper_props = {{
+                        sx:{
+                            opacity: "80%" , 
                         }
-                        return <Grid key={idx} size={{xs: width}}>
-                            <ComponentEditorBox autogrow >
-                                <SUR node={node}>
-                                    {child}
-                                </SUR>
-                            </ComponentEditorBox>
-                        </Grid>
+                    }}
+                    button_comp = {with_partial_props(IconButton, {
+                        size: "small" , 
+                        children: <KeyboardArrowDownIcon fontSize="small"/> , 
                     })}
-                </Grid>
-                    
-                <UnselecableBox>
-                    <AutoStack>
-                        <ButtonGroup // 额外添加的元素。
-                            autostack 
-                            node = {node}
-                            buttons = {rightbar_extra(node, parameters)}
-                            level = {0}
-                            max_level = {0}
-                        />
-                        <StructureTypography sx={{marginX: "auto"}}>{mylabel}</StructureTypography>
-                        <FoldedButtonGroup 
-                            popper_props = {{
-                                sx:{
-                                    opacity: "80%" , 
-                                }
-                            }}
-                            node = {node}
-                            button_comp = {with_partial_props(IconButton, {
-                                size: "small" , 
-                                children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                            })}
-                            label = "展开"
-                            buttons = {[
-                                <DefaultParameterEditButton node={node} /> , 
-                                <DefaultNewAbstractButton node={node} /> , 
-                                <DefaultEditAbstractButton node={node} /> , 
-                                <DefaultSwicth node={node} /> , 
-                                <DefaultCloseButton node={node} /> , 
-                                <DefaultSoftDeleteButton node={node} /> , 
-                                <NewParagraphButtonUp node={node} /> , 
-                                <NewParagraphButtonDown node={node} /> , 
-                                <CopyButton node={node} /> , 
-                            ]}
-                            level = {1}
-                            max_level = {1}
-                        /> 
-                    </AutoStack>
-                </UnselecableBox>
-            </AutoStack>
-        </StructPaper>
+                    label = "展开"
+                    buttons = {[
+                        <DefaultParameterEditButton /> , 
+                        <DefaultNewAbstractButton /> , 
+                        <DefaultEditAbstractButton /> , 
+                        <DefaultSwicth /> , 
+                        <DefaultCloseButton /> , 
+                        <DefaultSoftDeleteButton /> , 
+                        <NewParagraphButtonUp /> , 
+                        <NewParagraphButtonDown /> , 
+                        <CopyButton /> , 
+                        ... rightbar_extra(node, parameters) , 
+                    ]}
+                    level = {1}
+                    max_level = {1}
+                /> 
+            </AutoStack></UnselecableBox>
+        </AutoStack></StructPaper>
+        </NodeInfoProvider>
     }
 }

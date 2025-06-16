@@ -8,11 +8,14 @@ import {
 import {
     EditorComponent , 
 } from "../editor"
+import {
+    ProcessedParameterList , 
+} from "../printer"
 
 export type {
-    ConceptSubcomponentInformation , 
+    EditorNodeInfoFunction , 
 }
 
-interface ConceptSubcomponentInformation{
-    node: Slate.Node & ConceptNode , 
-}
+type EditorNodeInfoFunction<NodeType extends ConceptNode = ConceptNode, ValueType = any> = (
+    node: NodeType & Slate.Node, parameters: ProcessedParameterList
+) => ValueType

@@ -86,21 +86,24 @@ import {
 import {
     ButtonGroup , 
     FoldedButtonGroup , 
-    ConceptSubcomponentInformation , 
+    EditorNodeInfoFunction , 
+
+    useNode , 
+    useParameters , 
+    useEditor , 
+    NodeInfoProvider , 
+
 } from "../../implbase"
 
 import Color from "color"
 
 
-import {
-    EditorNodeInfoFunction , 
-} from "./base"
-
 export { get_deafult_group_editor_with_appbar , get_default_group_editor_with_rightbar}
 
 /** 为 Group 类型的节点定制的 Paper ，在节点前后相连时会取消前后距离。 */
-let GroupPaper = (props: PaperProps & {node: GroupNode}) => {
-    let {node, sx, ...other_props} = props
+let GroupPaper = (props: PaperProps) => {
+    let {sx, ...other_props} = props
+    const node = useNode<GroupNode>()
     return <ComponentPaper {...other_props} 
         sx = {{
             ...(node.relation == "chaining" ? { 
@@ -128,21 +131,24 @@ function get_deafult_group_editor_with_appbar({
 }: {
     get_label       ?: EditorNodeInfoFunction<GroupNode, string> ,  
     appbar_extra    ?: EditorNodeInfoFunction<GroupNode, React.ReactNode[]> , 
-    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any ,
+    surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
     // 渲染器
     const subcomp = ({
         editor, node, children
     }: EditorRendererProps<Slate.Node & GroupNode>) => {
-        const parameters  = editor.get_core().get_printer().process_parameters(node)
-        const label       = get_label(node, parameters)
+        const parameters  = React.useMemo(()=>(
+            editor.get_core().get_printer().process_parameters(node)
+        ), [editor, node])
+        const label       = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
 
         const SUR = surrounder
 
-        const theme = useTheme()
-        const bgcolor = light_grey( Color(theme.palette.primary.light) )
+        const theme   = useTheme()
+        const bgcolor = React.useMemo(()=>light_grey( Color(theme.palette.primary.light) ), [theme])
 
-        return <GroupPaper node={node}>
+        return <NodeInfoProvider node={node}>
+            <GroupPaper>
                 <AutoStack force_direction="column">
                 <UnselecableBox sx={{
                     marginX: "0.25rem" , 
@@ -154,30 +160,30 @@ function get_deafult_group_editor_with_appbar({
                     }}><AutoStack>
                         <StructureTypography>{label}</StructureTypography>
                         <ButtonGroup 
-                            node = {node}
                             level     = {0}
                             max_level = {0}
 
                             buttons = {[
-                                <DefaultParameterEditButton node={node} /> , 
-                                <DefaultNewAbstractButton   node={node} /> , 
-                                <DefaultEditAbstractButton  node={node} /> , 
-                                <DefaultSwicth              node={node} /> , 
-                                <NewParagraphButtonUp       node={node} /> , 
-                                <NewParagraphButtonDown     node={node} /> , 
-                                <DefaultCloseButton         node={node} /> , 
-                                <DefaultSoftDeleteButton    node={node} /> , 
-                                <CopyButton                 node={node} /> , 
+                                <DefaultParameterEditButton/> , 
+                                <DefaultNewAbstractButton  /> , 
+                                <DefaultEditAbstractButton /> , 
+                                <DefaultSwicth             /> , 
+                                <NewParagraphButtonUp      /> , 
+                                <NewParagraphButtonDown    /> , 
+                                <DefaultCloseButton        /> , 
+                                <DefaultSoftDeleteButton   /> , 
+                                <CopyButton                /> , 
                                 ... appbar_extra(node, parameters)
                             ]}
                         />
                     </AutoStack></Box>
                 </UnselecableBox >
                 <ComponentEditorBox autogrow>
-                    <SUR node={node}>{children}</SUR>
+                    <SUR>{children}</SUR>
                 </ComponentEditorBox>
             </AutoStack>
         </GroupPaper>
+        </NodeInfoProvider>
     }
     return subcomp
 }
@@ -195,96 +201,89 @@ function get_default_group_editor_with_rightbar({
 }: {
     get_label       ?: EditorNodeInfoFunction<GroupNode, string> ,  
     rightbar_extra  ?: EditorNodeInfoFunction<GroupNode, React.ReactNode[]> , 
-    surrounder      ?: (props: ConceptSubcomponentInformation & {children: any}) => any ,
+    surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
 
     const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
         const editor      = props.editor
         const node        = props.node
-        const parameters  = editor.get_core().get_printer().process_parameters(node)
-        const mylabel     = get_label(node, parameters)
+        const parameters  = React.useMemo(()=>editor.get_core().get_printer().process_parameters(node), [editor, node])
+        const mylabel     = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
+        
+        const extra_buttons = React.useMemo(()=>rightbar_extra(node, parameters), [rightbar_extra, node, parameters])
+        
         const SUR = surrounder
-
-        const extra_buttons = rightbar_extra(node, parameters)
 
         // 根据node子节点数量估计这个组件是长的还是高的。
         const guess_high = (node.children.reduce((s,x)=>s += (slate_is_concept(x , "group") ? 2 : 1) , 0)) >= 3
 
-        const normal_title = <StructureTypography variant = "overline">{mylabel}</StructureTypography>
-        const small_title = <StructureTypography 
-            variant = "overline"
-            sx = {{
-                position: "absolute" , 
-                top: "0" , 
-                right: "0" , 
-                transform: "translate(0, -20%) scale(0.7)" , 
-            }}
-        >{mylabel}</StructureTypography>
+        const normal_title = React.useMemo(()=>
+            <StructureTypography variant = "overline">{mylabel}</StructureTypography>
+        , [mylabel])
+        const small_title = React.useMemo(()=>
+            <StructureTypography 
+                variant = "overline"
+                sx = {{
+                    position: "absolute" , 
+                    top: "0" , 
+                    right: "0" , 
+                    transform: "translate(0, -20%) scale(0.7)" , 
+                }}
+            >{mylabel}</StructureTypography>
+        , [mylabel])
 
-        return <GroupPaper node={node}>
-            <SimpleAutoStack force_direction="row">
-                <ComponentEditorBox autogrow key="edit">
-                    <SUR node={node}>{props.children}</SUR>
-            </ComponentEditorBox>                
+        return <NodeInfoProvider node={node}>
+        <GroupPaper>
+        <SimpleAutoStack force_direction="row">
+            <ComponentEditorBox autogrow key="edit">
+                <SUR>{props.children}</SUR>
+            </ComponentEditorBox>
+
             <UnselecableBox sx={{
                 position: "relative" , 
-            }}><AutoStack  // 第一层autostack，必须横向排列
-                force_direction = {"row"}
-                gap = "0.5rem"
-                sx={{
-                    justifyContent: "center" ,
-                    alignItems    : "center" ,        
+            }}><AutoStack // 第二层autostack，把标签名和按钮组纵向排列
+                force_direction = {"column"}
+                sx = {{
+                    paddingX: "0.25rem" , 
+                    paddingY: "0.15rem" , 
+                    border: "1px solid rgba(30,30,30,0.3)" , 
                 }}
             >
-                <ButtonGroup // 额外添加的元素。
-                    node    = {node}
-                    level   = {0}
+                {normal_title}
+                
+                <FoldedButtonGroup 
+                    level     = {0}
                     max_level = {0}
-                    buttons = {extra_buttons}
-                />
-                <AutoStack // 第二层autostack，把标签名和按钮组纵向排列
-                    sx = {{
-                        paddingX: "0.25rem" , 
-                        paddingY: "0.15rem" , 
-                        border: "1px solid rgba(30,30,30,0.3)" , 
+                    popper_props = {{
+                        sx:{
+                            opacity: "80%" , 
+                        }
                     }}
-                >
-                    {normal_title}
-                    
-                    <FoldedButtonGroup 
-                        popper_props = {{
-                            sx:{
-                                opacity: "80%" , 
-                            }
-                        }}
-                        node = {node}
-                        button_comp = {with_partial_props(IconButton, {
-                            size: "small" , 
-                            children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                            sx: {
-                                marginY: "auto" , 
-                            }
-                        })}
-                        label = "展开"
-                        buttons = {[
-                            <DefaultParameterEditButton node={node} /> , 
-                            <DefaultNewAbstractButton   node={node} /> , 
-                            <DefaultEditAbstractButton  node={node} /> , 
-                            <DefaultSwicth              node={node} /> , 
-                            <DefaultCloseButton         node={node} /> , 
-                            <DefaultSoftDeleteButton    node={node} /> , 
-                            <NewParagraphButtonUp       node={node} /> , 
-                            <NewParagraphButtonDown     node={node} /> , 
-                            <CopyButton                 node={node} /> , 
-                            ... extra_buttons
-                        ]}
-                        level = {1}
-                        max_level = {1}
-                    /> 
-                </AutoStack>
+                    button_comp = {React.useMemo(()=>with_partial_props(IconButton, {
+                        size: "small" , 
+                        children: <KeyboardArrowDownIcon fontSize="small"/> , 
+                        sx: {
+                            marginY: "auto" , 
+                        }
+                    }), [extra_buttons])}
+                    label = "展开"
+                    buttons = {[
+                        <DefaultParameterEditButton/> , 
+                        <DefaultNewAbstractButton  /> , 
+                        <DefaultEditAbstractButton /> , 
+                        <DefaultSwicth             /> , 
+                        <DefaultCloseButton        /> , 
+                        <DefaultSoftDeleteButton   /> , 
+                        <NewParagraphButtonUp      /> , 
+                        <NewParagraphButtonDown    /> , 
+                        <CopyButton                /> , 
+                        ... extra_buttons
+                    ]}
+                /> 
             </AutoStack></UnselecableBox>
-            </SimpleAutoStack>
+        </SimpleAutoStack>
         </GroupPaper>
+        </NodeInfoProvider>
     }
     return subcomp
 }

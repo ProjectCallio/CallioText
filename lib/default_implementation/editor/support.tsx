@@ -52,7 +52,10 @@ import {
 import {
     ButtonGroup , 
     FoldedButtonGroup , 
-    ConceptSubcomponentInformation , 
+    EditorNodeInfoFunction , 
+    useNode , 
+    NodeInfoProvider, 
+    useParameters, 
 } from "../../implbase"
 import { 
     EditorComponentPaper as ComponentPaper , 
@@ -65,9 +68,6 @@ import {
     DefaultNewAbstractButton , 
     DefaultEditAbstractButton , 
 } from "./abstract"
-import {
-    EditorNodeInfoFunction , 
-} from "./base"
 
 
 export { 
@@ -87,7 +87,8 @@ function get_default_spliter_editor({
         let parameters  = editor.get_core().get_printer().process_parameters(node)
         let title       = get_title(node, parameters)
 
-        return <UnselecableBox><ComponentBox>
+        return <NodeInfoProvider node={node}>
+        <UnselecableBox><ComponentBox>
             <Divider>
                 <Paper variant="outlined" sx = {{
                     paddingX: "0.5rem"
@@ -95,21 +96,20 @@ function get_default_spliter_editor({
                     <AutoStack force_direction="row">
                         <StructureTypography>{title}</StructureTypography>
                         <FoldedButtonGroup 
-                            level = {1}
-                            max_level = {1}
-                            node = {node}
+                            level = {0}
+                            max_level = {0}
                             button_comp = {with_partial_props(IconButton, {
                                 size: "small" , 
                                 children: <KeyboardArrowDownIcon fontSize="small"/> , 
                             })}
                             label = "展开"
                             buttons = {[
-                                <DefaultParameterEditButton node={node} /> , 
-                                <DefaultNewAbstractButton node={node} /> , 
-                                <DefaultEditAbstractButton node={node} /> , 
-                                <DefaultCloseButton node={node} /> , 
-                                <NewParagraphButtonUp node={node} /> , 
-                                <NewParagraphButtonDown node={node} /> , 
+                                <DefaultParameterEditButton /> , 
+                                <DefaultNewAbstractButton /> , 
+                                <DefaultEditAbstractButton /> , 
+                                <DefaultCloseButton /> , 
+                                <NewParagraphButtonUp /> , 
+                                <NewParagraphButtonDown /> , 
                             ]}
                         /> 
                     </AutoStack>
@@ -117,6 +117,7 @@ function get_default_spliter_editor({
                 {props.children /* 对于一个void组件，其children也必须被渲染，否则会报错。*/} 
             </Divider>
         </ComponentBox></UnselecableBox>
+        </NodeInfoProvider>
     }
 }
 
@@ -128,43 +129,43 @@ function get_default_spliter_editor({
 function get_default_display_editor({
     get_label       = (n,p)=>p.label, 
     is_empty        = (n,p)=>!(p.url) , 
-    render_element  = (props)=><img src={props.node.parameters.url.val as string}/>, 
+    render_element  = ()=><img src={useParameters().url as string}/>, 
 } : {
     get_label       ?: EditorNodeInfoFunction<SupportNode , string> , 
     is_empty        ?: EditorNodeInfoFunction<SupportNode , boolean> , 
-    render_element  ?: (props: ConceptSubcomponentInformation)=>any , 
+    render_element  ?: ()=>any , 
 }){
     return (props: EditorRendererProps<SupportNode>) => {
         let editor      = props.editor
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
-        let label = get_label(node, parameters)
-        let empty = is_empty(node, parameters)
+        let label       = get_label(node, parameters)
+        let empty       = is_empty(node, parameters)
         let R = render_element
 
-        return <ComponentPaper is_inline>{props.children}<UnselecableBox>
+        return <NodeInfoProvider node={node}>
+        <ComponentPaper is_inline>{props.children}<UnselecableBox>
             <AutoStack force_direction = "row">
                 <Box sx={{
                     marginX: "0.25rem"
                 }}>
-                    {empty ? <StructureTypography>EMPTY</StructureTypography> : <R node={node} /> }
+                    {empty ? <StructureTypography>EMPTY</StructureTypography> : <R /> }
                 </Box>
                 <AutoStack force_direction = {empty ? "row" : "column"}>
                     <StructureTypography sx={{marginY: "0.2rem", marginX: "auto"}}>{label}</StructureTypography>
                     <FoldedButtonGroup 
-                        node = {node}
                         button_comp = {with_partial_props(IconButton, {
                             size: "small" , 
                             children: <KeyboardArrowDownIcon fontSize="small"/> , 
                         })}
                         label = "展开"
                         buttons = {[
-                            <DefaultParameterEditButton node={node} /> , 
-                            <DefaultNewAbstractButton node={node} /> , 
-                            <DefaultEditAbstractButton node={node} /> , 
-                            <DefaultCloseButton node={node} /> , 
-                            <NewParagraphButtonUp node={node} /> , 
-                            <NewParagraphButtonDown node={node} /> , 
+                            <DefaultParameterEditButton /> , 
+                            <DefaultNewAbstractButton /> , 
+                            <DefaultEditAbstractButton /> , 
+                            <DefaultCloseButton /> , 
+                            <NewParagraphButtonUp /> , 
+                            <NewParagraphButtonDown /> , 
                         ]}
                         level = {1}
                         max_level = {1}
@@ -172,5 +173,6 @@ function get_default_display_editor({
                 </AutoStack>
             </AutoStack>
         </UnselecableBox></ComponentPaper>
+        </NodeInfoProvider>
     }
 }

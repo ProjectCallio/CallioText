@@ -7,40 +7,7 @@ import React from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
-import {
-    useSpaceNavigatorOnMoveRegister ,
-    useKeyHoldingState , 
-    useSpaceNavigatorState,  
-    useKeyEventsHandlerRegister,
-    KeyNames, 
-} from "@ftyyy/mouseless"
 
-import {
-    ConceptNode , 
-    ParameterList , 
-    ParameterValue, 
-} from "../../core"
-
-import {
-    EditorComponent ,
-    EditorGlobalInfo ,
-} from "../../editor"
-
-import {
-    get_position , 
-    decode_position , 
-    SPACE_NAME , 
-    HOLDING , 
-} from "./mouseless"
-
-import { 
-    AutoTooltip , 
-    Direction , 
-    AutoStack , 
-    AutoStackedPopper , 
-    AutoStackedPopperProps , 
-    click_all , 
-} from "../../uibase"
 import { 
     Tooltip , 
     IconButton , 
@@ -53,13 +20,29 @@ import {
 } from "@mui/material"
 
 import {
-    EditorButtonInformation , 
-    ButtonDescription , 
-    AutoStackedPopperWithButtonProps , 
-    AutoStackedPopperWithButton , 
-} from "./components"
+    useSpaceNavigatorState,  
+    useKeyEventsHandlerRegister,
+    KeyNames, 
+} from "@ftyyy/mouseless"
 
-import { produce } from "immer"
+
+import {
+    get_position , 
+    decode_position , 
+    SPACE_NAME , 
+    HOLDING , 
+} from "./mouseless"
+
+import { 
+    Direction , 
+    AutoStack , 
+    click_all , 
+} from "../../uibase"
+
+import {
+    useNode , 
+} from "../hooks"
+
 
 export {
     ButtonGroup , 
@@ -67,7 +50,6 @@ export {
 
 function ButtonGroup({
     buttons, 
-    node,
 
     level , 
     max_level , 
@@ -76,7 +58,6 @@ function ButtonGroup({
     simple = false,
 }:{
     buttons : React.ReactNode[]
-    node    : Slate.Node & ConceptNode
 
     level   : number
     max_level: number
@@ -84,7 +65,8 @@ function ButtonGroup({
     autostack?: boolean
     simple?: boolean
 }){
-    const direction = React.useContext(Direction)
+    const direction                    = React.useContext(Direction)
+    const node                         = useNode()
 
     const [cur_space , cur_position]   = useSpaceNavigatorState()
     const [cur_selected, set_cur_selected] = React.useState<number | undefined>(undefined)
@@ -103,19 +85,17 @@ function ButtonGroup({
 
         // 在纵向排列的时候，要交换level跟button_idx。
         let [node_idx, level_idx, button_idx] = decode_position(cur_position)
-        if(direction == "row"){
+        const is_column = (
+            (  simple  && direction == "column") || 
+            ((!simple) && direction == "row")
+        )
+        if(is_column){
             let swap = level_idx
             level_idx = button_idx
             button_idx = swap
         }
         const M = Math.max(max_level  + 1, 1)
         level_idx = ((level_idx % M) + M) % M 
-
-        if(node.idx == "232467525"){
-            console.log("ButtonGroup: direction", direction)
-            console.log("ButtonGroup: level_idx", level_idx)
-            console.log("ButtonGroup: button_idx", button_idx)
-        }
 
         if(node_idx != node.idx || level_idx != level){
             set_cur_selected(undefined)
@@ -147,17 +127,19 @@ function ButtonGroup({
         cur_selected , 
     ])
 
-    const ret = <React.Fragment>
+    const ret = React.useMemo(()=>{
+        return <React.Fragment>
         {buttons.map((button, idx)=>{
             return <div 
-                    key = {idx}
-                    ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
-                    style={{
-                        border: cur_selected == idx ? "2px solid" : "none" , 
-                    }}
+                key = {idx}
+                ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
+                style={{
+                    border: cur_selected == idx ? "2px solid" : "none" , 
+                }}
             >{button}</div>
         })}
-    </React.Fragment>
+        </React.Fragment>
+    } , [buttons, cur_selected])
 
     if(autostack){
         return <AutoStack simple={simple}>{ret}</AutoStack>
