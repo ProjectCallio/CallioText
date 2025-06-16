@@ -245,7 +245,6 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
                                     ...other_items
                                 } as ParameterValue
                             }
-                            console.log("new_param", new_param)
                             return {parameters: new_param}
                         }))
                     }}

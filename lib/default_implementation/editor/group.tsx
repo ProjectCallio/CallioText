@@ -101,19 +101,19 @@ import Color from "color"
 export { get_deafult_group_editor_with_appbar , get_default_group_editor_with_rightbar}
 
 /** 为 Group 类型的节点定制的 Paper ，在节点前后相连时会取消前后距离。 */
-let GroupPaper = (props: PaperProps) => {
-    let {sx, ...other_props} = props
-    const node = useNode<GroupNode>()
+const GroupPaper = React.memo((props: PaperProps) => {
+    const {sx, ...other_props} = props
+    const node_relation = useNode<GroupNode>(node=>node.relation)
     return <ComponentPaper {...other_props} 
         sx = {{
-            ...(node.relation == "chaining" ? { 
+            ...(node_relation == "chaining" ? { 
                 marginTop: "0" ,
                 borderTop: "1px solid rgba(30, 30, 30, 0.5)" ,
             } : {}),
             ...sx,
         }}
     />
-}
+})
 
 // XXX 可以在Toolbar滚动的时候加一个指示...
 // TODO 能不能想办法给不可编辑区域弄点花纹啥的...
@@ -125,27 +125,28 @@ let GroupPaper = (props: PaperProps) => {
  * @returns 一个用于渲染group的组件。
  */
 function get_deafult_group_editor_with_appbar({
-    get_label     = (n,p)=>p.label, 
-    appbar_extra  = (n,p) => [] , 
+    get_label     = () => useParameters().label, 
+    buttons_extra = [] , 
     surrounder    = (props) => <>{props.children}</>
 }: {
-    get_label       ?: EditorNodeInfoFunction<GroupNode, string> ,  
-    appbar_extra    ?: EditorNodeInfoFunction<GroupNode, React.ReactNode[]> , 
+    get_label       ?: () => string ,  
+    buttons_extra   ?: (()=>React.ReactNode )[] , 
     surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
     // 渲染器
     const subcomp = ({
         editor, node, children
     }: EditorRendererProps<Slate.Node & GroupNode>) => {
-        const parameters  = React.useMemo(()=>(
-            editor.get_core().get_printer().process_parameters(node)
-        ), [editor, node])
-        const label       = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
 
+        const GetLabel = get_label
         const SUR = surrounder
 
         const theme   = useTheme()
         const bgcolor = React.useMemo(()=>light_grey( Color(theme.palette.primary.light) ), [theme])
+
+        if(node.idx == "232467525"){
+            console.log("node cate", node.parameters?.category)
+        }
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
@@ -158,7 +159,7 @@ function get_deafult_group_editor_with_appbar({
                         overflow: "auto" , 
                         paddingX: "1rem" , 
                     }}><AutoStack>
-                        <StructureTypography>{label}</StructureTypography>
+                        <StructureTypography><GetLabel /></StructureTypography>
                         <ButtonGroup 
                             level     = {0}
                             max_level = {0}
@@ -173,7 +174,7 @@ function get_deafult_group_editor_with_appbar({
                                 <DefaultCloseButton        /> , 
                                 <DefaultSoftDeleteButton   /> , 
                                 <CopyButton                /> , 
-                                ... appbar_extra(node, parameters)
+                                ... buttons_extra.map(B => <B/>)
                             ]}
                         />
                     </AutoStack></Box>
@@ -195,12 +196,14 @@ function get_deafult_group_editor_with_appbar({
  * @returns 一个用于渲染group的组件。
  */
 function get_default_group_editor_with_rightbar({
-    get_label       = (n,p)=>p.label, 
-    rightbar_extra  = (n,p) => [] , 
+    get_label       = () => useParameters().label, 
+    rightbar_extra  = undefined , 
+    buttons_extra   = [] , 
     surrounder      = (props) => <>{props.children}</>
 }: {
-    get_label       ?: EditorNodeInfoFunction<GroupNode, string> ,  
-    rightbar_extra  ?: EditorNodeInfoFunction<GroupNode, React.ReactNode[]> , 
+    get_label       ?: () => string ,  
+    rightbar_extra  ?: ()=>React.ReactNode , 
+    buttons_extra   ?: (()=>React.ReactNode )[] , 
     surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
 
@@ -208,18 +211,17 @@ function get_default_group_editor_with_rightbar({
         const editor      = props.editor
         const node        = props.node
         const parameters  = React.useMemo(()=>editor.get_core().get_printer().process_parameters(node), [editor, node])
-        const mylabel     = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
+        const GetLabel    = get_label
         
-        const extra_buttons = React.useMemo(()=>rightbar_extra(node, parameters), [rightbar_extra, node, parameters])
-        
+        const Extra = rightbar_extra 
         const SUR = surrounder
 
         // 根据node子节点数量估计这个组件是长的还是高的。
         const guess_high = (node.children.reduce((s,x)=>s += (slate_is_concept(x , "group") ? 2 : 1) , 0)) >= 3
 
         const normal_title = React.useMemo(()=>
-            <StructureTypography variant = "overline">{mylabel}</StructureTypography>
-        , [mylabel])
+            <StructureTypography variant = "overline"><GetLabel /></StructureTypography>
+        , [GetLabel])
         const small_title = React.useMemo(()=>
             <StructureTypography 
                 variant = "overline"
@@ -229,15 +231,20 @@ function get_default_group_editor_with_rightbar({
                     right: "0" , 
                     transform: "translate(0, -20%) scale(0.7)" , 
                 }}
-            >{mylabel}</StructureTypography>
-        , [mylabel])
+            ><GetLabel /></StructureTypography>
+        , [GetLabel])
 
         return <NodeInfoProvider node={node}>
         <GroupPaper>
         <SimpleAutoStack force_direction="row">
+
             <ComponentEditorBox autogrow key="edit">
                 <SUR>{props.children}</SUR>
             </ComponentEditorBox>
+
+            {Extra && <UnselecableBox>
+                <Extra/>
+            </UnselecableBox>}
 
             <UnselecableBox sx={{
                 position: "relative" , 
@@ -254,18 +261,18 @@ function get_default_group_editor_with_rightbar({
                 <FoldedButtonGroup 
                     level     = {0}
                     max_level = {0}
-                    popper_props = {{
+                    popper_props = {React.useMemo(()=>({
                         sx:{
                             opacity: "80%" , 
                         }
-                    }}
-                    button_comp = {React.useMemo(()=>with_partial_props(IconButton, {
+                    }), [])}
+                    button_comp = {React.useMemo(()=>(with_partial_props(IconButton, {
                         size: "small" , 
                         children: <KeyboardArrowDownIcon fontSize="small"/> , 
                         sx: {
                             marginY: "auto" , 
                         }
-                    }), [extra_buttons])}
+                    })), [])}
                     label = "展开"
                     buttons = {[
                         <DefaultParameterEditButton/> , 
@@ -277,7 +284,7 @@ function get_default_group_editor_with_rightbar({
                         <NewParagraphButtonUp      /> , 
                         <NewParagraphButtonDown    /> , 
                         <CopyButton                /> , 
-                        ... extra_buttons
+                        ... buttons_extra.map(B => <B/>)
                     ]}
                 /> 
             </AutoStack></UnselecableBox>

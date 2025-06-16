@@ -5,6 +5,9 @@
 
 import React, {useEffect, useState} from "react"
 
+import * as Slate from "slate"
+import * as SlateReact from "slate-react"
+
 import { 
     Typography ,  
     Card , 
@@ -24,13 +27,9 @@ import {
     RadioGroup , 
     Radio  , 
 } from "@mui/material"
-import { 
-    ExpandMore as ExpandMoreIcon , 
-    ChevronRight as ChevronRightIcon  , 
-} from "@mui/icons-material"
 
-import * as Slate from "slate"
-import * as SlateReact from "slate-react"
+
+import { GroupNode } from "../../../core"
 
 import { EditorStructureTypography as StructureTypography } from "../uibase/components"
 import { 
@@ -40,7 +39,6 @@ import {
  from "../../../editor"
 
 import { 
-    EditorButtonInformation , 
     DefaultParameterContainer , 
 } from "../../../implbase"
 import { UseAreaStore } from "../../areas"
@@ -50,7 +48,8 @@ export {
 }
 
 /** 参数更新抽屉的`props` */
-type DefaultParameterWithEditorWithDrawerProps = EditorButtonInformation & {
+type DefaultParameterWithEditorWithDrawerProps = {
+    node: Slate.Node & GroupNode
 
     /** 抽屉是否打开。 */
     open: boolean 

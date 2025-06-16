@@ -77,15 +77,14 @@ export {
 
 /** 这个函数返回一个默认的分界符组件。 */
 function get_default_spliter_editor({
-    get_title = (n,p)=>p.title
+    get_title = () => useParameters().title
 }: {
-    get_title?: EditorNodeInfoFunction<SupportNode , string>
+    get_title?: () => string
 }){
     return (props: EditorRendererProps<SupportNode>) => {
+        const GetTitle = get_title
         let editor      = props.editor
         let node        = props.node
-        let parameters  = editor.get_core().get_printer().process_parameters(node)
-        let title       = get_title(node, parameters)
 
         return <NodeInfoProvider node={node}>
         <UnselecableBox><ComponentBox>
@@ -94,7 +93,7 @@ function get_default_spliter_editor({
                     paddingX: "0.5rem"
                 }}>
                     <AutoStack force_direction="row">
-                        <StructureTypography>{title}</StructureTypography>
+                        <StructureTypography><GetTitle /></StructureTypography>
                         <FoldedButtonGroup 
                             level = {0}
                             max_level = {0}
@@ -127,11 +126,11 @@ function get_default_spliter_editor({
  * @param params.render_element 渲染内容。
  */
 function get_default_display_editor({
-    get_label       = (n,p)=>p.label, 
+    get_label       = () => useParameters().label, 
     is_empty        = (n,p)=>!(p.url) , 
     render_element  = ()=><img src={useParameters().url as string}/>, 
 } : {
-    get_label       ?: EditorNodeInfoFunction<SupportNode , string> , 
+    get_label       ?: ()=>string , 
     is_empty        ?: EditorNodeInfoFunction<SupportNode , boolean> , 
     render_element  ?: ()=>any , 
 }){
@@ -139,8 +138,9 @@ function get_default_display_editor({
         let editor      = props.editor
         let node        = props.node
         let parameters  = editor.get_core().get_printer().process_parameters(node)
-        let label       = get_label(node, parameters)
         let empty       = is_empty(node, parameters)
+
+        const GetLabel = get_label
         let R = render_element
 
         return <NodeInfoProvider node={node}>
@@ -152,7 +152,10 @@ function get_default_display_editor({
                     {empty ? <StructureTypography>EMPTY</StructureTypography> : <R /> }
                 </Box>
                 <AutoStack force_direction = {empty ? "row" : "column"}>
-                    <StructureTypography sx={{marginY: "0.2rem", marginX: "auto"}}>{label}</StructureTypography>
+                    <StructureTypography sx={{marginY: "0.2rem", marginX: "auto"}}>
+                        <GetLabel />
+                    </StructureTypography>
+                    
                     <FoldedButtonGroup 
                         button_comp = {with_partial_props(IconButton, {
                             size: "small" , 
@@ -167,8 +170,8 @@ function get_default_display_editor({
                             <NewParagraphButtonUp /> , 
                             <NewParagraphButtonDown /> , 
                         ]}
-                        level = {1}
-                        max_level = {1}
+                        level = {0}
+                        max_level = {0}
                     /> 
                 </AutoStack>
             </AutoStack>

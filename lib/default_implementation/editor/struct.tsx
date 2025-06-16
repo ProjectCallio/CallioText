@@ -53,6 +53,7 @@ import {
     EditorNodeInfoFunction , 
     useNode , 
     NodeInfoProvider , 
+    useParameters , 
 } from "../../implbase"
 
 import { 
@@ -101,16 +102,18 @@ function StructPaper(props: PaperProps){
  * @returns 一个用于渲染group的组件。
  */
 function get_default_struct_editor_with_rightbar({
-    get_label       = (n,p) => p.label , 
+    get_label       = () => useParameters().label , 
     get_numchildren = () => 1 ,
     get_widths      = () => [] ,
-    rightbar_extra  = () => [] , 
+    rightbar_extra  = undefined , 
+    buttons_extra   = [] , 
     surrounder      = (props) => <>{props.children}</> , 
 } : {
-    get_label       ?: EditorNodeInfoFunction<StructNode, string> , 
+    get_label       ?: () => string , 
     get_numchildren ?: EditorNodeInfoFunction<StructNode, number> , 
     get_widths      ?: EditorNodeInfoFunction<StructNode, number[]> ,
-    rightbar_extra  ?: EditorNodeInfoFunction<StructNode, React.ReactNode[]> , 
+    rightbar_extra  ?: () => React.ReactNode , 
+    buttons_extra   ?: (()=>React.ReactNode )[] , 
     surrounder      ?: (props: {children: any}) => any , 
 }): EditorRenderer<StructNode>{
 
@@ -122,8 +125,9 @@ function get_default_struct_editor_with_rightbar({
             editorcore.get_printer().process_parameters(node)
         ), [editor, node])
 
-        const mylabel = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
         const SUR     = surrounder
+        const Extra   = rightbar_extra
+        const GetLabel = get_label
 
         const mychildren = React.useMemo(()=>node.children, [node])
         const mypath = React.useMemo(()=>slate_concept_node2path(editor.get_slate() , node), [editor, node])
@@ -139,9 +143,10 @@ function get_default_struct_editor_with_rightbar({
         // 获得并规范元素的相对长度。
         let [widths, widthsum] = React.useMemo(()=>{
             let val = get_widths(node, parameters)
-            val = val.splice(0,num_children) // 确保为widths元素不少
-            while(val.length < num_children) // 确保widths元素不多
+            val = val.slice(0,num_children)   // 确保widths元素不少
+            while(val.length < num_children){ // 确保widths元素不多
                 val.push(1)
+            }
             let widthsum = val.reduce( (s,x)=>s+x , 0 ) // 求所有元素的和。
             return [val, widthsum]
         }, [get_widths, node, parameters, num_children])
@@ -160,7 +165,9 @@ function get_default_struct_editor_with_rightbar({
                 for(let x = mychildren.length; x < num_children; x++){
                     new_nodes.push(editorcore.create_group("structure-child" , "chaining"))
                 }
-                editor.add_nodes(new_nodes, [...mypath, mychildren.length]) // 在最后一个节点后面添加节点
+
+                // 在最后一个节点后面添加节点
+                editor.add_nodes(new_nodes, [...mypath, mychildren.length]) 
             }
         } , [editor, num_children, mychildren, mypath, editorcore])
 
@@ -181,9 +188,13 @@ function get_default_struct_editor_with_rightbar({
                     </Grid>
                 })}
             </Grid>
-                
+
+            {Extra && <UnselecableBox>
+                <Extra/>
+            </UnselecableBox>}
+
             <UnselecableBox><AutoStack>
-                <StructureTypography sx={{marginX: "auto"}}>{mylabel}</StructureTypography>
+                <StructureTypography sx={{marginX: "auto"}}><GetLabel /></StructureTypography>
                 <FoldedButtonGroup 
                     popper_props = {{
                         sx:{
@@ -205,10 +216,10 @@ function get_default_struct_editor_with_rightbar({
                         <NewParagraphButtonUp /> , 
                         <NewParagraphButtonDown /> , 
                         <CopyButton /> , 
-                        ... rightbar_extra(node, parameters) , 
+                        ... buttons_extra.map(B => <B/>)
                     ]}
-                    level = {1}
-                    max_level = {1}
+                    level = {0}
+                    max_level = {0}
                 /> 
             </AutoStack></UnselecableBox>
         </AutoStack></StructPaper>

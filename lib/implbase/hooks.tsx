@@ -27,6 +27,7 @@ export {
 
 interface CurNodeStore{
     node?: Slate.Node & ConceptNode
+    set_node: (new_node: Slate.Node & ConceptNode)=>void
 }
 
 const CurNode_ScopedStore = React.createContext<StoreApi<CurNodeStore> | null>(null)
@@ -34,6 +35,9 @@ const CurNode_ScopedStore = React.createContext<StoreApi<CurNodeStore> | null>(n
 function create_curnode_store(the_node: Slate.Node & ConceptNode): StoreApi<CurNodeStore>{
     return createStore<CurNodeStore>(set=>({
         node: the_node,
+        set_node: (new_node: Slate.Node & ConceptNode)=>{
+            set({node: new_node})
+        }
     }))
 }
 
@@ -45,6 +49,10 @@ function NodeInfoProvider({
     children?: React.ReactNode
 }){
     const store = React.useRef(create_curnode_store(node))
+
+    React.useEffect(()=>{
+        store.current.setState({node: node})
+    }, [node])
 
     return <CurNode_ScopedStore.Provider value={store.current}>{
         children

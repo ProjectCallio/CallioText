@@ -42,6 +42,7 @@ import {
     EditorNodeInfoFunction , 
     useNode , 
     NodeInfoProvider , 
+    useParameters , 
 } from "../../implbase"
 
 import { DefaultEditAbstractButton, DefaultNewAbstract, DefaultNewAbstractButton } from "./abstract"
@@ -66,25 +67,23 @@ export { get_default_inline_editor }
 /** 默认的内联样式渲染器。
  */
 function get_default_inline_editor({
-    get_label       = (n,p)=>p.label, 
+    get_label       = ()=>(useParameters().label), 
     surrounder      = (props) => <React.Fragment>{props.children}</React.Fragment> , 
     rightbar_extra  = () => <></> , 
+    buttons_extra   = [] , 
 }: {
-    get_label       ?: EditorNodeInfoFunction<InlineNode, string> , 
+    get_label       ?: () => string , 
     surrounder      ?: (props: {children?: any}) => any , 
-    rightbar_extra  ?: () => any  , 
-
+    rightbar_extra  ?: () => React.ReactNode  , 
+    buttons_extra   ?: (()=>React.ReactNode )[] , 
 }): EditorRenderer<InlineNode>{
     let subcomp = (props: EditorRendererProps<InlineNode>) => {
         const editor      = props.editor
         const node        = props.node
-        const parameters  = React.useMemo(()=>(
-            editor.get_core().get_printer().process_parameters(node)
-        ), [editor, node])
 
-        const label   = React.useMemo(()=>get_label(node, parameters), [get_label, node, parameters])
         const Extra = rightbar_extra
         const SUR   = surrounder
+        const GetLabel = get_label
 
         return <NodeInfoProvider node={node}>
         <ComponentPaper is_inline><AutoStack force_direction="row">
@@ -117,6 +116,7 @@ function get_default_inline_editor({
                             <DefaultSoftDeleteButton /> , 
                             <DefaultNewAbstractButton /> , 
                             <DefaultEditAbstractButton /> , 
+                            ... buttons_extra.map(B => <B/>)
                         ]}
                         level = {0}
                         max_level = {0}
@@ -125,7 +125,7 @@ function get_default_inline_editor({
                             marginY: "0.2rem", 
                             marginX: "auto", 
                             paddingX: "0.25rem"
-                        }}>{label}</StructureTypography>
+                        }}><GetLabel /></StructureTypography>
                     </FoldedButtonGroup>
                 </AutoStack>
             </UnselecableBox>

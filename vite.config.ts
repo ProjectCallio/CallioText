@@ -9,7 +9,19 @@ export default defineConfig({
         exclude: ["_node_modules", "__node_modules"]
     },
     plugins: [
-        react(),
+        react(({
+            babel: {
+                plugins:[],
+                presets:[[
+                    "@babel/preset-react",
+                    {
+                        runtime: "automatic",
+                        development: process.env.NODE_ENV === "development",
+                        importSource: "@welldone-software/why-did-you-render",
+                    },
+                ]]
+            }
+        })),
         dts({
             include: ["lib"],
             exclude: ["**/*.test.ts", "**/*.test.tsx"]
