@@ -55,7 +55,6 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
 
     const dragging  = useAreaStore(state => state.dragging)
     const drag_size = useAreaStore(state => state.drag_size)
-    const positions = useAreaStore(state => state.positions)
 
     const {set_dragging, set_positions, edit_flush} = useAreaStore.getState()
 
@@ -82,12 +81,11 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
         }
         window.addEventListener("mousemove", handle_mousemove)
         window.addEventListener("mouseup", handle_mouseup)
-        
-        return ()=>{
+                return ()=>{
             window.removeEventListener("mousemove", handle_mousemove)
             window.removeEventListener("mouseup", handle_mouseup)
         }
-    }, [dragging])
+    }, [dragging, drag_size])
 
 
     return <Box 

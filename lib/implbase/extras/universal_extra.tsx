@@ -93,8 +93,6 @@ function UniversalExtra({
         onDeactivate(value, editor, node)
 
         const slate = editor.get_slate()
-        console.log("slate instance:", slate)
-        console.log("selection:", selection)
         
         if(selection){
             setTimeout(() => { // 延迟执行，等待React渲染完毕

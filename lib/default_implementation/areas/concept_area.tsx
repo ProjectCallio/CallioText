@@ -82,12 +82,14 @@ const ConceptArea = React.memo(({
     if(!editor || !container){
         return <></>
     }
-    const editorcore = editor.get_editorcore()
 
-    const sec_concept_list = concept_list.reduce((cur, typename) => {
-        cur[typename] = editorcore.get_sec_concept_list(typename)
-        return cur
-    }, {} as {[key in Exclude<AllConceptTypes , "abstract">]: string[]})
+    const sec_concept_list = React.useMemo(()=>{
+        let editorcore = editor.get_editorcore()
+        return concept_list.reduce((cur, typename) => {
+            cur[typename] = editorcore.get_sec_concept_list(typename)
+            return cur
+        }, {} as {[key in Exclude<AllConceptTypes , "abstract">]: string[]})
+    }, [editor])
 
     return <Paper 
         elevation = {3} 

@@ -62,8 +62,6 @@ export {
     SPACE , 
 }
 
-// TODO 现在好像会导致卡顿，需要解决效率问题。
-
 function get_cur_node(): ConceptNode | undefined{
     const editor = useAreaStore.getState().editor
 
@@ -146,6 +144,7 @@ const SPACE: SpaceDefinition = {
     ]
 }
 
+// TODO 现在好像会导致卡顿，需要解决效率问题。
 const ParameterArea = React.memo(({
     paper_sx , 
     zIndex = 1000 , 
@@ -159,7 +158,7 @@ const ParameterArea = React.memo(({
 })=>{
     const editor = useAreaStore(state => state.editor)
     const box_ref = React.useRef<HTMLDivElement>(null)
-    const cur_node = useAreaStore(state => state.editor?.get_cur_concept_node())
+    const version = useAreaStore(state => state.edit_version) // 依赖这个值是为了获得正确的cur_node
 
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
@@ -178,6 +177,7 @@ const ParameterArea = React.memo(({
     if(!editor || !container){
         return <></>
     }
+    const cur_node    = React.useMemo(()=>editor.get_cur_concept_node(), [version])
 
     return <Paper 
         elevation = {3} 
