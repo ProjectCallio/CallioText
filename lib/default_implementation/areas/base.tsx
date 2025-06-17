@@ -44,8 +44,11 @@ interface AreaStore{
     editor    : EditorComponent | null
     set_editor    : (editor: EditorComponent) => void
 
-    edit_version   : number
-    edit_flush         : () => void // 强制刷新
+    nodeparam_version   : number
+    nodeparam_flush     : () => void // 当前节点被编辑触发的强制刷新
+
+    container_version   : number
+    container_flush     : () => void // 容器触发的强制刷新
     
     dragging      : AreaName | null
     set_dragging  : (dragging: AreaName | null) => void
@@ -61,8 +64,11 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
     editor        : null,
     set_editor    : (editor) => set({editor: editor }),
 
-    edit_version  : 0,
-    edit_flush    : () => set(state => ({edit_version: state.edit_version + 1 })),
+    nodeparam_version  : 0,
+    nodeparam_flush    : () => set(state => ({nodeparam_version: state.nodeparam_version + 1 })),
+
+    container_version   : 0,
+    container_flush     : () => set(state => ({container_version: state.container_version + 1 })),
 
     dragging      : null,
     set_dragging  : (dragging) => set({ dragging: dragging }),

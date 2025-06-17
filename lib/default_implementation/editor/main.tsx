@@ -100,7 +100,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     onFocusChange: ()=>void
     onSave: ()=> void
 
-    editor_ref       : React.RefObject<EditorComponent | null>
+    editor_ref: React.RefObject<EditorComponent | null>
+
+    edit_cache: React.RefObject<any | null>
 
     constructor(props: DefaultEditorComponentprops) {
         super(props)
@@ -110,7 +112,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         this.onFocusChange  = props.onFocusChange || (()=>{})
         this.onSave = props.onSave || (()=>{})
 
-        this.editor_ref         = React.createRef<EditorComponent | null>()
+        this.editor_ref = React.createRef<EditorComponent | null>()
+        this.edit_cache = React.createRef<any | null>()
 
         this.state = {
             editor_ready: false,
@@ -130,7 +133,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         const paper_right   = {xs: "89%" , md: "92%" , xl: "94%"} // 纸张的宽度，
         const toolbar_width = {xs: "10%" , md: "7%"  , xl: "5%" } // 工具栏的宽度。
 
-        const config              = make_editorconfig(this.props.config)
+        const config        = make_editorconfig(this.props.config)
 
         // 当焦点发生变化时，更新parameteredit_ref
         const onFocusChange = ()=>{
@@ -187,10 +190,23 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                                 onFocusChange()
 
                                 let editor = me.get_editor()
-                                if(editor){
-                                    useAreaStore.getState().set_editor(editor)
-                                    useAreaStore.getState().edit_flush() // 刷新一下
+                                if(!editor){
+                                    return
                                 }
+                                useAreaStore.getState().set_editor(editor)
+
+                                const cur_node = editor.get_cur_concept_node()
+                                if(!cur_node){
+                                    return
+                                }
+                                const cached_node = me.edit_cache.current
+                                if( // 只有当节点变化或者参数变化的时候才触发更新
+                                    cur_node?.idx !== cached_node?.idx
+                                    || cur_node.parameters !== cached_node.parameters
+                                ){
+                                    useAreaStore.getState().nodeparam_flush()
+                                }
+                                me.edit_cache.current = cur_node
                             }}
                             
                             onKeyDown           = {onkeydown}

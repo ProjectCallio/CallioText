@@ -58,12 +58,18 @@ function UniversalExtra({
     extra_small = false,
     onActivate   = ()=>{},
     onDeactivate = ()=>{},
+    onNodeChange = ()=>undefined,
 }: {
     width?: string
     variation?: "standard" | "outlined" | "filled"
     extra_small?: boolean
     onActivate  ?: (value: string, editor: EditorComponent, node: ConceptNode & Slate.Node) => void
     onDeactivate?: (value: string, editor: EditorComponent, node: ConceptNode & Slate.Node) => void
+    onNodeChange?: (
+        cur_node  : ConceptNode & Slate.Node, 
+        prev_node : ConceptNode & Slate.Node | undefined, 
+        prev_value: string , 
+    ) => string | undefined
 }) {
     const node = useNode()
     const editor = useEditor()
@@ -85,7 +91,7 @@ function UniversalExtra({
         }
 
         set_activated(activated => !activated)
-        set_selection(selection)
+        set_selection(editor.get_slate().selection)
 
     }, [editor, node.idx])
 
@@ -122,6 +128,7 @@ function UniversalExtra({
     const handle_focus = React.useCallback(()=>{
         onActivate(value, editor, node)
         if(!activated){
+            set_selection(editor.get_slate().selection)
             set_activated(true)
         }
     }, [onActivate, value, editor, node])
@@ -141,6 +148,18 @@ function UniversalExtra({
             div_ref.current?.blur()
         }
     }, [activated])
+
+    // 如果node变化了，则询问如何改变value
+    const prev_node = React.useRef<ConceptNode & Slate.Node | undefined>(undefined)
+    React.useEffect(()=>{
+        if(node !== prev_node.current){
+            const new_value = onNodeChange(node, prev_node.current, value)
+            if(new_value != undefined && new_value != value){
+                set_value(new_value)
+            }
+            prev_node.current = node
+        }
+    }, [onNodeChange, node, value])
 
     return <Box 
         sx = {{

@@ -60,7 +60,7 @@ export {
 }
 
 /** 这个函数是一个语法糖，用于自动创建带tooltip的按钮。 */
-function AutoIconButton({
+const AutoIconButton = React.memo(({
     onClick, 
     size = "small", 
     title, 
@@ -74,7 +74,7 @@ function AutoIconButton({
     icon?: any
     component?: "button" | "span"
     icon_props?: IconButtonProps
-}){
+})=>{
     const {sx, ...rest} = icon_props
     const Icon = icon
     
@@ -96,7 +96,7 @@ function AutoIconButton({
             <Icon/>
         </IconButton>
     </AutoTooltip>
-}
+})
 
 function MyImg(props: {img_url: string}){
     return <img src={props.img_url}></img>
@@ -106,44 +106,50 @@ function MyImg(props: {img_url: string}){
  * 这个组件向具体的编辑器和具体的节点提供 DefaultParameterContainer ，同时还提供一个按钮。
  * @param props.onExit 抽屉关闭时的行为。
  */
-function DefaultParameterEditButton({ onExit }: { onExit?: (e: any) => void }) {
+const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) => void }) => {
     const [open, set_open] = React.useState(false)
     const node = useNode()
 
-    return <Box sx={{ marginX: "auto" }}>
-        <AutoIconButton onClick={()=>{set_open(true)}} title="设置参数" icon={SettingsIcon} />
-        <DefaultParameterWithEditorWithDrawer 
+    // 只在parameters变的时候重新渲染
+    const subcomp = React.useMemo(()=>{
+        return <DefaultParameterWithEditorWithDrawer 
             node = {node} 
             open = {open} 
             onClose = {(e: any) => { 
                 onExit?.(e)
                 set_open(false)
-            }} 
+            }}
         />
+    }, [node.parameters, node.idx, open, onExit])
+
+    return <Box sx={{ marginX: "auto" }}>
+        <AutoIconButton onClick={()=>{set_open(true)}} title="设置参数" icon={SettingsIcon} />
+        {subcomp}
     </Box>
-}
+})
 
 /** 这个组件提供一个直接删除节点的按钮。 */
-function DefaultCloseButton() {
+const DefaultCloseButton = React.memo(() => {
     const node = useNode()
     const globalinfo = React.useContext(EditorGlobalInfo)
     const editor = globalinfo.editor
 
-    const run = () => {
+    // 只在node.idx变的时候重新渲染
+    const run = React.useCallback(() => {
         if(editor){
             editor.delete_concept_node(node)
         }
-    }
+    }, [node.idx, editor])
 
     return <AutoIconButton onClick={run} title="删除组件" icon={CloseIcon} />
-}
+})
 
 /** 这个组件提供一个删除节点，但是将其子节点移动到节点外的按钮。 */
-function DefaultSoftDeleteButton({ puretext }: { puretext?: boolean }) {
+const DefaultSoftDeleteButton = React.memo(({ puretext }: { puretext?: boolean }) => {
     const node = useNode()
     const editor = useEditor()
 
-    const run = () => {
+    const run = React.useCallback(() => {
         if(!editor){
             return
         }
@@ -159,47 +165,47 @@ function DefaultSoftDeleteButton({ puretext }: { puretext?: boolean }) {
         else{
             editor.unwrap_node(node)
         }
-    }
+    }, [node.idx, editor])
 
     return <AutoIconButton onClick={run} title="解除组件" icon={MoveUpIcon} />
-}
+})
 
 /** 这个组件提供一个在组件的上新建段落的节点。 */
-function NewParagraphButtonUp() {
+const NewParagraphButtonUp = React.memo(() => {
     const node = useNode()
     const editor = useEditor()
 
-    const run = () => {
+    const run = React.useCallback(() => {
         if(!editor){
             return
         }
         editor.add_nodes_before(editor.get_core().create_paragraph(), node)    
-    }
+    }, [node.idx, editor])
 
     return <AutoIconButton onClick={run} title="向上添加段落" icon={NorthIcon} />
-}
+})
 
 /** 这个组件提供一个在组件的下新建段落的节点。 */
-function NewParagraphButtonDown() {
+const NewParagraphButtonDown = React.memo(() => {
     const node = useNode()
     const editor = useEditor()
 
-    const run = () => {
+    const run = React.useCallback(() => {
         if(!editor){
             return
         }
         editor.add_nodes_after(editor.get_core().create_paragraph(), node)    
-    }
+    }, [node.idx, editor])
 
     return <AutoIconButton onClick={run} title="向下添加段落" icon={SouthIcon} />
-}
+})
 
 /** 这个按钮在一个概念下方复制此概念，并设置同样的参数。 */
-function CopyButton() {
+const CopyButton = React.memo(() => {
     const node = useNode()
     const editor = useEditor()
 
-    const run = () => {
+    const run = React.useCallback(() => {
         if(!editor){
             return
         }
@@ -220,36 +226,17 @@ function CopyButton() {
         if(new_node){
             editor.add_nodes_after(new_node, node)    
         }
-    }
+    }, [node.idx, node.parameters,editor])
 
     return <AutoIconButton onClick={run} title="复制此节点" icon={PhoneMissedIcon} />
-}
+})
 
 /** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 */
-function DefaultSwicth() {
+const DefaultSwicth = React.memo(() => {
     const node = useNode<GroupNode | StructNode>()
     const editor = useEditor()
     const [checked, set_checked] = React.useState(node.relation == "chaining")
     const switchref = React.useRef<HTMLInputElement | null>(null)
-
-    const get_switch = (): HTMLInputElement | undefined => {
-        return switchref.current || undefined
-    }
-
-    const switch_check_change = () => {
-        const checked = get_switch()?.checked
-        if(checked == undefined || !editor){
-            return
-        }
-        set_checked(checked)
-
-        if(checked){
-            editor.set_node(node, { relation: "chaining" })
-        }
-        else{
-            editor.set_node(node, { relation: "separating" })
-        }
-    }
 
     React.useEffect(() => {
         if((node.relation == "chaining") != checked){ 
@@ -257,16 +244,18 @@ function DefaultSwicth() {
         }
     }, [node])
 
-    const run = () => {
-        const switch_ = get_switch()
-        if(switch_){
-            switch_.click()
+    const switch_check_change = React.useCallback(() => {
+        const checked = switchref.current?.checked
+        if(checked == undefined || !editor){
+            return
         }
-    }
+        set_checked(checked)
+        editor.set_node(node, { relation: checked ? "chaining" : "separating" })
+    }, [node, editor])
+
 
     return <AutoTooltip title = "贴贴">
         <Switch 
-            onClick = {run}
             checked = {checked} 
             onChange = {switch_check_change} 
             sx = {{
@@ -281,4 +270,4 @@ function DefaultSwicth() {
             }}
         />
     </AutoTooltip>
-}
+})

@@ -66,12 +66,14 @@ const ConceptArea = React.memo(({
 })=>{
 
     const editor = useAreaStore(state => state.editor)
-    const version = useAreaStore(state => state.edit_version)
-    
+
+    // 为了当container变化的时候获得正确的container_ref
+    const container_version = useAreaStore(state => state.container_version)
+    const container = area_container_ref.current?.getBoundingClientRect()
+        
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
     
-    const container = area_container_ref.current?.getBoundingClientRect()
     const box_ref = React.useRef<HTMLDivElement>(null)
 
     // 保存当前选中的概念类型。

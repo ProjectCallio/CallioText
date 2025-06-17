@@ -56,7 +56,7 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
     const dragging  = useAreaStore(state => state.dragging)
     const drag_size = useAreaStore(state => state.drag_size)
 
-    const {set_dragging, set_positions, edit_flush} = useAreaStore.getState()
+    const {set_dragging, set_positions, container_flush} = useAreaStore.getState()
 
     React.useEffect(()=>{
         const handle_mousemove = (e: MouseEvent) => {
@@ -92,7 +92,7 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
         ref = {(el: HTMLDivElement | null)=>{
             if(el && area_container_ref.current !== el){ 
                 area_container_ref.current = el
-                edit_flush() // 刷新子组件
+                container_flush() // 刷新子组件
             }
         }}
         sx={{

@@ -202,10 +202,9 @@ function get_default_group_editor_with_rightbar({
     surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
 
-    const subcomp = (props: EditorRendererProps<Slate.Node & GroupNode>) => {
-        const editor      = props.editor
-        const node        = props.node
-        const parameters  = React.useMemo(()=>editor.get_core().get_printer().process_parameters(node), [editor, node])
+    const subcomp = ({
+        editor, node, children
+    }: EditorRendererProps<Slate.Node & GroupNode>) => {
         const GetLabel    = get_label
         
         const Extra = rightbar_extra 
@@ -234,7 +233,7 @@ function get_default_group_editor_with_rightbar({
             <SimpleAutoStack force_direction="row">
 
                 <ComponentEditorBox autogrow key="edit">
-                    <SUR>{props.children}</SUR>
+                    <SUR>{children}</SUR>
                 </ComponentEditorBox>
 
                 {Extra && <UnselecableBox>

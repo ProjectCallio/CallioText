@@ -65,8 +65,9 @@ type DefaultParameterWithEditorWithDrawerProps = {
  * @param props.open 抽屉是否打开。
  * @param props.onClose 抽屉应该关闭时的回调。如果不提供这个参数，抽屉就不会关闭。
  */
-function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorWithDrawerProps){
-    const onClose = props.onClose || ((e:any)=>{})
+const DefaultParameterWithEditorWithDrawer = React.memo(({
+    node, open, onClose
+}: DefaultParameterWithEditorWithDrawerProps)=>{
     const parametereditor_ref = React.useRef<DefaultParameterContainer | null>(null)
     const globalinfo = React.useContext(EditorGlobalInfo)
     const editor = globalinfo.editor
@@ -77,7 +78,7 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
     return editor && <Drawer 
         anchor      = "left"
         variant     = "temporary"
-        open        = {props.open}
+        open        = {open}
         onClose     = {onClose}
         ModalProps  = {{
             keepMounted: true,
@@ -91,12 +92,12 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
                     if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
                         // 在更新完毕之后，刷新area。
                         editor.add_apply_callback(()=>{
-                            useAreaStore.getState().edit_flush()
+                            useAreaStore.getState().nodeparam_flush()
                         })
 
                         // 在退出时更新所服务的节点的参数。
                         let parameters = parametereditor_ref.current.get_parameters()
-                        editor.auto_set_parameter(props.node, parameters)
+                        editor.auto_set_parameter(node, parameters)
                     }
                     SlateReact.ReactEditor.focus(editor.get_slate())
                     if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
@@ -111,13 +112,13 @@ function DefaultParameterWithEditorWithDrawer(props: DefaultParameterWithEditorW
             }
         }}
     >
-        <Box><StructureTypography>idx: {props.node.idx}</StructureTypography></Box>
+        <Box><StructureTypography>idx: {node.idx}</StructureTypography></Box>
         <Divider />
         <DefaultParameterContainer 
-            node     = {props.node} 
+            node     = {node} 
             ref      = {parametereditor_ref}
         />
         <Button onClick={onClose}>Close</Button>
     </Drawer>
-}
+})
 

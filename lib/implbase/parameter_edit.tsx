@@ -65,7 +65,7 @@ interface ParameterItemComponentProps{
 /** 
  * 这个组件负责一个参数项的更新操作。
  */
-class ParameterItemComponent extends React.Component <ParameterItemComponentProps , {
+class ParameterItemComponent extends React.PureComponent <ParameterItemComponentProps , {
     val: string | boolean | number
 }>{
     constructor(props: ParameterItemComponentProps){
@@ -74,17 +74,8 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
         this.state = {
             val: props.parameter_item.val
         }
-    }
-    
-    /** 当外界询问时，这个函数向外提供修改过的参数。 */
-    public get_item(): ParameterValue{
-        let {val, type, ...other_items} = this.props.parameter_item
-        let ret = {
-            val: this.state.val , 
-            type: type , 
-            ...other_items
-        } 
-        return ret as ParameterValue
+
+        this.get_component = this.get_component.bind(this)
     }
     
     componentDidUpdate(
@@ -100,25 +91,24 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
         }
     }
 
-    render(){
-        let me = this
-        let name = this.props.name
-        let type = this.props.parameter_item.type
-        let val = this.state.val
-        let onUpdate = this.props.onUpdate || (()=>{})
+    get_component({}){
+        const me = this
+        const {parameter_item, name, onUpdate} = this.props
+        const {val} = this.state
+        const type = parameter_item.type
 
-        let standard_props = {
+        const standard_props = {
             value: val ,
             label: name, 
             variant: "standard" as "standard" , // ts有毛病
             sx: {marginLeft: "5%"} , 
         }        
-        let standard_sx = {
+        const standard_sx = {
             marginLeft: "5%" , 
         }
 
-        if(this.props.parameter_item.choices){ // 如果有额外的一项choices
-            let choices = this.props.parameter_item.choices as (typeof val [])
+        if(parameter_item.choices){ // 如果有额外的一项choices
+            const choices = parameter_item.choices as (typeof val [])
 
             return <FormControl sx = {{...standard_sx , width: "100%"}}>
                 <FormLabel key="form">{name}</FormLabel>
@@ -127,10 +117,18 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
                     value = {val}
                     onChange = {e=>{
                         me.setState({val: e.target.value})
-                        onUpdate(e.target.value)
+                        onUpdate?.(e.target.value)
                     }}
                 >
-                    {choices.map((c,idx)=><FormControlLabel sx={{marginLeft: "5%"}} key={idx} value={c} label={c} control={<Radio />}/>)}
+                    {choices.map((c,idx)=>(
+                        <FormControlLabel 
+                            key     = {idx}
+                            value   = {c} 
+                            label   = {c} 
+                            control = {<Radio />}
+                            sx      = {{marginLeft: "5%"}} 
+                        />
+                    ))}
                 </RadioGroup>
             </FormControl>        
         }
@@ -138,7 +136,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
             return <TextField 
                 onChange = {e=>{
                     me.setState({val: e.target.value})
-                    onUpdate(e.target.value)
+                    onUpdate?.(e.target.value)
                 }}
                 {...standard_props}
                 sx = {standard_sx}
@@ -148,7 +146,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
             return <TextField 
                 onChange = {e=>{
                     me.setState({val: Number(e.target.value)})
-                    onUpdate(Number(e.target.value))
+                    onUpdate?.(Number(e.target.value))
                 }}
                 type = "number"
                 {...standard_props}
@@ -162,7 +160,7 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
                     checked = {val as boolean}
                     onChange = {e=>{
                         me.setState({val: e.target.checked})     
-                        onUpdate(e.target.checked)
+                        onUpdate?.(e.target.checked)
                     }}
                 />} 
                 sx = {standard_sx}
@@ -170,20 +168,25 @@ class ParameterItemComponent extends React.Component <ParameterItemComponentProp
         }
         return <></>
     }
+
+    render(){
+        const C = this.get_component
+        return <C />
+    }
 }
 
 
 
 /** 参数菜单的`props`。 */
 interface DefaultParameterContainerProps{
-    node: Slate.Node & ConceptNode
+    node     : Slate.Node & ConceptNode
     onSave  ?: (parameters: ParameterList)=>void
 }
 
 /** 这个类定义一个菜单组件，作为默认的参数更新器。 
  * 注意，这个类是一个菜单，不包含打开菜单的逻辑。
  */
-class DefaultParameterContainer extends React.Component <DefaultParameterContainerProps, {
+class DefaultParameterContainer extends React.PureComponent <DefaultParameterContainerProps, {
     parameters: ParameterList
 }>{
 
@@ -197,7 +200,11 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
         this.state = {
             parameters: props.node.parameters
         }
+
+        this.get_parameters = this.get_parameters.bind(this)
+        this.save = this.save.bind(this)
     }
+
     componentDidUpdate(
         prev_props: DefaultParameterContainerProps,
     ){
@@ -214,16 +221,21 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
         return this.state.parameters
     }
 
+    /** 保存参数。 */
+    save(){
+        this.props.onSave?.(this.get_parameters())
+    }
+
     /**
      * 渲染函数。
      * 注意，这个组件必须被包裹在一个 non_selectable_prop 的元素内部。
      */ 
     render(){
-        let me = this
-        let init_parameters = this.props.node.parameters
+        const me = this
+        const {node} = this.props
+        const init_parameters = node.parameters
 
-        let node_str = JSON.stringify(this.props.node)
-        let onSave = this.props.onSave || (()=>{})
+        const node_str = JSON.stringify(node)
 
         return <React.Fragment>
         <List>{Object.keys(init_parameters).map((key,idx)=>{
@@ -251,9 +263,7 @@ class DefaultParameterContainer extends React.Component <DefaultParameterContain
                 />
             </ListItem>
         })}</List>
-        <Button onClick = {()=>{
-            onSave(me.get_parameters())
-        }}>保存</Button>
+        <Button onClick = {me.save}>保存</Button>
         </React.Fragment>
     }
 }

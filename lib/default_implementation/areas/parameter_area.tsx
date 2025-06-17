@@ -155,13 +155,22 @@ const ParameterArea = React.memo(({
     area_id: AreaName
 })=>{
     const editor = useAreaStore(state => state.editor)
-    const version = useAreaStore(state => state.edit_version) // 依赖这个值是为了获得正确的cur_node
     
+    // 依赖nodeparam_version是为了当node被外部编辑的时候获得正确的cur_node
+    const nodeparam_version = useAreaStore(state => state.nodeparam_version)
+    const cur_node = React.useMemo(()=>editor?.get_cur_concept_node(), [nodeparam_version, editor])
+
+    // 依赖container_version是为了获得正确的container_ref
+    const container = area_container_ref.current?.getBoundingClientRect()
+    const container_version = useAreaStore(state => state.container_version)
+
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
     
-    const container = area_container_ref.current?.getBoundingClientRect()
     const box_ref = React.useRef<HTMLDivElement>(null)
+
+    // XXX 这个还没用上，不过可以调用他的.save()来保存
+    const parametereditor_ref = React.useRef<DefaultParameterContainer>(null)
 
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState()
@@ -171,8 +180,7 @@ const ParameterArea = React.memo(({
         }
         return decode_position(navi_position)
     }, [navi_position, navi_space])
-
-    const cur_node    = React.useMemo(()=>editor?.get_cur_concept_node(), [version, editor])
+    
     if(!editor || !container || !cur_node){
         return <></>
     }
@@ -181,8 +189,8 @@ const ParameterArea = React.memo(({
         elevation = {3} 
         sx  = {{
             position: "absolute",
-            top     : React.useMemo(()=>container.y + position.y, [container.y + position.y]),
-            left    : React.useMemo(()=>container.x + position.x, [container.x + position.x]),
+            top     : container.y + position.y,
+            left    : container.x + position.x,
             width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             height  : "auto" , 
@@ -191,9 +199,9 @@ const ParameterArea = React.memo(({
             padding: "2rem" , 
             ...paper_sx
         }}
-        ref         = {box_ref} 
+        ref = {box_ref} 
     >
-    <AnimatePresence mode="wait">{(
+    <AnimatePresence mode="sync">{(
         cur_node 
     ) && (
         <motion.div
@@ -202,8 +210,8 @@ const ParameterArea = React.memo(({
             animate     = {{ opacity: 1 }}
             exit        = {{ opacity: 0 }}
             transition  = {{ 
-                duration: 0.2,
-                transition: "easeInOut"
+                duration: 0.15,
+                ease: "easeOut"
             }}
             style={{
                 top     : "0"  , 
@@ -235,6 +243,7 @@ const ParameterArea = React.memo(({
                 maxHeight: "calc(min(40rem, 50vh))",
             }}>
                 <DefaultParameterContainer 
+                    ref = {parametereditor_ref}
                     node = {cur_node}
                     onSave = {(parameters: ParameterList) => {
                         editor.auto_set_parameter(cur_node, parameters)
@@ -244,5 +253,3 @@ const ParameterArea = React.memo(({
         </motion.div>
     )}</AnimatePresence></Paper>
 })
-
-ParameterArea.whyDidYouRender = true
