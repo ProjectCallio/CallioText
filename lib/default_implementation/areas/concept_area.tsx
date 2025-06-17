@@ -66,30 +66,33 @@ const ConceptArea = React.memo(({
 })=>{
 
     const editor = useAreaStore(state => state.editor)
-    const box_ref = React.useRef<HTMLDivElement>(null)
     const version = useAreaStore(state => state.edit_version)
-
+    
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
-
+    
     const container = area_container_ref.current?.getBoundingClientRect()
+    const box_ref = React.useRef<HTMLDivElement>(null)
 
     // 保存当前选中的概念类型。
     const [cur_type, set_cur_type] = usePersistedState<
         Exclude<AllConceptTypes , "abstract">
     >(`area-${area_id}/concept/cur_type`,"group")    
 
-    if(!editor || !container){
-        return <></>
-    }
-
     const sec_concept_list = React.useMemo(()=>{
-        let editorcore = editor.get_editorcore()
+        let editorcore = editor?.get_editorcore()
+        if(!editorcore){
+            return undefined
+        }
         return concept_list.reduce((cur, typename) => {
             cur[typename] = editorcore.get_sec_concept_list(typename)
             return cur
         }, {} as {[key in Exclude<AllConceptTypes , "abstract">]: string[]})
     }, [editor])
+
+    if(!editor || !container || !sec_concept_list){
+        return <></>
+    }
 
     return <Paper 
         elevation = {3} 
@@ -180,4 +183,3 @@ const ConceptArea = React.memo(({
         </motion.div>
     )}</AnimatePresence></Paper>
 })
-

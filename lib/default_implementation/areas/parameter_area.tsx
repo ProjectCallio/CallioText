@@ -151,19 +151,17 @@ const ParameterArea = React.memo(({
     area_id, 
 }:{
     paper_sx?: BoxProps["sx"]
-    onDragStart?: (e: React.MouseEvent) => void
-    onSetSize?: (size: {width: number, height: number}) => void
     zIndex?: number
     area_id: AreaName
 })=>{
     const editor = useAreaStore(state => state.editor)
-    const box_ref = React.useRef<HTMLDivElement>(null)
     const version = useAreaStore(state => state.edit_version) // 依赖这个值是为了获得正确的cur_node
-
+    
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
-
+    
     const container = area_container_ref.current?.getBoundingClientRect()
+    const box_ref = React.useRef<HTMLDivElement>(null)
 
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState()
@@ -174,17 +172,17 @@ const ParameterArea = React.memo(({
         return decode_position(navi_position)
     }, [navi_position, navi_space])
 
-    if(!editor || !container){
+    const cur_node    = React.useMemo(()=>editor?.get_cur_concept_node(), [version, editor])
+    if(!editor || !container || !cur_node){
         return <></>
     }
-    const cur_node    = React.useMemo(()=>editor.get_cur_concept_node(), [version])
 
     return <Paper 
         elevation = {3} 
         sx  = {{
             position: "absolute",
-            top     : container.y + position.y,
-            left    : container.x + position.x,
+            top     : React.useMemo(()=>container.y + position.y, [container.y + position.y]),
+            left    : React.useMemo(()=>container.x + position.x, [container.x + position.x]),
             width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             height  : "auto" , 
@@ -199,7 +197,7 @@ const ParameterArea = React.memo(({
         cur_node 
     ) && (
         <motion.div
-            key         = {cur_node.idx}
+            key         = { cur_node.idx }
             initial     = {{ opacity: 0 }}
             animate     = {{ opacity: 1 }}
             exit        = {{ opacity: 0 }}
@@ -246,3 +244,5 @@ const ParameterArea = React.memo(({
         </motion.div>
     )}</AnimatePresence></Paper>
 })
+
+ParameterArea.whyDidYouRender = true
