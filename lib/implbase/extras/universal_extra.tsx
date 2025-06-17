@@ -95,35 +95,45 @@ function UniversalExtra({
 
     }, [editor, node.idx])
 
-    const handle_blur = React.useCallback(()=>{
-        onDeactivate(value, editor, node)
-
+    const reset_selection = React.useCallback(()=>{
+        if(!selection){
+            return
+        }
         const slate = editor.get_slate()
         
-        if(selection){
-            setTimeout(() => { // 延迟执行，等待React渲染完毕
-                ReactSlate.ReactEditor.focus(slate)
-                Slate.Transforms.select(slate, selection)
+        setTimeout(() => { // 延迟执行，等待React渲染完毕
+            ReactSlate.ReactEditor.focus(slate)
+            Slate.Transforms.select(slate, selection)
 
-                
-                // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
+            
+            // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
+            Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
+            Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
+
+            
+            // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
+            // 这个好像是slate的bug...
+            const at_end = is_textend(slate, selection.focus)
+            if(at_end){
                 Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
-                Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
+            }
+          
+        }, 0)
 
-                
-                // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
-                // 这个好像是slate的bug...
-                const at_end = is_textend(slate, selection.focus)
-                if(at_end){
-                    Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
-                }
-              
-            }, 0)
-        }
+    }, [editor, selection])
+
+    const handle_blur = React.useCallback(()=>{
+        onDeactivate(value, editor, node)
+        
+        // XXX 不知道为什么，我发现即使这里不调用这个函数，他也会自动恢复selection。
+        // （不过他不会处理node末尾reset会失败的bug...）
+        // 不确定为什么，可能是slate的默认行为？
+        reset_selection()
+        
         if(activated){
             set_activated(false)
         }
-    }, [onDeactivate, editor, value, selection, node])
+    }, [onDeactivate, editor, value, node])
 
     const handle_focus = React.useCallback(()=>{
         onActivate(value, editor, node)
