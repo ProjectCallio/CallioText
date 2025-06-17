@@ -79,25 +79,9 @@ function UniversalExtra({
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
     const handle_keyevent = React.useCallback(()=>{
-        let selection = editor.get_slate().selection
-        if(!selection){ // 如果光标不在编辑器上
-            return undefined
-        }
-
-        const path2node = (path: number[]): Slate.Node & Node=> (
-            Slate.Editor.node(editor.get_slate(), path)[0] as Slate.Node & Node
-        )
-
-        // 向上寻找第一个概念节点。
-        let now_path = selection.anchor.path 
-        while(now_path.length > 0 && !slate_is_concept(path2node(now_path))){
-            now_path = now_path.slice(0,now_path.length-1) 
-        }
-        let now_node = path2node(now_path)
-
-
-        if(node.idx != (now_node as any).idx){
-            return
+        let now_node = editor.get_cur_concept_node()
+        if((!now_node) || (node.idx != now_node.idx)){
+            return 
         }
 
         set_activated(activated => !activated)

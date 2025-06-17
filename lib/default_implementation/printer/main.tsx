@@ -28,10 +28,6 @@ import {
     PartialPrinterConfig , 
 } from "./uibase"
 
-import {
-    Area , 
-} from "../areas"
-
 export {
     DefaultPrinterComponent , 
 }

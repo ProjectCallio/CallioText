@@ -58,7 +58,9 @@ import {
 } from "../../implbase/extras/mouseless"
 
 import {
-    UseAreaStore as useAreaStore, 
+    useAreaStore, 
+    parameterarea_space , 
+    Areas , 
 } from "../areas"
 
 import { 
@@ -142,12 +144,14 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 spaces = {[
                     buttons_get_mouseless_space(me.get_editor),
                     sidebar_space,
+                    parameterarea_space , 
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
                     buttons_holding ,
                     extras_keys , 
                     sidebar_space.holding,
+                    parameterarea_space.holding,
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 
@@ -184,9 +188,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
                                 let editor = me.get_editor()
                                 if(editor){
-                                    let slate = editor.get_slate()    
-                                    useAreaStore.getState().set_selection(slate.selection)
                                     useAreaStore.getState().set_editor(editor)
+                                    useAreaStore.getState().edit_flush() // 刷新一下
                                 }
                             }}
                             
@@ -215,6 +218,8 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         />
                     </AutoStack>
                 })()}</Box>
+
+                <Areas /> 
             </React.Fragment>)}</KeyEventManager>
             </EditorBackgroundPaper>
         )}</IdxConflictSolver>

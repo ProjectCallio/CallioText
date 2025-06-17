@@ -4,9 +4,24 @@
 import * as React from "react"
 import * as Slate from "slate"
 import {
+    NavigateBefore , 
+    NavigateNext , 
+} from "@mui/icons-material"
+
+import {
+    KeyNames , 
+    KeyName , 
+    useKeyHoldingState , 
+    NodeName, 
+    SpaceDefinition, 
+    useSpaceNavigatorState,
+} from "@ftyyy/mouseless"
+
+import {
     Node , 
     find_concept_nodes_by_path , 
     ConceptNode , 
+    find_node_by_path , 
 } from "../../core"
 import {
     EditorComponent , 
@@ -29,94 +44,147 @@ import {
 import {
     ParameterList , 
 } from "../../core"
-import {
-    NavigateBefore , 
-    NavigateNext , 
-} from "@mui/icons-material"
 
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    UseAreaStore , 
-    DraggerBox , 
+    useAreaStore , 
+    DraggerBox, 
+    AreaName, 
+    area_container_ref , 
 } from "./base"
 import {
-    mod_scrollbar , 
+    mod_scrollbar ,
+    usePersistedState ,  
 } from "../../uibase"
 
 export {
     ParameterArea , 
+    SPACE , 
+}
+
+// TODO 现在好像会导致卡顿，需要解决效率问题。
+
+function get_cur_node(): ConceptNode | undefined{
+    const editor = useAreaStore.getState().editor
+
+    if(!editor){
+        return undefined
+    }
+    return editor.get_cur_concept_node()
+}
+
+function encode_position(node_idx: string, param_idx: number): string{
+    return JSON.stringify([node_idx, param_idx])
+}
+function decode_position(position: string): [string, number]{
+    return JSON.parse(position) as [string, number]
+}
+
+const SPACE: SpaceDefinition = {
+    name: "parameter_area",
+    holding: [KeyNames.alt, KeyNames.s],
+    nodes: [],
+    onStart: (last?: NodeName)=> {
+        const cur_node = get_cur_node()
+        if(!cur_node){
+            return "_no_action"
+        }
+
+        // 如果上一次也停在当前节点，则返回上一次的position
+        const [last_node, last_paramidx] = last ? decode_position(last) : [null, -1]
+        if(last_node == cur_node.idx && !isNaN(last_paramidx)){
+            return last ?? "_no_action"
+        }
+
+        return encode_position(cur_node.idx, 0)
+    } , 
+    edges: [
+        {pressing: KeyNames.ArrowLeft, onMove: (from?:string)=>{
+            const cur_node = get_cur_node()
+            if(!cur_node){
+                return from ?? "_no_action"
+            }
+            const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
+            if(last_node == cur_node.idx && !isNaN(last_paramidx)){
+                return encode_position(cur_node.idx, last_paramidx-1) ?? "_no_action"
+            }
+            return encode_position(cur_node.idx, 0)
+        }} , 
+        {pressing: KeyNames.ArrowRight, onMove: (from?:string)=>{
+            const cur_node = get_cur_node()
+            if(!cur_node){
+                return from ?? "_no_action"
+            }
+            const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
+            if(last_node == cur_node.idx && !isNaN(last_paramidx)){
+                return encode_position(cur_node.idx, last_paramidx+1) ?? "_no_action"
+            }
+            return encode_position(cur_node.idx, 0)
+        }} , 
+        {pressing: KeyNames.ArrowUp, onMove: (from?:string)=>{
+            const cur_node = get_cur_node()
+            if(!cur_node){
+                return from ?? "_no_action"
+            }
+            const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
+            if(last_node == cur_node.idx && !isNaN(last_paramidx)){
+                return encode_position(cur_node.idx, last_paramidx-1) ?? "_no_action"
+            }
+            return encode_position(cur_node.idx, 0)
+        }} , 
+        {pressing: KeyNames.ArrowDown, onMove: (from?:string)=>{
+            const cur_node = get_cur_node()
+            if(!cur_node){
+                return from ?? "_no_action"
+            }
+            const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
+            if(last_node == cur_node.idx && !isNaN(last_paramidx)){
+                return encode_position(cur_node.idx, last_paramidx+1) ?? "_no_action"
+            }
+            return encode_position(cur_node.idx, 0)
+        }} , 
+    ]
 }
 
 const ParameterArea = React.memo(({
     paper_sx , 
-    onDragStart , 
-    position , 
-    onSetSize , 
     zIndex = 1000 , 
     area_id, 
-    dragging_me , 
 }:{
     paper_sx?: BoxProps["sx"]
     onDragStart?: (e: React.MouseEvent) => void
-    position: {x: number, y: number}
     onSetSize?: (size: {width: number, height: number}) => void
     zIndex?: number
-    area_id: string
-    dragging_me: boolean
+    area_id: AreaName
 })=>{
-    const editor    = UseAreaStore(state => state.editor)
-    const selection = UseAreaStore(state => state.selection)
-    const edit_version   = UseAreaStore(state => state.edit_version)
-
-    const [cur_concepts , set_cur_concepts] = React.useState<ConceptNode[]>([])
-    const [cur_level    , set_cur_level] = React.useState(0)
-
+    const editor = useAreaStore(state => state.editor)
     const box_ref = React.useRef<HTMLDivElement>(null)
+    const cur_node = useAreaStore(state => state.editor?.get_cur_concept_node())
 
-    const set_concepts = (set_level: boolean)=>{
-        if(!editor || !selection){
-            set_cur_concepts([])
-            return 
-        }
-        let cur_path = selection?.anchor.path
-        if(!cur_path){
-            set_cur_concepts([])
-            return 
-        }
-        let concept_nodes = find_concept_nodes_by_path(editor.get_root() , cur_path)
-        if(concept_nodes.length == 0){
-            set_cur_concepts([])
-            return 
-        }
+    const position    = useAreaStore(state => state.positions[area_id])
+    const dragging_me = useAreaStore(state => state.dragging == area_id)
 
-        let concept_num = concept_nodes.length
-        if(set_level){
-            set_cur_level(concept_num - 1)
-        }
-        else{
-            set_cur_level(cur_level % concept_num)
-        }
-        set_cur_concepts(concept_nodes)
+    const container = area_container_ref.current?.getBoundingClientRect()
 
+    // 无鼠标状态
+    const [navi_space, navi_position] = useSpaceNavigatorState()
+    const [navi_node, navi_paramidx] = React.useMemo(()=>{
+        if(!navi_position || navi_space != SPACE.name){
+            return [undefined, -1]
+        }
+        return decode_position(navi_position)
+    }, [navi_position, navi_space])
+
+    if(!editor || !container){
+        return <></>
     }
-
-    React.useEffect(()=>{
-        set_concepts(true)
-    }, [editor, selection])
-
-    React.useEffect(()=>{
-        set_concepts(false)
-    }, [edit_version])
-
-    const concept_num = cur_concepts.length
-    const cur_node    = concept_num > 0 ? cur_concepts[cur_level % concept_num] : null
 
     return <Paper 
         elevation = {3} 
         sx  = {{
             position: "absolute",
-            top     : position.y,
-            left    : position.x,
+            top     : container.y + position.y,
+            left    : container.x + position.x,
             width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             height  : "auto" , 
@@ -128,7 +196,7 @@ const ParameterArea = React.memo(({
         ref         = {box_ref} 
     >
     <AnimatePresence mode="wait">{(
-        editor && selection && concept_num > 0 && cur_node 
+        cur_node 
     ) && (
         <motion.div
             key         = {cur_node.idx}
@@ -151,8 +219,7 @@ const ParameterArea = React.memo(({
             }}
         >
             <DraggerBox  
-                onSetSize   = {onSetSize} 
-                onDragStart = {onDragStart} 
+                father_name = {area_id}
                 dragging_me = {dragging_me} 
                 father_ref  = {box_ref}
             />
@@ -161,23 +228,9 @@ const ParameterArea = React.memo(({
                 alignItems: "center",
                 justifyContent: "space-between"
             }}>
-                <IconButton 
-                    onClick={() => {
-                        set_cur_level((cur_level - 1 + concept_num) % concept_num)
-                    }}
-                >
-                    <NavigateBefore />
-                </IconButton>
                 <Typography variant="h6">
                     {cur_node.concept}
                 </Typography>
-                <IconButton 
-                    onClick={() => {
-                        set_cur_level((cur_level + 1) % concept_num)
-                    }}
-                >
-                    <NavigateNext />
-                </IconButton>
             </Box>
             <Box ref = {mod_scrollbar} sx={{
                 overflow: "auto",

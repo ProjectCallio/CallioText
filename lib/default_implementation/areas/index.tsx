@@ -4,14 +4,6 @@
 import * as React from "react"
 import * as Slate from "slate"
 import {
-    Node , 
-    find_concept_nodes_by_path , 
-    ConceptNode , 
-} from "../../core"
-import {
-    EditorComponent , 
-} from "../../editor"
-import {
     Box , 
     BoxProps , 
     Button , 
@@ -24,18 +16,17 @@ import {
     create , 
 } from "zustand"
 import {
-    DefaultParameterContainer , 
-} from "../../implbase/parameter_edit"
-import {
-    ParameterList , 
-} from "../../core"
-import {
     NavigateBefore , 
     NavigateNext , 
 } from "@mui/icons-material"
 import { motion, AnimatePresence } from "framer-motion"
+
+import {
+    ParameterList , 
+} from "../../core"
 import {
     ParameterArea , 
+    SPACE as parameterarea_space , 
 } from "./parameter_area"
 import {
     ConceptArea , 
@@ -45,48 +36,43 @@ import {
     usePersistedState,
 } from "../../uibase"
 
+import {
+    useAreaStore , 
+    AreaName , 
+    drag_offset_ref , 
+    area_container_ref , 
+} from "./base"
+
 export {
-    Area , 
+    AreaContainer , 
+    parameterarea_space , 
+    Areas , 
 }
-export * from "./parameter_area"
 export * from "./base"
 
-function Area({area_id = "unique_area"}:{area_id?: string}){
 
-    const [dragging, set_dragging]   = React.useState<string | null>(null)
-    const [drag_size, set_drag_size] = React.useState({
-        width: 100,
-        height: 100,
-    })
+function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
 
-    const [positions, set_positions] = usePersistedState(`area-${area_id}/positions`,{
-        param :{x: 0,y: 0} , 
-        concep:{x: 0,y: 0}
-    })
+    const dragging  = useAreaStore(state => state.dragging)
+    const drag_size = useAreaStore(state => state.drag_size)
+    const positions = useAreaStore(state => state.positions)
 
-    const offset_ref = React.useRef({x: 0, y: 0})
-    const area_ref   = React.useRef<HTMLDivElement>(null)
+    const {set_dragging, set_positions, edit_flush} = useAreaStore.getState()
 
     React.useEffect(()=>{
         const handle_mousemove = (e: MouseEvent) => {
             if (!dragging) return 
 
-            let rect = area_ref.current?.getBoundingClientRect()
+            let rect = area_container_ref.current?.getBoundingClientRect()
             if(!rect) return
 
-            let new_x = e.clientX - offset_ref.current.x
-            let new_y = e.clientY - offset_ref.current.y
+            let new_x = e.clientX - drag_offset_ref.current.x
+            let new_y = e.clientY - drag_offset_ref.current.y
         
             new_x = Math.max(0, Math.min(new_x, rect.width - drag_size.width))
             new_y = Math.max(0, Math.min(new_y, rect.height- drag_size.height))
                     
-            set_positions(state => ({
-                ...state,
-                [dragging]: {
-                    x: new_x,
-                    y: new_y,
-                }
-            }))
+            set_positions({[dragging]: {x: new_x, y: new_y}})
             e.preventDefault()
             e.stopPropagation()
         }
@@ -103,20 +89,14 @@ function Area({area_id = "unique_area"}:{area_id?: string}){
         }
     }, [dragging])
 
-    const make_ondragstart = (name: keyof typeof positions) => {
-        return (e: React.MouseEvent) => {
-            set_dragging(name)
-            offset_ref.current = {
-                x: e.clientX - positions[name].x,
-                y: e.clientY - positions[name].y,
-            }
-            e.preventDefault()
-            e.stopPropagation()
-        }
-    }
 
     return <Box 
-        ref = {area_ref}
+        ref = {(el: HTMLDivElement | null)=>{
+            if(el && area_container_ref.current !== el){ 
+                area_container_ref.current = el
+                edit_flush() // 刷新子组件
+            }
+        }}
         sx={{
             position: "absolute" , 
             top: 0,
@@ -124,22 +104,18 @@ function Area({area_id = "unique_area"}:{area_id?: string}){
             width: "100%",
             height: "100%",
         }}
-    >
+    />
+}
+
+function Areas({}){
+    return <>
         <ParameterArea 
-            position    = { positions.param           }
-            onDragStart = { make_ondragstart("param") }
-            onSetSize = { set_drag_size }
             zIndex = {1000}
-            area_id = {area_id}
-            dragging_me = {dragging == "param"}
+            area_id = "param"
         />
         <ConceptArea
-            position    = { positions.concep           }
-            onDragStart = { make_ondragstart("concep") }
-            onSetSize   = { set_drag_size }
             zIndex = {1001}
-            area_id = {area_id}
-            dragging_me = {dragging == "concep"}
+            area_id = "concep"
         />
-    </Box>
+    </>
 }

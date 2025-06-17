@@ -11,13 +11,20 @@ import {
 } from "@mui/material"
 
 import {
+    KeyNames , 
+    KeyName , 
+} from "@ftyyy/mouseless"
+
+import {
     AnimatePresence , 
     motion , 
 } from "framer-motion"
 
 import {
-    UseAreaStore , 
-    DraggerBox, 
+    useAreaStore , 
+    DraggerBox,
+    AreaName, 
+    area_container_ref , 
 } from "./base"
 import { EditorComponentEditingBox } from "../editor/uibase"
 
@@ -35,7 +42,11 @@ import {
 
 export {
     ConceptArea , 
+    HOLDING , 
 }
+
+
+const HOLDING = [KeyNames.alt, KeyNames.d]
 
 const concept_list = [
     "group"     as "group"      , 
@@ -46,30 +57,29 @@ const concept_list = [
 
 const ConceptArea = React.memo(({
     paper_sx , 
-    onDragStart , 
-    position , 
-    onSetSize , 
     zIndex = 1000 , 
     area_id , 
-    dragging_me , 
 }:{
     paper_sx?: BoxProps["sx"]
-    onDragStart?: (e: React.MouseEvent) => void
-    position: {x: number, y: number}
-    onSetSize?: (size: {width: number, height: number}) => void
     zIndex?: number
-    area_id: string
-    dragging_me: boolean
+    area_id: AreaName
 })=>{
 
-    const editor = UseAreaStore(state => state.editor)
+    const editor = useAreaStore(state => state.editor)
     const box_ref = React.useRef<HTMLDivElement>(null)
+    const version = useAreaStore(state => state.edit_version)
 
-    let [cur_type, set_cur_type] = usePersistedState<
+    const position    = useAreaStore(state => state.positions[area_id])
+    const dragging_me = useAreaStore(state => state.dragging == area_id)
+
+    const container = area_container_ref.current?.getBoundingClientRect()
+
+    // 保存当前选中的概念类型。
+    const [cur_type, set_cur_type] = usePersistedState<
         Exclude<AllConceptTypes , "abstract">
-    >(`area-${area_id}/concept/cur_type`,"group")
+    >(`area-${area_id}/concept/cur_type`,"group")    
 
-    if(!editor){
+    if(!editor || !container){
         return <></>
     }
     const editorcore = editor.get_editorcore()
@@ -83,8 +93,8 @@ const ConceptArea = React.memo(({
         elevation = {3} 
         sx  = {{
             position: "absolute",
-            top     : position.y,
-            left    : position.x,
+            top     : container.y + position.y,
+            left    : container.x + position.x,
             width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             
@@ -97,7 +107,6 @@ const ConceptArea = React.memo(({
         editor 
     ) && (
         <motion.div
-            ref         = {box_ref}
             initial     = {{ opacity: 0 }}
             animate     = {{ opacity: 1 }}
             exit        = {{ opacity: 0 }}
@@ -119,8 +128,7 @@ const ConceptArea = React.memo(({
             }}
         >
             <DraggerBox  
-                onSetSize   = {onSetSize} 
-                onDragStart = {onDragStart} 
+                father_name = {area_id}
                 dragging_me = {dragging_me} 
                 father_ref  = {box_ref}
             />

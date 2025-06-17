@@ -24,6 +24,7 @@ import {
     AllConceptTypes, 
 
     find_node_by_path , 
+    is_concetnode , 
 } from "../core"
 
 import {
@@ -217,16 +218,34 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         }
     }
 
-    get_node_by_path(path: number[]): Node | undefined{
+    get_node_by_path(path: number[]): (Node & Slate.Node) | undefined{
         return find_node_by_path(this.get_root() , path)
     }
-    get_cur_node(): Node | undefined{
+    get_cur_node(): (Node & Slate.Node) | undefined{
         let slate = this.get_slate()
         let path = slate.selection?.anchor?.path
         if(path == undefined){
             return undefined
         }
         return find_node_by_path(this.get_root() , path)
+    }
+    get_cur_concept_node(): (ConceptNode & Slate.Node) | undefined{
+        let slate = this.get_slate()
+        let now_path = slate.selection?.anchor?.path
+        if(now_path == undefined){
+            return undefined
+        }
+        while(now_path.length > 0 && (()=>{
+            let node = this.get_node_by_path(now_path)
+            return node && !is_concetnode(node)
+        })()){
+            now_path = now_path.slice(0,now_path.length-1) // 反复向上寻找，直到找到一个概念节点。
+        }
+        let now_node = this.get_node_by_path(now_path)
+        if(now_node == undefined){
+            return undefined
+        }
+        return now_node as (ConceptNode & Slate.Node)
     }
 
     set_root(root_property: Omit<Partial<AbstractNode>, "children">){

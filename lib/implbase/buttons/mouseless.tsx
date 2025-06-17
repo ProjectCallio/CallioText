@@ -123,25 +123,12 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
         if(editor == undefined){
             return undefined
         }
-        let selection = editor.get_slate().selection
-        if(!selection){ // 如果光标不在编辑器上
+        let now_node = editor.get_cur_concept_node()
+        if(!now_node){
             return undefined
         }
-
-
-        const path2node = (path: number[]): Slate.Node & Node=> (
-            Slate.Editor.node(editor.get_slate(), path)[0] as Slate.Node & Node
-        )
-
-        // 向上寻找概念节点。
-        let now_path = selection.anchor.path // 如果光标在编辑器上，那么就选择光标开始位置作为当前节点。
-        while(now_path.length > 0 && !slate_is_concept(path2node(now_path))){
-            now_path = now_path.slice(0,now_path.length-1) // 反复向上寻找，直到找到一个概念节点。
-        }
-        let now_node = path2node(now_path)
-
         // 如果退到了根节点，就说明没有找到概念节点，那么就返回兄弟节点。
-        if(now_path.length == 0 || !slate_is_concept(now_node)){ 
+        if(now_node.idx == editor.get_root().idx){ 
             return get_brother_concept(editor) ?? last
         }
 

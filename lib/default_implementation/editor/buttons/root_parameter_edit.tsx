@@ -148,12 +148,6 @@ class DefaultRootParameterEditButton extends React.PureComponent <DefaultRootPar
         this.state = {
             open: false
         }
-
-        this.run = this.run.bind(this)
-    }
-
-    run(){
-        this.setState({open:true})
     }
 
     render(){
@@ -162,7 +156,9 @@ class DefaultRootParameterEditButton extends React.PureComponent <DefaultRootPar
         let me = this
 
         return <Box sx={{marginX: "auto"}}>
-            <AutoIconButton onClick={me.run} title="设置参数" icon={SettingsIcon} size="medium"/>
+            <AutoIconButton onClick={()=>{
+                me.setState({open:true})
+            }} title="设置参数" icon={SettingsIcon} size="medium"/>
             <DefaultRootParameterWithEditorWithDrawer 
                 root = {props.root} 
                 editor = {props.editor}

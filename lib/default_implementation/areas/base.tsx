@@ -20,47 +20,89 @@ import {
     IconButton , 
     Stack , 
 } from "@mui/material"
-import {create} from "zustand"
+import { create } from "zustand"
+import { persist } from "zustand/middleware"
 
 
 export {
-    UseAreaStore , 
+    useAreaStore , 
     DraggerBox , 
+    drag_offset_ref , 
+    area_container_ref , 
 }
 
-const UseAreaStore = create<{
+export type {
+    AreaName , 
+}
+
+type AreaName = "param" | "concep"
+
+const drag_offset_ref = {current: {x: 0, y: 0}}
+const area_container_ref   = React.createRef<HTMLDivElement | null>()
+
+interface AreaStore{
     editor    : EditorComponent | null
     set_editor    : (editor: EditorComponent) => void
 
-    selection : Slate.Selection | null
-    set_selection : (selection: Slate.Selection | null) => void
-
     edit_version   : number
     edit_flush         : () => void // 强制刷新
-}>()((set)=>({
+    
+    dragging      : AreaName | null
+    set_dragging  : (dragging: AreaName | null) => void
+
+    drag_size     : {width: number, height: number}
+    set_drag_size : (size: {width: number, height: number}) => void
+
+    positions     : {[name in AreaName]: {x: number, y: number}}
+    set_positions : (positions: Partial<{[name in AreaName]: {x: number, y: number}}>) => void
+}
+
+const useAreaStore = create<AreaStore>()(persist((set)=>({
     editor        : null,
-    set_editor    : (editor) => set(state => ({ ...state , editor: editor })),
+    set_editor    : (editor) => set({editor: editor }),
 
-    selection     : null,
-    set_selection : (selection) => set(state => ({ ...state , selection: selection })),
+    edit_version  : 0,
+    edit_flush    : () => set(state => ({edit_version: state.edit_version + 1 })),
 
-    edit_version       : 0,
-    edit_flush         : () => set(state => ({ ...state , edit_version: state.edit_version + 1 })),
+    dragging      : null,
+    set_dragging  : (dragging) => set({ dragging: dragging }),
+
+    drag_size     : {width: 100, height: 100},
+    set_drag_size : (size) => set({ drag_size: size }),
+
+    positions     : {param :{x: 0,y: 0} , concep:{x: 0,y: 0}},
+    set_positions : (positions) => set(state => ({ positions: {
+        ...state.positions,
+        ...positions
+    }})),
+}), {
+    name: "area-positions",
+    partialize: (state) => ({
+        positions: state.positions,
+    }),
 }))
 
+
 function DraggerBox(props: BoxProps & {
+    father_name: AreaName
     onDragStart?: (e: React.MouseEvent<HTMLDivElement>) => void
     onSetSize  ?: (size: {width: number, height: number}) => void
     dragging_me?: boolean
     father_ref?: React.RefObject<HTMLDivElement | null>
 }){
     let {
-        onDragStart , 
-        onSetSize , 
         dragging_me , 
-        father_ref , 
+        father_ref  , 
+        father_name , 
         ...rest_props
     } = props
+
+    const {
+        set_drag_size , 
+        set_dragging , 
+    } = useAreaStore.getState()
+
+    const positions = useAreaStore(state => state.positions[father_name])
 
     return <Box
         {...rest_props}
@@ -77,15 +119,24 @@ function DraggerBox(props: BoxProps & {
             }
         }}
         onMouseDown = {(e: React.MouseEvent<HTMLDivElement>)=>{
-            // XXX 在这里调用onSetSize也许并不合理
+
+            // 设置当前拖动区域尺寸为父节点的尺寸
             if(father_ref?.current){
                 const rect = father_ref.current.getBoundingClientRect()
-                onSetSize?.({
+                set_drag_size({
                     width : rect.width,
                     height: rect.height,
                 })
             }
-            onDragStart?.(e)
+
+            // 设置当前拖动区域为父节点
+            set_dragging(father_name)
+            drag_offset_ref.current = {
+                x: e.clientX - positions.x,
+                y: e.clientY - positions.y,
+            }
+            e.preventDefault()
+            e.stopPropagation()
         }}
     />
 }
