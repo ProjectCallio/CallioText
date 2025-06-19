@@ -94,6 +94,7 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
     name: "area-positions",
     partialize: (state) => ({
         positions: state.positions,
+        open: state.open,
     }),
 }))
 

@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as Slate from "slate"
+import * as ReactSlate from "slate-react"
 
 import {
     ConceptNode , 
@@ -23,6 +24,7 @@ export {
     useParameters , 
     NodeInfoProvider , 
     useEditor , 
+    useResetSelection , 
 }
 
 interface CurNodeStore{
@@ -84,4 +86,53 @@ function useParameters(){
     const editor     = useEditor()
     const parameters = editor.get_core().get_printer().process_parameters(node)
     return parameters
+}
+
+function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
+    const node_entry = Slate.Editor.node(slate, point.path)
+    if (!node_entry) return false
+  
+    const node = node_entry[0]
+    return Slate.Text.isText(node) && point.offset === node.text.length
+  }
+
+function useResetSelection(){
+    const _selection_ref = React.useRef<Slate.Selection | null>(null)
+    const editor = useEditor()
+
+    
+    const reset_selection = React.useCallback(()=>{
+        const _selection = _selection_ref.current
+        if(!_selection){
+            return
+        }
+        const slate = editor.get_slate()
+        
+        setTimeout(() => { // 延迟执行，等待React渲染完毕
+            ReactSlate.ReactEditor.focus(slate)
+            Slate.Transforms.select(slate, _selection)
+
+            
+            // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
+            Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
+            Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
+
+            
+            // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
+            // 这个好像是slate的bug...
+            const at_end = is_textend(slate, _selection.focus)
+            if(at_end){
+                Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
+            }
+          
+        }, 0)
+
+    }, [editor])
+
+    const set_selection = React.useCallback(()=>{
+        const slate = editor.get_slate()
+        _selection_ref.current = slate.selection
+    }, [editor])
+
+    return [set_selection, reset_selection]
 }

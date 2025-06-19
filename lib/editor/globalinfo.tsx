@@ -23,8 +23,6 @@ export type {
 
 interface EditorGlobalInfoType{
     "editor" ?: EditorComponent , 
-    "slate"  ?: SlateReact.ReactEditor , 
-    "core"   ?: EditorCore ,                         // 这一项提供所有节点的环境。
 }
 
 const EditorGlobalInfo = React.createContext<EditorGlobalInfoType>({})

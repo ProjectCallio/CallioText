@@ -26,13 +26,15 @@ import {
     useKeyEvents , 
     useKeyHoldingState,
     useUpDownHandlers , 
-    useKeyDownUpProxy , 
+    useKeyDownUpProxy, 
+    useSpaceNavigatorState, 
 } from "@ftyyy/mouseless"
 
 import {
     EditorComponent , 
     EditorCore, 
     EditorComponentProps , 
+    EditorGlobalInfo
 } from "../../editor"
 import {
     ConceptNode , 
@@ -83,6 +85,35 @@ import {
 
 export { DefaultEditorComponent }
 
+function Test(){
+    const altdown = useKeyHoldingState([KeyNames.alt])
+    const qdown = useKeyHoldingState([KeyNames.q])
+    const wdown = useKeyHoldingState([KeyNames.w])
+    const edown = useKeyHoldingState([KeyNames.e])
+    const sdown = useKeyHoldingState([KeyNames.s])
+    const [space, node] = useSpaceNavigatorState()
+
+    return <React.Fragment>
+        <Box sx={{
+            position: "fixed",
+            top: "1rem",
+            left: "1rem",
+            width: "10rem",
+            height: "10rem",
+            backgroundColor: "red",
+            zIndex: 1000,
+        }}>
+            <Typography>alt: {altdown ? "true" : "false"}</Typography>
+            <Typography>q: {qdown ? "true" : "false"}</Typography>
+            <Typography>w: {wdown ? "true" : "false"}</Typography>
+            <Typography>e: {edown ? "true" : "false"}</Typography>
+            <Typography>s: {sdown ? "true" : "false"}</Typography>
+            <Typography>space: {space}</Typography>
+            <Typography>node: {node}</Typography>
+        </Box>
+    </React.Fragment>
+}
+
 type DefaultEditorComponentprops = EditorComponentProps & {
     config?: PartialEditorConfig
     onSave?: ()=>void // 保存时操作。
@@ -123,7 +154,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     }
 
     get_editor(){
-        return this.editor_ref?.current || undefined
+        return this.editor_ref?.current ?? undefined
     }
 
     render() {
@@ -167,6 +198,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     borderRight: "1px solid ",
                     left: "1%",
                 }}>
+                    <Test />
                     <EditorComponentEditingBox>
                         <EditorComponent
                             ref 		        = {(editor: EditorComponent)=>{
@@ -215,27 +247,31 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     </EditorComponentEditingBox>
                 </Box>
 
-                <Box key="area-2" sx = {{
-                    position: "absolute", 
-                    top: "1%" , 
-                    height: "99%", 
-                    left: paper_right, 
-                    width: toolbar_width,
-                }}>{(()=>{
-                    let editor = me.get_editor()
+                {/* 为其他组件提供editor上下文。 */}
+                <EditorGlobalInfo.Provider value={{editor: me.get_editor()}}>
 
-                    if(!editor){
-                        return <></>
-                    }
-                    return <AutoStack force_direction="column">
-                        <DefaultSidebar 
-                            editor = {editor}
-                            extras = {me.props.sidebar_extras}
-                        />
-                    </AutoStack>
-                })()}</Box>
+                    <Box key="area-2" sx = {{
+                        position: "absolute", 
+                        top: "1%" , 
+                        height: "99%", 
+                        left: paper_right, 
+                        width: toolbar_width,
+                    }}>{(()=>{
+                        let editor = me.get_editor()
 
-                <Areas /> 
+                        if(!editor){
+                            return <></>
+                        }
+                        return <AutoStack force_direction="column">
+                            <DefaultSidebar 
+                                editor = {editor}
+                                extras = {me.props.sidebar_extras}
+                            />
+                        </AutoStack>
+                    })()}</Box>
+
+                    <Areas /> 
+                </EditorGlobalInfo.Provider>
             </React.Fragment>)}</KeyEventManager>
             </EditorBackgroundPaper>
         )}</IdxConflictSolver>

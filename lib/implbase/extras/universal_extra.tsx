@@ -29,6 +29,7 @@ import {
     useNode, 
     useParameters, 
     useEditor, 
+    useResetSelection , 
 } from "../hooks"
 
 import {
@@ -43,13 +44,6 @@ interface UniversalExtraProps {
     width?: number
 }
 
-function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
-    const nodeEntry = Slate.Editor.node(slate, point.path)
-    if (!nodeEntry) return false
-  
-    const [node] = nodeEntry
-    return Slate.Text.isText(node) && point.offset === node.text.length
-  }
   
 
 function UniversalExtra({
@@ -77,8 +71,7 @@ function UniversalExtra({
     const [value, set_value] = React.useState("")
     const [activated, set_activated] = React.useState(false)
 
-    // 记录selection，以便在失焦时恢复。
-    const [selection, set_selection] = React.useState<Slate.Selection | undefined>(undefined)
+    const [set_selection, reset_selection] = useResetSelection()
 
     const div_ref = React.useRef<HTMLDivElement>(null)
 
@@ -91,36 +84,10 @@ function UniversalExtra({
         }
 
         set_activated(activated => !activated)
-        set_selection(editor.get_slate().selection)
+        set_selection()
 
     }, [editor, node.idx])
 
-    const reset_selection = React.useCallback(()=>{
-        if(!selection){
-            return
-        }
-        const slate = editor.get_slate()
-        
-        setTimeout(() => { // 延迟执行，等待React渲染完毕
-            ReactSlate.ReactEditor.focus(slate)
-            Slate.Transforms.select(slate, selection)
-
-            
-            // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
-            Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
-            Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
-
-            
-            // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
-            // 这个好像是slate的bug...
-            const at_end = is_textend(slate, selection.focus)
-            if(at_end){
-                Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
-            }
-          
-        }, 0)
-
-    }, [editor, selection])
 
     const handle_blur = React.useCallback(()=>{
         onDeactivate(value, editor, node)
@@ -138,7 +105,7 @@ function UniversalExtra({
     const handle_focus = React.useCallback(()=>{
         onActivate(value, editor, node)
         if(!activated){
-            set_selection(editor.get_slate().selection)
+            set_selection()
             set_activated(true)
         }
     }, [onActivate, value, editor, node])

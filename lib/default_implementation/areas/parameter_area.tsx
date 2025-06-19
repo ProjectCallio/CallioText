@@ -15,6 +15,7 @@ import {
     NodeName, 
     SpaceDefinition, 
     useSpaceNavigatorState,
+    useKeyEventsHandlerRegister , 
 } from "@ftyyy/mouseless"
 
 import {
@@ -38,14 +39,16 @@ import {
 import {
     create , 
 } from "zustand"
+import { motion, AnimatePresence } from "framer-motion"
+
 import {
     DefaultParameterContainer , 
-} from "../../implbase/parameter_edit"
+    DefaultParameterContainerRef, 
+} from "../../implbase"
 import {
     ParameterList , 
 } from "../../core"
 
-import { motion, AnimatePresence } from "framer-motion"
 import {
     useAreaStore , 
     DraggerBox, 
@@ -143,8 +146,6 @@ const SPACE: SpaceDefinition = {
         }} , 
     ]
 }
-
-// TODO 现在好像会导致卡顿，需要解决效率问题。
 const ParameterArea = React.memo(({
     paper_sx , 
     zIndex = 1000 , 
@@ -171,16 +172,37 @@ const ParameterArea = React.memo(({
     const box_ref = React.useRef<HTMLDivElement>(null)
 
     // XXX 这个还没用上，不过可以调用他的.save()来保存
-    const parametereditor_ref = React.useRef<DefaultParameterContainer>(null)
+    const parametereditor_ref = React.useRef<DefaultParameterContainerRef>(null)
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState()
-    const [navi_node, navi_paramidx] = React.useMemo(()=>{
+    const navi_paramidx = React.useMemo(()=>{
         if(!navi_position || navi_space != SPACE.name){
-            return [undefined, -1]
+            return undefined
         }
-        return decode_position(navi_position)
-    }, [navi_position, navi_space])
+        let [nv_node, nv_paramidx] = decode_position(navi_position)
+        if(nv_node != cur_node?.idx){
+            return undefined
+        }
+        let M = Object.keys(cur_node.parameters).length
+        return ((nv_paramidx % M) + M) % M
+    }, [navi_position, navi_space, cur_node])
+
+    React.useEffect(()=>{
+        const handler = ()=>{
+            const el = parametereditor_ref.current?.get_itemref(navi_paramidx)
+            if(!el){
+                return
+            }
+            console.log(el)
+            el.focus()
+        }
+        add_handler(SPACE.holding, KeyNames.Enter, false, handler)
+        return ()=>{
+            del_handler(SPACE.holding, KeyNames.Enter, false, handler)
+        }
+    }, [navi_paramidx])
     
     if(!editor || !container || !cur_node){
         return <></>
@@ -251,6 +273,8 @@ const ParameterArea = React.memo(({
                     onSave = {(parameters: ParameterList) => {
                         editor.auto_set_parameter(cur_node, parameters)
                     }}
+                    select_paramidx = {navi_paramidx}
+                    autoblur = {e=>e.key == KeyNames.s && e.altKey}
                 />
             </Box>
         </motion.div>
