@@ -2,26 +2,13 @@
  * @module
  */
 
- import React, {useEffect, useState} from "react"
+import React, {useEffect, useState} from "react"
 
 import { 
-    Typography ,  
-    Card , 
-    TextField ,
     Button , 
     Drawer , 
     Box , 
-    Select , 
-    Switch , 
-    MenuItem  , 
     Divider, 
-    List , 
-    FormControlLabel  , 
-    ListItem, 
-    FormControl , 
-    FormLabel  , 
-    RadioGroup , 
-    Radio  , 
 } from "@mui/material"
 import { 
     Settings as SettingsIcon , 
@@ -35,17 +22,17 @@ import {
     ParameterList , 
     ParameterValue , 
     AbstractNode, 
-} from "../../../core"
+} from "../../../../core"
 
-import { EditorComponentEditingBox, EditorStructureTypography as StructureTypography } from "../uibase/components"
+import { EditorStructureTypography as StructureTypography } from "../../uibase/components"
 import { 
     EditorComponent , 
     EditorGlobalInfo , 
-} from "../../../editor"
-import { AutoIconButton } from "./buttons"
+} from "../../../../editor"
+import { AutoIconButton } from "../base"
 import {
     DefaultParameterContainer , 
-} from "../../../implbase"
+} from "../../../../implbase"
 
 export { 
     DefaultRootParameterWithEditorWithDrawer , 
@@ -139,35 +126,25 @@ interface DefaultRootParameterEditButtonProps{
 /**
  * 这个组件提供`DefaultRootParameterWithEditorWithDrawer`的按钮
  */
-class DefaultRootParameterEditButton extends React.PureComponent <DefaultRootParameterEditButtonProps, {
-    open: boolean
-}> {
-    constructor(props: DefaultRootParameterEditButtonProps){
-        super(props)
+function DefaultRootParameterEditButton(props: DefaultRootParameterEditButtonProps) {
+    const [open, setOpen] = React.useState(false)
+    const onExit = props.onExit || ((e: any) => {})
 
-        this.state = {
-            open: false
-        }
-    }
-
-    render(){
-        let props = this.props
-        let onExit = props.onExit || ((e:any)=>{})
-        let me = this
-
-        return <Box sx={{marginX: "auto"}}>
-            <AutoIconButton onClick={()=>{
-                me.setState({open:true})
-            }} title="设置参数" icon={SettingsIcon} size="medium"/>
-            <DefaultRootParameterWithEditorWithDrawer 
-                root = {props.root} 
-                editor = {props.editor}
-                open = {me.state.open} 
-                onClose = {e=>{ 
-                    onExit(e)
-                    me.setState({open:false})
-                }} 
-            />
-        </ Box>
-    }
+    return <Box sx={{ marginX: "auto" }}>
+        <AutoIconButton 
+            onClick={() => setOpen(true)} 
+            title="设置参数" 
+            icon={SettingsIcon} 
+            size="medium" 
+        />
+        <DefaultRootParameterWithEditorWithDrawer 
+            root={props.root} 
+            editor={props.editor}
+            open={open} 
+            onClose={e => { 
+                onExit(e)
+                setOpen(false)
+            }} 
+        />
+    </Box>
 }

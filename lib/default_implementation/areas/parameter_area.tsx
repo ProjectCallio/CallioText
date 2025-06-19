@@ -164,6 +164,7 @@ const ParameterArea = React.memo(({
     const container = area_container_ref.current?.getBoundingClientRect()
     const container_version = useAreaStore(state => state.container_version)
 
+    const open = useAreaStore(state => state.open.param)
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
     
@@ -194,15 +195,16 @@ const ParameterArea = React.memo(({
             width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             height  : "auto" , 
-            overflow: "auto",
+            overflow: "auto" ,
+
+            padding: open ? "2rem" : "0", 
             
-            padding: "2rem" , 
             ...paper_sx
         }}
         ref = {box_ref} 
     >
     <AnimatePresence mode="sync">{(
-        cur_node 
+        open
     ) && (
         <motion.div
             key         = { cur_node.idx }
@@ -216,12 +218,13 @@ const ParameterArea = React.memo(({
             style={{
                 top     : "0"  , 
                 width   : "100%",
-                height  : "100%" , 
                 opacity: 1,
 
                 display: "flex",
                 flexDirection: "column",
                 gap: "1rem",
+
+                height: open ? "100%" : "0", 
             }}
         >
             <DraggerBox  

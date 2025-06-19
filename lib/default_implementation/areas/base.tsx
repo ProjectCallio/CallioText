@@ -58,6 +58,9 @@ interface AreaStore{
 
     positions     : {[name in AreaName]: {x: number, y: number}}
     set_positions : (positions: Partial<{[name in AreaName]: {x: number, y: number}}>) => void
+
+    open: {[name in AreaName]: boolean}
+    set_open: (name: AreaName, open: boolean) => void
 }
 
 const useAreaStore = create<AreaStore>()(persist((set)=>({
@@ -80,6 +83,12 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
     set_positions : (positions) => set(state => ({ positions: {
         ...state.positions,
         ...positions
+    }})),
+
+    open: {param: false, concep: false},
+    set_open: (name, open) => set(state => ({ open: {
+        ...state.open,
+        [name]: open
     }})),
 }), {
     name: "area-positions",

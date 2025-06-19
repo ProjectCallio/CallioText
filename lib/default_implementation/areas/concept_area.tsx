@@ -66,11 +66,12 @@ const ConceptArea = React.memo(({
 })=>{
 
     const editor = useAreaStore(state => state.editor)
-
+    
     // 为了当container变化的时候获得正确的container_ref
     const container_version = useAreaStore(state => state.container_version)
     const container = area_container_ref.current?.getBoundingClientRect()
-        
+    
+    const open = useAreaStore(state => state.open.concep)
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
     
@@ -97,7 +98,6 @@ const ConceptArea = React.memo(({
     }
 
     return <Paper 
-        elevation = {3} 
         sx  = {{
             position: "absolute",
             top     : container.y + position.y,
@@ -105,13 +105,14 @@ const ConceptArea = React.memo(({
             width   : "calc(min(20rem, 20vw))",
             zIndex  : zIndex,
             
-            padding: "2rem" , 
-            ...paper_sx
+            ...paper_sx,
+
+            padding: open ? "2rem" : "0", 
         }}
         ref         = {box_ref} 
     >
     <AnimatePresence mode="wait">{(
-        editor 
+        open
     ) && (
         <motion.div
             initial     = {{ opacity: 0 }}

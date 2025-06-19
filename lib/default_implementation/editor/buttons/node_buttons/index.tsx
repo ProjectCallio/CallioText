@@ -34,19 +34,20 @@ import {
     Node, 
     StructNode, 
     ConceptNode, 
-} from "../../../core"
+} from "../../../../core"
 import { 
     EditorComponent, 
     EditorGlobalInfo, 
     slate_concept_node2path, 
-} from "../../../editor"
-import { AutoTooltip, Direction, AutoStack, AutoStackedPopper, AutoStackedPopperProps } from "../../../uibase"
-import { DefaultParameterWithEditorWithDrawer } from "./parameter_edit" 
+} from "../../../../editor"
+import { AutoTooltip } from "../../../../uibase"
+import { DefaultParameterWithEditorWithDrawer } from "./param_drawer" 
+import { AutoIconButton } from "../base"
 import {
     useNode, 
     useParameters, 
     useEditor, 
-} from "../../../implbase"
+} from "../../../../implbase"
 
 export {    
     DefaultParameterEditButton, 
@@ -54,49 +55,9 @@ export {
     NewParagraphButtonUp, 
     NewParagraphButtonDown, 
     DefaultSwicth, 
-    AutoIconButton, 
     DefaultSoftDeleteButton, 
     CopyButton, 
 }
-
-/** 这个函数是一个语法糖，用于自动创建带tooltip的按钮。 */
-const AutoIconButton = React.memo(({
-    onClick, 
-    size = "small", 
-    title, 
-    icon, 
-    component = "button", 
-    icon_props = {}, 
-}:{
-    onClick?: IconButtonProps["onClick"]
-    size?: IconButtonProps["size"]
-    title?: string
-    icon?: any
-    component?: "button" | "span"
-    icon_props?: IconButtonProps
-})=>{
-    const {sx, ...rest} = icon_props
-    const Icon = icon
-    
-    return <AutoTooltip title={title}>
-        <IconButton 
-            onClick     = {onClick} 
-            component   = {component} 
-            sx          = {{
-                ...(size == "small" ? {
-                    paddingX: "0.05rem",
-                    transform: "scale(0.8)",
-                    transformOrigin: "center center", 
-                } : {}),
-                
-                ...(sx || {})
-            }}
-            {...rest} 
-        >
-            <Icon/>
-        </IconButton>
-    </AutoTooltip>
-})
 
 function MyImg(props: {img_url: string}){
     return <img src={props.img_url}></img>

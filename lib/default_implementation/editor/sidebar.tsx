@@ -33,6 +33,8 @@ import {
 import { 
     DefaultParameterEditButton , 
     DefaultRootParameterEditButton , 
+    ParamAreaControlButton,
+    ConceptAreaControlButton,
 } from "./buttons"
 
 import { 
@@ -43,8 +45,12 @@ import {
 } from "../../uibase"
 
 import {
-    UseAreaStore,
+    useAreaStore,
 } from "../areas"
+
+import {
+    MouselessButton,
+} from "../../implbase"
 
 export {
     DefaultSidebar , 
@@ -65,28 +71,6 @@ const SPACE: SpaceDefinition = {
             return (! from) ? ("0") : ( parseInt(from) - 1 ).toString()
         }}
     ]
-}
-
-function MouselessElement({
-    my_id,
-    cur_activated,
-    children,
-    ref,
-}: {
-    my_id: number,
-    cur_activated: number | undefined,
-    children: React.ReactNode,
-    ref?: React.Ref<HTMLDivElement>,
-}){
-    const is_activated = cur_activated == my_id
-    return <Box 
-        sx = {{
-            border: is_activated ? "1px solid #000" : "none",
-        }} 
-        ref = {ref}
-    >
-        {children}
-    </Box>
 }
 
 
@@ -141,24 +125,37 @@ function DefaultSidebar({
 
 
     return <React.Fragment>
-        <MouselessElement 
-            my_id = {0} 
-            cur_activated={cur_activated} 
+        <MouselessButton 
+            is_activated={cur_activated == 0}
             ref = {(el: HTMLDivElement)=>{refs.current[0] = el}}
         >
-        <DefaultRootParameterEditButton root={root} editor={editor}/>
-        </MouselessElement>
+            <DefaultRootParameterEditButton root={root} editor={editor}/>
+        </MouselessButton>
+
+        <MouselessButton 
+            is_activated={cur_activated == 1}
+            ref = {(el: HTMLDivElement)=>{refs.current[1] = el}}
+        >
+            <ParamAreaControlButton/>
+        </MouselessButton>
+
+        <MouselessButton 
+            is_activated={cur_activated == 2}
+            ref = {(el: HTMLDivElement)=>{refs.current[2] = el}}
+        >
+            <ConceptAreaControlButton/>
+        </MouselessButton>
+        
         <Divider />
         {extras.map((extra, exidx)=>{
             const Ex = extra
-            return <MouselessElement 
-                my_id={exidx + 1} 
-                cur_activated={cur_activated} 
+            return <MouselessButton 
+                is_activated={cur_activated == exidx + 3}
                 key = {exidx}
-                ref = {(el: HTMLDivElement)=>{refs.current[exidx + 1] = el}}
+                ref = {(el: HTMLDivElement)=>{refs.current[exidx + 3] = el}}
             >
                 <Ex editor={editor}/>
-            </MouselessElement>
+            </MouselessButton>
         })}
     </React.Fragment>
 }

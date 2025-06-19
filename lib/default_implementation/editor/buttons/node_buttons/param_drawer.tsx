@@ -29,19 +29,19 @@ import {
 } from "@mui/material"
 
 
-import { GroupNode } from "../../../core"
+import { GroupNode } from "../../../../core"
 
-import { EditorStructureTypography as StructureTypography } from "../uibase/components"
+import { EditorStructureTypography as StructureTypography } from "../../uibase/components"
 import { 
     EditorComponent , 
     EditorGlobalInfo , 
 }
- from "../../../editor"
+ from "../../../../editor"
 
 import { 
     DefaultParameterContainer , 
-} from "../../../implbase"
-import { useAreaStore } from "../../areas"
+} from "../../../../implbase"
+import { useAreaStore } from "../../../areas"
 
 export { 
     DefaultParameterWithEditorWithDrawer , 
