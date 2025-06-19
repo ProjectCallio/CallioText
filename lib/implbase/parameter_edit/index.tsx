@@ -66,6 +66,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
     onSave, 
     select_paramidx, 
     autoblur , 
+    onAutoBlur , 
 }: {
     node     : Slate.Node & ConceptNode
     onSave  ?: (parameters: ParameterList)=>void
@@ -75,6 +76,9 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
 
     /** 自动失焦条件。如果满足条件，则自动失焦。 */
     autoblur?: (e: React.KeyboardEvent)=>boolean
+
+    /** 如果有自动失焦，那么触发这个回调函数。 */
+    onAutoBlur?: ()=>void
 }, ref) => {
 
     // 初始化
@@ -127,6 +131,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
                 })
             }}
             autoblur = {autoblur}
+            onAutoBlur = {onAutoBlur}
         /></Box></ListItem>
     })}</List>
     <Button onClick={()=>{

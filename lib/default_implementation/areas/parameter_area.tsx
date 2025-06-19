@@ -16,6 +16,7 @@ import {
     SpaceDefinition, 
     useSpaceNavigatorState,
     useKeyEventsHandlerRegister , 
+    NO_ACTION , 
 } from "@ftyyy/mouseless"
 
 import {
@@ -65,15 +66,6 @@ export {
     SPACE , 
 }
 
-function get_cur_node(): ConceptNode | undefined{
-    const editor = useAreaStore.getState().editor
-
-    if(!editor){
-        return undefined
-    }
-    return editor.get_cur_concept_node()
-}
-
 function encode_position(node_idx: string, param_idx: number): string{
     return JSON.stringify([node_idx, param_idx])
 }
@@ -83,64 +75,64 @@ function decode_position(position: string): [string, number]{
 
 const SPACE: SpaceDefinition = {
     name: "parameter_area",
-    holding: [KeyNames.alt, KeyNames.s],
+    holding: [KeyNames.alt, KeyNames.z],
     nodes: [],
     onStart: (last?: NodeName)=> {
-        const cur_node = get_cur_node()
+        const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
         if(!cur_node){
-            return "_no_action"
+            return NO_ACTION
         }
 
         // 如果上一次也停在当前节点，则返回上一次的position
         const [last_node, last_paramidx] = last ? decode_position(last) : [null, -1]
         if(last_node == cur_node.idx && !isNaN(last_paramidx)){
-            return last ?? "_no_action"
+            return last ?? NO_ACTION
         }
 
         return encode_position(cur_node.idx, 0)
     } , 
     edges: [
         {pressing: KeyNames.ArrowLeft, onMove: (from?:string)=>{
-            const cur_node = get_cur_node()
+            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
             if(!cur_node){
-                return from ?? "_no_action"
+                return from ?? NO_ACTION
             }
             const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
             if(last_node == cur_node.idx && !isNaN(last_paramidx)){
-                return encode_position(cur_node.idx, last_paramidx-1) ?? "_no_action"
+                return encode_position(cur_node.idx, last_paramidx-1) ?? NO_ACTION
             }
             return encode_position(cur_node.idx, 0)
         }} , 
         {pressing: KeyNames.ArrowRight, onMove: (from?:string)=>{
-            const cur_node = get_cur_node()
+            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
             if(!cur_node){
-                return from ?? "_no_action"
+                return from ?? NO_ACTION
             }
             const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
             if(last_node == cur_node.idx && !isNaN(last_paramidx)){
-                return encode_position(cur_node.idx, last_paramidx+1) ?? "_no_action"
+                return encode_position(cur_node.idx, last_paramidx+1) ?? NO_ACTION
             }
             return encode_position(cur_node.idx, 0)
         }} , 
         {pressing: KeyNames.ArrowUp, onMove: (from?:string)=>{
-            const cur_node = get_cur_node()
+            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
             if(!cur_node){
-                return from ?? "_no_action"
+                return from ?? NO_ACTION
             }
             const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
             if(last_node == cur_node.idx && !isNaN(last_paramidx)){
-                return encode_position(cur_node.idx, last_paramidx-1) ?? "_no_action"
+                return encode_position(cur_node.idx, last_paramidx-1) ?? NO_ACTION
             }
             return encode_position(cur_node.idx, 0)
         }} , 
         {pressing: KeyNames.ArrowDown, onMove: (from?:string)=>{
-            const cur_node = get_cur_node()
+            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
             if(!cur_node){
-                return from ?? "_no_action"
+                return from ?? NO_ACTION
             }
             const [last_node, last_paramidx] = from ? decode_position(from) : [null, -1]
             if(last_node == cur_node.idx && !isNaN(last_paramidx)){
-                return encode_position(cur_node.idx, last_paramidx+1) ?? "_no_action"
+                return encode_position(cur_node.idx, last_paramidx+1) ?? NO_ACTION
             }
             return encode_position(cur_node.idx, 0)
         }} , 
@@ -171,12 +163,14 @@ const ParameterArea = React.memo(({
     
     const box_ref = React.useRef<HTMLDivElement>(null)
 
-    // XXX 这个还没用上，不过可以调用他的.save()来保存
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef>(null)
-    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState()
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
+
+
+    // 当前选中的参数位置
     const navi_paramidx = React.useMemo(()=>{
         if(!navi_position || navi_space != SPACE.name){
             return undefined
@@ -189,13 +183,13 @@ const ParameterArea = React.memo(({
         return ((nv_paramidx % M) + M) % M
     }, [navi_position, navi_space, cur_node])
 
+    // 监听enter键
     React.useEffect(()=>{
         const handler = ()=>{
             const el = parametereditor_ref.current?.get_itemref(navi_paramidx)
             if(!el){
                 return
             }
-            console.log(el)
             el.focus()
         }
         add_handler(SPACE.holding, KeyNames.Enter, false, handler)
@@ -270,11 +264,18 @@ const ParameterArea = React.memo(({
                 <DefaultParameterContainer 
                     ref = {parametereditor_ref}
                     node = {cur_node}
+                    autoblur = {e=>e.key == KeyNames.z && e.altKey}
                     onSave = {(parameters: ParameterList) => {
                         editor.auto_set_parameter(cur_node, parameters)
                     }}
                     select_paramidx = {navi_paramidx}
-                    autoblur = {e=>e.key == KeyNames.s && e.altKey}
+                    onAutoBlur = {()=>{
+                        const parameters = parametereditor_ref.current?.get_parameters()
+                        if(!parameters){
+                            return
+                        }
+                        editor.auto_set_parameter(cur_node, parameters)
+                    }}
                 />
             </Box>
         </motion.div>

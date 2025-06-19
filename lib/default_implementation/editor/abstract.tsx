@@ -168,15 +168,14 @@ function DefaultAbstractEditor(props: { father: ConceptNode, sonidx: number, ope
                     init_rootchildren={son_children}
                     init_rootproperty={son_but_children}
 
-                    sidebar_extra={(editor) => { // 添加一个额外的退出按钮，方便在编辑抽象时退出。
-                        return [{
-                            button: <IconButton onClick={e => {
-                                props.onClose?.(e)
-                                e.preventDefault()
-                            }}><ArrowRightAltIcon /></IconButton>,
-                            run: () => { props.onClose?.(undefined) }
-                        }]
-                    }}
+                    sidebar_extras={[(editor) => { // 添加一个额外的退出按钮，方便在编辑抽象时退出。
+                        return <IconButton onClick={e => {
+                            props.onClose?.(e)
+                            e.preventDefault()
+                        }}>
+                            <ArrowRightAltIcon />
+                        </IconButton>
+                    }]}
 
                 />
             </ForceContain.Provider>

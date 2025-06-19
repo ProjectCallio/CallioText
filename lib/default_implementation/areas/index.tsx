@@ -30,6 +30,7 @@ import {
 } from "./parameter_area"
 import {
     ConceptArea , 
+    SPACE as conceptarea_space , 
 } from "./concept_area"
 
 import {
@@ -46,11 +47,12 @@ import {
 export {
     AreaContainer , 
     parameterarea_space , 
+    conceptarea_space , 
     Areas , 
 }
 export * from "./base"
 
-
+// XXX 启用id机制？
 function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
 
     const dragging  = useAreaStore(state => state.dragging)

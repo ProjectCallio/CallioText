@@ -62,12 +62,14 @@ const ParameterItemSelect = React.forwardRef(({
     choices , 
     onUpdate, 
     autoblur,
+    onAutoBlur , 
 }:{
     name    : string
     init_val: any
     choices : any[]
     onUpdate?: (val: any)=>void
     autoblur?: (e: React.KeyboardEvent)=>boolean
+    onAutoBlur?: ()=>void
 }, ref: React.Ref<ParameterItemComponentRef>)=>{
     const [val, set_val] = React.useState<any>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
@@ -81,6 +83,7 @@ const ParameterItemSelect = React.forwardRef(({
         get_formel: ()=>select_ref.current
     }))
 
+    // TODO 这个元素捕获不到keydown事件
     return <Select 
         value = {val}
         label = {name}
@@ -96,20 +99,25 @@ const ParameterItemSelect = React.forwardRef(({
                 onFocus: ()=>{
                     autoblur && (set_selection())
                 },
-                onBlur: ()=>{
-                    autoblur && (reset_selection())
-                },
                 onKeyDown: (e)=>{
+                    console.log("select inp:", e.key)
                     if(autoblur?.(e)){
                         select_ref.current?.blur()
+                        reset_selection()
+                        onAutoBlur?.()
                     }
                 },
             },
         }}
         inputRef = {select_ref}
+        onKeyDown={(e)=>{
+            console.log("select:", e.key)
+        }}
     >
         {choices.map((c,idx)=>(
-            <MenuItem key={idx} value={c}>{c}</MenuItem>
+            <MenuItem key={idx} value={c} onKeyDown={(e)=>{
+                console.log("item:", c, "keydown:", e.key)
+            }}>{c}</MenuItem>
         ))}
     </Select>
 })
@@ -118,11 +126,13 @@ const ParameterItemString = React.forwardRef(({
     init_val , 
     onUpdate,
     autoblur,
+    onAutoBlur , 
 }:{
     name: string
     init_val: string
     onUpdate?: (val: string)=>void
     autoblur?: (e: React.KeyboardEvent)=>boolean
+    onAutoBlur?: ()=>void
 }, ref: React.Ref<ParameterItemComponentRef>)=>{
     const [val, set_val] = React.useState<string>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
@@ -151,12 +161,11 @@ const ParameterItemString = React.forwardRef(({
                 onFocus: ()=>{
                     autoblur && (set_selection())
                 },
-                onBlur: ()=>{
-                    autoblur && (reset_selection())
-                },
             onKeyDown: (e)=>{
                     if(autoblur?.(e)){
                         textfield_ref.current?.blur()
+                        reset_selection()
+                        onAutoBlur?.()
                     }
                 },
             },
@@ -171,11 +180,13 @@ const ParameterItemNumber = React.forwardRef(({
     init_val , 
     onUpdate,
     autoblur,
+    onAutoBlur , 
 }:{
     name: string
     init_val: number
     onUpdate?: (val: number)=>void
     autoblur?: (e: React.KeyboardEvent)=>boolean
+    onAutoBlur?: ()=>void
 }, ref: React.Ref<ParameterItemComponentRef>)=>{
     const [val, set_val] = React.useState<number>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
@@ -204,12 +215,11 @@ const ParameterItemNumber = React.forwardRef(({
                 onFocus: ()=>{
                     autoblur && (set_selection())
                 },
-                onBlur: ()=>{
-                    autoblur && (reset_selection())
-                },
             onKeyDown: (e)=>{
                     if(autoblur?.(e)){
                         textfield_ref.current?.blur()
+                        reset_selection()
+                        onAutoBlur?.()
                     }
                 },
             },
@@ -224,11 +234,13 @@ const ParameterItemBoolean = React.forwardRef(({
     init_val , 
     onUpdate,
     autoblur,
+    onAutoBlur , 
 }:{
     name: string
     init_val: boolean
     onUpdate?: (val: boolean)=>void
     autoblur?: (e: React.KeyboardEvent)=>boolean
+    onAutoBlur?: ()=>void
 }, ref: React.Ref<ParameterItemComponentRef>)=>{
     const [val, set_val] = React.useState<boolean>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
@@ -255,12 +267,11 @@ const ParameterItemBoolean = React.forwardRef(({
                     onFocus: ()=>{
                         autoblur && (set_selection())
                     },
-                    onBlur: ()=>{
-                        autoblur && (reset_selection())
-                    },
                     onKeyDown: (e)=>{
                         if(autoblur?.(e)){
                             switch_ref.current?.blur()
+                            reset_selection()
+                            onAutoBlur?.()
                         }
                     },
                 },
@@ -278,6 +289,7 @@ const ParameterItemComponent = React.memo(React.forwardRef(({
     name , 
     onUpdate,
     autoblur,
+    onAutoBlur , 
 }:{
     /** 要更新的参数项的初始值。 */
     parameter_item: ParameterValue
@@ -291,6 +303,9 @@ const ParameterItemComponent = React.memo(React.forwardRef(({
     /** 自动失焦条件。如果满足条件，则自动失焦。 */
     autoblur?: (e: React.KeyboardEvent)=>boolean
     
+    /** 如果有自动失焦，那么触发这个回调函数。 */
+    onAutoBlur?: ()=>void
+    
 }, ref: React.Ref<ParameterItemComponentRef> )=>{
 
     const {val, type} = parameter_item
@@ -303,6 +318,7 @@ const ParameterItemComponent = React.memo(React.forwardRef(({
             onUpdate    = {onUpdate}
             ref         = {ref}
             autoblur    = {autoblur}
+            onAutoBlur  = {onAutoBlur}
         />
     }
 
@@ -313,6 +329,7 @@ const ParameterItemComponent = React.memo(React.forwardRef(({
             onUpdate = {onUpdate}
             ref      = {ref}
             autoblur = {autoblur}
+            onAutoBlur = {onAutoBlur}
         />
     }
 
@@ -323,6 +340,7 @@ const ParameterItemComponent = React.memo(React.forwardRef(({
             onUpdate = {onUpdate}
             ref      = {ref}
             autoblur = {autoblur}
+            onAutoBlur = {onAutoBlur}
         />
     }
 
@@ -333,6 +351,7 @@ const ParameterItemComponent = React.memo(React.forwardRef(({
             onUpdate = {onUpdate}
             ref      = {ref}
             autoblur = {autoblur}
+            onAutoBlur = {onAutoBlur}
         />
     }
     return <></>

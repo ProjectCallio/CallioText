@@ -13,6 +13,12 @@ import {
 import {
     KeyNames , 
     KeyName , 
+    useKeyHoldingState , 
+    NodeName, 
+    SpaceDefinition, 
+    useSpaceNavigatorState,
+    useKeyEventsHandlerRegister , 
+    NO_ACTION , 
 } from "@ftyyy/mouseless"
 
 import {
@@ -26,7 +32,6 @@ import {
     AreaName, 
     area_container_ref , 
 } from "./base"
-import { EditorComponentEditingBox } from "../editor/uibase"
 
 import {
     AllConceptTypes , 
@@ -39,14 +44,15 @@ import {
     usePersistedState,
 } from "../../uibase"
 
+import {
+    MouselessButton , 
+} from "../../implbase"
+
 
 export {
     ConceptArea , 
-    HOLDING , 
+    SPACE , 
 }
-
-
-const HOLDING = [KeyNames.alt, KeyNames.d]
 
 const concept_list = [
     "group"     as "group"      , 
@@ -54,6 +60,57 @@ const concept_list = [
     "support"   as "support"    , 
     "structure" as "structure"  , 
 ]
+
+function encode_position(
+    side : number , // 0表示在选type，1表示在选concept
+    idx  : number , 
+    otherside_idx: number , 
+): string{
+    return JSON.stringify([side, idx, otherside_idx])
+}
+function decode_position(position: string): [number, number, number]{
+    return JSON.parse(position) as [number, number, number]
+}
+
+const SPACE: SpaceDefinition = {
+    name: "concept_area",
+    holding: [KeyNames.alt, KeyNames.x],
+    nodes: [],
+    onStart: (last?: NodeName)=> {
+        return last ?? encode_position(1, 0, 0)
+    } , 
+    edges: [
+        {pressing: KeyNames.ArrowLeft, onMove: (from?:string)=>{
+            if(!from){
+                return encode_position(1, 0, 0)
+            }
+            const [side, idx, otherside_idx] = decode_position(from)
+            return encode_position(side ^ 1, otherside_idx, idx)
+        }} , 
+        {pressing: KeyNames.ArrowRight, onMove: (from?:string)=>{
+            if(!from){
+                return encode_position(1, 0, 0)
+            }
+            const [side, idx, otherside_idx] = decode_position(from)
+            return encode_position(side ^ 1, otherside_idx, idx)
+        }} , 
+        {pressing: KeyNames.ArrowUp, onMove: (from?:string)=>{
+            if(!from){
+                return encode_position(1, 0, 0)
+            }
+            const [side, idx, otherside_idx] = decode_position(from)
+            return encode_position(side, idx - 1, otherside_idx)
+        }} , 
+        {pressing: KeyNames.ArrowDown, onMove: (from?:string)=>{
+            if(!from){
+                return encode_position(1, 0, 0)
+            }
+            const [side, idx, otherside_idx] = decode_position(from)
+            return encode_position(side, idx + 1, otherside_idx)
+        }} , 
+    ]
+}
+
 
 const ConceptArea = React.memo(({
     paper_sx , 
@@ -80,7 +137,11 @@ const ConceptArea = React.memo(({
     // 保存当前选中的概念类型。
     const [cur_type, set_cur_type] = usePersistedState<
         Exclude<AllConceptTypes , "abstract">
-    >(`area-${area_id}/concept/cur_type`,"group")    
+    >(`area-${area_id}/concept/cur_type`,"group")
+
+    // 当前无鼠标操作的状态
+    const [navi_space, navi_position] = useSpaceNavigatorState()
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
     const sec_concept_list = React.useMemo(()=>{
         let editorcore = editor?.get_editorcore()
@@ -92,6 +153,42 @@ const ConceptArea = React.memo(({
             return cur
         }, {} as {[key in Exclude<AllConceptTypes , "abstract">]: string[]})
     }, [editor])
+
+    const [cur_side, cur_idx] = React.useMemo(()=>{
+        if(navi_space != SPACE.name ||!navi_position || !sec_concept_list || !editor){
+            return [undefined, undefined]
+        }
+        let [side, idx, _] = decode_position(navi_position)
+        let M = 0
+        if(side == 0){
+            M = concept_list.length
+        }
+        if(side == 1){
+            M = sec_concept_list[cur_type].length
+        }
+        idx = M > 0 ? (idx % M + M) % M : 0
+        return [side, idx]
+    }, [navi_space, navi_position, sec_concept_list, editor, cur_type])
+
+    React.useEffect(()=>{
+        if(cur_side == undefined || cur_idx == undefined || !sec_concept_list || !editor){
+            return
+        }
+        const handler = ()=>{
+            console.log(cur_side, cur_idx)
+            if(cur_side == 0){
+                const M = concept_list.length
+                set_cur_type(concept_list[cur_idx])
+            } 
+            if(cur_side == 1){
+                editor.new_concept_node(cur_type , sec_concept_list[cur_type][cur_idx])
+            }
+        }
+        add_handler(SPACE.holding, KeyNames.Enter, false, handler)
+        return ()=>{
+            del_handler(SPACE.holding, KeyNames.Enter, false, handler)
+        }
+    }, [cur_side, cur_idx, sec_concept_list, editor])
 
     if(!editor || !container || !sec_concept_list){
         return <></>
@@ -153,16 +250,20 @@ const ConceptArea = React.memo(({
                 <Box sx={{
                     display: "flex",
                     flexDirection: "column",
-                }}>{concept_list.map((typename) => {
-                    return <Button 
+                }}>{concept_list.map((typename, type_idx) => {
+                    return <MouselessButton
                         key={typename}
+                        is_activated={(
+                            cur_side == 0 && type_idx == cur_idx
+                        )}
+                    ><Button 
                         onClick={() => set_cur_type(typename)}
                     >{{
                         "group": "组", 
                         "inline": "行内", 
                         "support": "支持", 
                         "structure": "结构", 
-                    }[typename]}</Button>
+                    }[typename]}</Button></MouselessButton>
                 })}</Box>
 
                 <Box ref={mod_scrollbar} sx={{
@@ -175,11 +276,18 @@ const ConceptArea = React.memo(({
                     flexDirection: "column",
                     gap: "0.5rem",
                 }}>{sec_concept_list[cur_type].map((sec_ccpt) => (
-                    <Button key={sec_ccpt}
-                        onClick={() => {
-                            editor.new_concept_node(cur_type , sec_ccpt)
-                        }}
-                    >{sec_ccpt}</Button>
+                    <MouselessButton
+                        key={sec_ccpt}
+                        is_activated={(
+                            cur_side == 1 && cur_idx == sec_concept_list[cur_type].indexOf(sec_ccpt)
+                        )}
+                    >
+                        <Button 
+                            onClick={() => {
+                                editor.new_concept_node(cur_type , sec_ccpt)
+                            }}
+                        >{sec_ccpt}</Button>
+                    </MouselessButton>
                 ))}</Box>
                 </Box>
             </Box>

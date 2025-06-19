@@ -43,5 +43,10 @@ export default defineConfig({
                 }
             }
         }
-    }
+    },
+    // resolve: {
+    //     alias: {
+    //         "@ftyyy/mouseless": path.resolve(__dirname, "./mouseless_lib")
+    //     }
+    // }
 })

@@ -28,6 +28,7 @@ import {
     useUpDownHandlers , 
     useKeyDownUpProxy, 
     useSpaceNavigatorState, 
+    useAllHoldingKeys,
 } from "@ftyyy/mouseless"
 
 import {
@@ -62,6 +63,7 @@ import {
 import {
     useAreaStore, 
     parameterarea_space , 
+    conceptarea_space , 
     Areas , 
 } from "../areas"
 
@@ -86,11 +88,9 @@ import {
 export { DefaultEditorComponent }
 
 function Test(){
-    const altdown = useKeyHoldingState([KeyNames.alt])
-    const qdown = useKeyHoldingState([KeyNames.q])
-    const wdown = useKeyHoldingState([KeyNames.w])
-    const edown = useKeyHoldingState([KeyNames.e])
-    const sdown = useKeyHoldingState([KeyNames.s])
+
+    const holding_keys = useAllHoldingKeys()
+
     const [space, node] = useSpaceNavigatorState()
 
     return <React.Fragment>
@@ -98,16 +98,13 @@ function Test(){
             position: "fixed",
             top: "1rem",
             left: "1rem",
-            width: "10rem",
-            height: "10rem",
+            width: "15rem",
+            height: "5rem",
             backgroundColor: "red",
             zIndex: 1000,
         }}>
-            <Typography>alt: {altdown ? "true" : "false"}</Typography>
-            <Typography>q: {qdown ? "true" : "false"}</Typography>
-            <Typography>w: {wdown ? "true" : "false"}</Typography>
-            <Typography>e: {edown ? "true" : "false"}</Typography>
-            <Typography>s: {sdown ? "true" : "false"}</Typography>
+
+            <Typography>holding_keys: {holding_keys.join(", ")}</Typography>
             <Typography>space: {space}</Typography>
             <Typography>node: {node}</Typography>
         </Box>
@@ -179,6 +176,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     buttons_get_mouseless_space(me.get_editor),
                     sidebar_space,
                     parameterarea_space , 
+                    conceptarea_space , 
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
@@ -186,6 +184,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     extras_keys , 
                     sidebar_space.holding,
                     parameterarea_space.holding,
+                    conceptarea_space.holding,
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 
