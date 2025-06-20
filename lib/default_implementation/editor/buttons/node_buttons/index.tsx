@@ -69,7 +69,9 @@ function MyImg(props: {img_url: string}){
  */
 const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) => void }) => {
     const [open, set_open] = React.useState(false)
-    const node = useNode()
+    const node = useNode((prev, next) => (
+        prev.parameters === next.parameters && prev.idx == next.idx
+    ))
 
     // 只在parameters变的时候重新渲染
     const subcomp = React.useMemo(()=>{
@@ -89,11 +91,11 @@ const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) =
     </Box>
 })
 
+
 /** 这个组件提供一个直接删除节点的按钮。 */
 const DefaultCloseButton = React.memo(() => {
-    const node = useNode()
-    const globalinfo = React.useContext(EditorGlobalInfo)
-    const editor = globalinfo.editor
+    const editor = useEditor()
+    const node = useNode((prev, next) => (prev.idx == next.idx))
 
     // 只在node.idx变的时候重新渲染
     const run = React.useCallback(() => {
@@ -107,8 +109,8 @@ const DefaultCloseButton = React.memo(() => {
 
 /** 这个组件提供一个删除节点，但是将其子节点移动到节点外的按钮。 */
 const DefaultSoftDeleteButton = React.memo(({ puretext }: { puretext?: boolean }) => {
-    const node = useNode()
     const editor = useEditor()
+    const node = useNode((prev, next) => (prev.idx == next.idx))
 
     const run = React.useCallback(() => {
         if(!editor){
@@ -133,8 +135,8 @@ const DefaultSoftDeleteButton = React.memo(({ puretext }: { puretext?: boolean }
 
 /** 这个组件提供一个在组件的上新建段落的节点。 */
 const NewParagraphButtonUp = React.memo(() => {
-    const node = useNode()
     const editor = useEditor()
+    const node = useNode((prev, next) => (prev.idx == next.idx))
 
     const run = React.useCallback(() => {
         if(!editor){
@@ -148,8 +150,8 @@ const NewParagraphButtonUp = React.memo(() => {
 
 /** 这个组件提供一个在组件的下新建段落的节点。 */
 const NewParagraphButtonDown = React.memo(() => {
-    const node = useNode()
     const editor = useEditor()
+    const node = useNode((prev, next) => (prev.idx == next.idx))
 
     const run = React.useCallback(() => {
         if(!editor){
@@ -163,8 +165,13 @@ const NewParagraphButtonDown = React.memo(() => {
 
 /** 这个按钮在一个概念下方复制此概念，并设置同样的参数。 */
 const CopyButton = React.memo(() => {
-    const node = useNode()
     const editor = useEditor()
+    const node = useNode((prev, next) => (
+        prev.idx == next.idx
+        && prev.type == next.type 
+        && prev.concept == next.concept 
+        && prev.parameters === next.parameters 
+    ))
 
     const run = React.useCallback(() => {
         if(!editor){
@@ -187,14 +194,16 @@ const CopyButton = React.memo(() => {
         if(new_node){
             editor.add_nodes_after(new_node, node)    
         }
-    }, [node.idx, node.parameters,editor])
+    }, [node.idx, node.type, node.concept, node.parameters, editor])
 
     return <AutoIconButton onClick={run} title="复制此节点" icon={PhoneMissedIcon} />
 })
 
 /** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 */
 const DefaultSwicth = React.memo(() => {
-    const node = useNode<GroupNode | StructNode>()
+    const node = useNode<GroupNode | StructNode>((prev, next) => (
+        prev.relation == next.relation && prev.idx == next.idx
+    ))
     const editor = useEditor()
     const [checked, set_checked] = React.useState(node.relation == "chaining")
     const switchref = React.useRef<HTMLInputElement | null>(null)
@@ -232,3 +241,13 @@ const DefaultSwicth = React.memo(() => {
         />
     </AutoTooltip>
 })
+
+// DefaultParameterEditButton.whyDidYouRender = true
+// DefaultCloseButton.whyDidYouRender = true
+// NewParagraphButtonUp.whyDidYouRender = true
+// NewParagraphButtonDown.whyDidYouRender = true
+// DefaultSwicth.whyDidYouRender = true
+// DefaultSoftDeleteButton.whyDidYouRender = true
+// CopyButton.whyDidYouRender = true
+
+

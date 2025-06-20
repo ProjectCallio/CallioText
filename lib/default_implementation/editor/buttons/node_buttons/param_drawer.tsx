@@ -29,33 +29,24 @@ import {
 } from "@mui/material"
 
 
-import { GroupNode } from "../../../../core"
+import { ConceptNode } from "../../../../core"
 
 import { EditorStructureTypography as StructureTypography } from "../../uibase/components"
 import { 
     EditorComponent , 
     EditorGlobalInfo , 
+    useEditor , 
 }
  from "../../../../editor"
 
 import { 
+    DefaultParameterContainerRef , 
     DefaultParameterContainer , 
 } from "../../../../implbase"
 import { useAreaStore } from "../../../areas"
 
 export { 
     DefaultParameterWithEditorWithDrawer , 
-}
-
-/** 参数更新抽屉的`props` */
-type DefaultParameterWithEditorWithDrawerProps = {
-    node: Slate.Node & GroupNode
-
-    /** 抽屉是否打开。 */
-    open: boolean 
-
-    /** 抽屉应该关闭时的回调。 */
-    onClose?: (e:any)=>void
 }
 
 /**
@@ -67,10 +58,17 @@ type DefaultParameterWithEditorWithDrawerProps = {
  */
 const DefaultParameterWithEditorWithDrawer = React.memo(({
     node, open, onClose
-}: DefaultParameterWithEditorWithDrawerProps)=>{
-    const parametereditor_ref = React.useRef<DefaultParameterContainer | null>(null)
-    const globalinfo = React.useContext(EditorGlobalInfo)
-    const editor = globalinfo.editor
+}: {
+    node: Slate.Node & ConceptNode
+
+    /** 抽屉是否打开。 */
+    open: boolean 
+
+    /** 抽屉应该关闭时的回调。 */
+    onClose?: (e:any)=>void
+})=>{
+    const parametereditor_ref = React.useRef<DefaultParameterContainerRef | null>(null)
+    const editor = useEditor()
      
     // 记录进入时的光标位置，以便在退出时还原。
     const [enter_selection , set_ec] = React.useState<Slate.BaseSelection | null>(null)
@@ -120,5 +118,10 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         />
         <Button onClick={onClose}>Close</Button>
     </Drawer>
+}, (prev, next)=>{
+    return prev.node.idx == next.node.idx 
+    && prev.open == next.open
+    && prev.onClose === next.onClose
+    && prev.node.parameters === next.node.parameters
 })
 

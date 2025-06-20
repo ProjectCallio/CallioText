@@ -25,6 +25,7 @@ import {
 
 import {
     EditorComponent , 
+    useEditor ,  
 } from "../../editor"
 import {
     AllConceptTypes, 
@@ -79,12 +80,11 @@ const SPACE: SpaceDefinition = {
  * @param props.extra 所要额外添加的按钮列表。
 */
 function DefaultSidebar({
-    editor,
     extras = [],
 }: {
-    editor: EditorComponent
-    extras?: (({editor}: {editor: EditorComponent}) => React.ReactNode)[]
+    extras?: (() => React.ReactNode)[]
 }){
+    const editor = useEditor()
     const root = editor.get_root()
     const [cur_space, cur_node] = useSpaceNavigatorState()
 
@@ -154,7 +154,7 @@ function DefaultSidebar({
                 key = {exidx}
                 ref = {(el: HTMLDivElement)=>{refs.current[exidx + 3] = el}}
             >
-                <Ex editor={editor}/>
+                <Ex />
             </MouselessButton>
         })}
     </React.Fragment>

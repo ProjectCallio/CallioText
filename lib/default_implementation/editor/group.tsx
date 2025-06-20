@@ -102,7 +102,9 @@ export { get_deafult_group_editor_with_appbar , get_default_group_editor_with_ri
 /** 为 Group 类型的节点定制的 Paper ，在节点前后相连时会取消前后距离。 */
 const GroupPaper = React.memo((props: PaperProps) => {
     const {sx, ...other_props} = props
-    const node_relation = useNode<GroupNode>(node=>node.relation)
+    const node_relation = useNode<GroupNode>(
+        (prev, next) => (prev.relation == next.relation)
+    ).relation
     return <ComponentPaper {...other_props} 
         sx = {{
             ...(node_relation == "chaining" ? { 
@@ -159,18 +161,20 @@ function get_deafult_group_editor_with_appbar({
                             level     = {0}
                             max_level = {0}
 
-                            buttons = {[
-                                <DefaultParameterEditButton/> , 
-                                <DefaultNewAbstractButton  /> , 
-                                <DefaultEditAbstractButton /> , 
-                                <DefaultSwicth             /> , 
-                                <NewParagraphButtonUp      /> , 
-                                <NewParagraphButtonDown    /> , 
-                                <DefaultCloseButton        /> , 
-                                <DefaultSoftDeleteButton   /> , 
-                                <CopyButton                /> , 
-                                ... buttons_extra.map(B => <B/>)
-                            ]}
+                            buttons = {React.useMemo(()=>{
+                                console.log("buttons_extra updates", buttons_extra)
+                                return [
+                                <DefaultParameterEditButton key="param"/> , 
+                                <DefaultNewAbstractButton   key="newabs"/> , 
+                                <DefaultEditAbstractButton  key="editabs"/> , 
+                                <DefaultSwicth              key="switch"/> , 
+                                <NewParagraphButtonUp       key="up"/> , 
+                                <NewParagraphButtonDown     key="down"/> , 
+                                <DefaultCloseButton         key="close"/> , 
+                                <DefaultSoftDeleteButton    key="softdel"/> , 
+                                <CopyButton                 key="copy"/> , 
+                                ... buttons_extra.map((B, idx) => <B key={idx}/>)
+                            ]}, [buttons_extra])}
                         />
                     </AutoStack></Box>
                 </UnselecableBox >

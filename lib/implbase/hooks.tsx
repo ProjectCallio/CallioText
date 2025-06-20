@@ -63,18 +63,31 @@ function NodeInfoProvider({
 
 
 function useNode<NodeType extends ConceptNode = ConceptNode>(
-    selector?: (node: NodeType) => any
+    is_equal?: (prev: NodeType & Slate.Node, next: NodeType & Slate.Node) => boolean
 ){
     const store = React.useContext(CurNode_ScopedStore)
+    const prev_ref = React.useRef<NodeType & Slate.Node>(null)
+
+
     if(!store){
         throw new Error("Not in a `NodeInfoProvider` context.")
     }
+
+    React.useEffect(()=>{
+        prev_ref.current = null // 如果selector变化，则重置prev_ref
+    }, [is_equal])
+
     const info = useStore(store, useShallow(state=>{
-        if(selector){
-            return selector(state.node as NodeType)
+        let cur_node = state.node as NodeType & Slate.Node
+        if(is_equal && prev_ref.current && cur_node){
+            if(is_equal(prev_ref.current, cur_node)){ // 如果node不变...
+                return prev_ref.current // 就返回上次select的结果。
+            }
         }
-        return state.node
+        prev_ref.current = cur_node
+        return cur_node
     }))
+
     if(info instanceof Error){
         throw info
     }

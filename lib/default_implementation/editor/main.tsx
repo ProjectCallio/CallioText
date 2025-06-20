@@ -115,7 +115,7 @@ type DefaultEditorComponentprops = EditorComponentProps & {
     config?: PartialEditorConfig
     onSave?: ()=>void // 保存时操作。
 
-    sidebar_extras?: (({editor}: {editor: EditorComponent}) => React.ReactNode)[]
+    sidebar_extras?: (() => React.ReactNode)[]
 }
 
 /** 
@@ -247,7 +247,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 </Box>
 
                 {/* 为其他组件提供editor上下文。 */}
-                <EditorGlobalInfo.Provider value={{editor: me.get_editor()}}>
+                {me.get_editor() && <EditorGlobalInfo.Provider value={{editor: me.get_editor()}}>
 
                     <Box key="area-2" sx = {{
                         position: "absolute", 
@@ -263,14 +263,13 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         }
                         return <AutoStack force_direction="column">
                             <DefaultSidebar 
-                                editor = {editor}
                                 extras = {me.props.sidebar_extras}
                             />
                         </AutoStack>
                     })()}</Box>
 
                     <Areas /> 
-                </EditorGlobalInfo.Provider>
+                </EditorGlobalInfo.Provider>}
             </React.Fragment>)}</KeyEventManager>
             </EditorBackgroundPaper>
         )}</IdxConflictSolver>

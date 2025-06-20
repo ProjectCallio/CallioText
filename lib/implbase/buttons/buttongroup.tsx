@@ -48,7 +48,7 @@ export {
     ButtonGroup , 
 }
 
-function ButtonGroup({
+const ButtonGroup = React.memo(({
     buttons, 
 
     level , 
@@ -61,8 +61,8 @@ function ButtonGroup({
 
     level   : number
     max_level: number
-}){
-    const node                         = useNode()
+})=>{
+    const node                         = useNode((prev, next) => (prev.idx == next.idx))
 
     const [cur_space , cur_position]   = useSpaceNavigatorState()
     const [cur_selected, set_cur_selected] = React.useState<number | undefined>(undefined)
@@ -131,5 +131,6 @@ function ButtonGroup({
             >{button}</div>
         })
     }</AutoStack>
-}
+})
 
+// ButtonGroup.whyDidYouRender = true

@@ -78,7 +78,7 @@ const FoldedButtonGroup = React.memo(({
     label ?: string
     children ?: React.ReactNode
 })=>{
-    const my_nodeidx = useNode(node=>node.idx)
+    const my_nodeidx = useNode((prev, next) => (prev.idx == next.idx)).idx
     const direction  = React.useContext(Direction)
 
     const [menu_open, set_menu_open] = React.useState(false) // 手动打开
