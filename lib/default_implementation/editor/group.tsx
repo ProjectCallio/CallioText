@@ -161,9 +161,7 @@ function get_deafult_group_editor_with_appbar({
                             level     = {0}
                             max_level = {0}
 
-                            buttons = {React.useMemo(()=>{
-                                console.log("buttons_extra updates", buttons_extra)
-                                return [
+                            buttons = {React.useMemo(()=>([
                                 <DefaultParameterEditButton key="param"/> , 
                                 <DefaultNewAbstractButton   key="newabs"/> , 
                                 <DefaultEditAbstractButton  key="editabs"/> , 
@@ -174,7 +172,7 @@ function get_deafult_group_editor_with_appbar({
                                 <DefaultSoftDeleteButton    key="softdel"/> , 
                                 <CopyButton                 key="copy"/> , 
                                 ... buttons_extra.map((B, idx) => <B key={idx}/>)
-                            ]}, [buttons_extra])}
+                            ]), [buttons_extra])}
                         />
                     </AutoStack></Box>
                 </UnselecableBox >
@@ -272,18 +270,18 @@ function get_default_group_editor_with_rightbar({
                             }
                         })), [])}
                         label = "展开"
-                        buttons = {[
-                            <DefaultParameterEditButton/> , 
-                            <DefaultNewAbstractButton  /> , 
-                            <DefaultEditAbstractButton /> , 
-                            <DefaultSwicth             /> , 
-                            <DefaultCloseButton        /> , 
-                            <DefaultSoftDeleteButton   /> , 
-                            <NewParagraphButtonUp      /> , 
-                            <NewParagraphButtonDown    /> , 
-                            <CopyButton                /> , 
-                            ... buttons_extra.map(B => <B/>)
-                        ]}
+                        buttons = {React.useMemo(()=>([
+                            <DefaultParameterEditButton key="param"/> , 
+                            <DefaultNewAbstractButton  key="newabs"/> , 
+                            <DefaultEditAbstractButton key="editabs"/> , 
+                            <DefaultSwicth             key="switch"/> , 
+                            <DefaultCloseButton        key="close"/> , 
+                            <DefaultSoftDeleteButton   key="softdel"/> , 
+                            <NewParagraphButtonUp      key="up"/> , 
+                            <NewParagraphButtonDown    key="down"/> , 
+                            <CopyButton                key="copy"/> , 
+                            ... buttons_extra.map((B, idx) => <B key={idx}/>)
+                        ]), [buttons_extra])}
                     /> 
                 </AutoStack></UnselecableBox>
             </SimpleAutoStack>

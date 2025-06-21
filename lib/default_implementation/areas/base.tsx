@@ -53,11 +53,11 @@ interface AreaStore{
     dragging      : AreaName | null
     set_dragging  : (dragging: AreaName | null) => void
 
-    drag_size     : {width: number, height: number}
-    set_drag_size : (size: {width: number, height: number}) => void
-
     positions     : {[name in AreaName]: {x: number, y: number}}
     set_positions : (positions: Partial<{[name in AreaName]: {x: number, y: number}}>) => void
+
+    sizes     : {[name in AreaName]: {width: number, height: number}}
+    set_sizes : (sizes: Partial<{[name in AreaName]: {width: number, height: number}}>) => void
 
     open: {[name in AreaName]: boolean}
     set_open: (name: AreaName, open: boolean) => void
@@ -76,9 +76,6 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
     dragging      : null,
     set_dragging  : (dragging) => set({ dragging: dragging }),
 
-    drag_size     : {width: 100, height: 100},
-    set_drag_size : (size) => set({ drag_size: size }),
-
     positions     : {param :{x: 0,y: 0} , concep:{x: 0,y: 0}},
     set_positions : (positions) => set(state => ({ positions: {
         ...state.positions,
@@ -90,11 +87,18 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
         ...state.open,
         [name]: open
     }})),
+
+    sizes: {param: {width: 100, height: 100}, concep: {width: 100, height: 100}},
+    set_sizes: (sizes) => set(state => ({ sizes: {
+        ...state.sizes,
+        ...sizes
+    }})),
 }), {
     name: "area-positions",
     partialize: (state) => ({
         positions: state.positions,
         open: state.open,
+        sizes: state.sizes,
     }),
 }))
 
@@ -113,10 +117,7 @@ function DraggerBox(props: BoxProps & {
         ...rest_props
     } = props
 
-    const {
-        set_drag_size , 
-        set_dragging , 
-    } = useAreaStore.getState()
+    const {set_dragging, set_sizes} = useAreaStore.getState()
 
     const positions = useAreaStore(state => state.positions[father_name])
 
@@ -139,10 +140,10 @@ function DraggerBox(props: BoxProps & {
             // 设置当前拖动区域尺寸为父节点的尺寸
             if(father_ref?.current){
                 const rect = father_ref.current.getBoundingClientRect()
-                set_drag_size({
+                set_sizes({[father_name]: {
                     width : rect.width,
                     height: rect.height,
-                })
+                }})
             }
 
             // 设置当前拖动区域为父节点

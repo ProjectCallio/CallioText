@@ -20,6 +20,7 @@ import {
     NavigateNext , 
 } from "@mui/icons-material"
 import { motion, AnimatePresence } from "framer-motion"
+import { throttle } from "lodash"
 
 import {
     ParameterList , 
@@ -52,13 +53,46 @@ export {
 }
 export * from "./base"
 
+function adjust_position(
+    x: number, y: number, 
+    my_width: number, my_height: number, 
+    tar_width: number, tar_height: number
+){
+    x = Math.max(0, Math.min(x, my_width - tar_width))
+    y = Math.max(0, Math.min(y, my_height- tar_height))
+    return [x, y]
+}
+
 // XXX 启用id机制？
-function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
+const AreaContainer = React.memo(({area_id = "unique_area"}:{area_id?: string})=>{
 
     const dragging  = useAreaStore(state => state.dragging)
-    const drag_size = useAreaStore(state => state.drag_size)
 
     const {set_dragging, set_positions, container_flush} = useAreaStore.getState()
+
+    // 使用 throttle 包装 set_positions
+    const my_set_position = React.useMemo(() => {
+        return throttle((id: string, pos: { x: number; y: number }) => {
+            set_positions({ [id]: pos })
+        }, 50) // 每 100ms 最多执行一次
+    }, [])
+
+    React.useEffect(()=>{
+        let rect = area_container_ref.current?.getBoundingClientRect()
+        if(!rect) return
+
+        const positions = useAreaStore.getState().positions
+        const sizes = useAreaStore.getState().sizes
+        for(const name of ["param", "concep"] as AreaName[]){
+            let [new_x, new_y] = adjust_position(
+                positions[name].x, positions[name].y, 
+                rect.width, rect.height, 
+                sizes[name].width, sizes[name].height
+            )
+            set_positions({ [name]: { x: new_x, y: new_y } })
+        }
+    }, [dragging])
+
 
     React.useEffect(()=>{
         const handle_mousemove = (e: MouseEvent) => {
@@ -67,13 +101,19 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
             let rect = area_container_ref.current?.getBoundingClientRect()
             if(!rect) return
 
-            let new_x = e.clientX - drag_offset_ref.current.x
-            let new_y = e.clientY - drag_offset_ref.current.y
-        
-            new_x = Math.max(0, Math.min(new_x, rect.width - drag_size.width))
-            new_y = Math.max(0, Math.min(new_y, rect.height- drag_size.height))
+            const sizes = useAreaStore.getState().sizes
+
+            let _x = e.clientX - drag_offset_ref.current.x
+            let _y = e.clientY - drag_offset_ref.current.y
+
+            let [new_x, new_y] = adjust_position(
+                _x, _y, 
+                rect.width, rect.height, 
+                sizes[dragging].width, sizes[dragging].height
+            )
                     
-            set_positions({[dragging]: {x: new_x, y: new_y}})
+            my_set_position(dragging, { x: new_x, y: new_y })
+
             e.preventDefault()
             e.stopPropagation()
         }
@@ -83,11 +123,11 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
         }
         window.addEventListener("mousemove", handle_mousemove)
         window.addEventListener("mouseup", handle_mouseup)
-                return ()=>{
+        return ()=>{
             window.removeEventListener("mousemove", handle_mousemove)
             window.removeEventListener("mouseup", handle_mouseup)
         }
-    }, [dragging, drag_size])
+    }, [dragging])
 
 
     return <Box 
@@ -105,9 +145,10 @@ function AreaContainer({area_id = "unique_area"}:{area_id?: string}){
             height: "100%",
         }}
     />
-}
+})
 
-function Areas({}){
+
+const Areas = React.memo(({})=>{
     return <>
         <ParameterArea 
             zIndex = {1000}
@@ -118,4 +159,4 @@ function Areas({}){
             area_id = "concep"
         />
     </>
-}
+})

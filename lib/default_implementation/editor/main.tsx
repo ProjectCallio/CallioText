@@ -197,7 +197,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     borderRight: "1px solid ",
                     left: "1%",
                 }}>
-                    <Test />
+                    {/* <Test /> */}
                     <EditorComponentEditingBox>
                         <EditorComponent
                             ref 		        = {(editor: EditorComponent)=>{

@@ -128,7 +128,7 @@ const ConceptArea = React.memo(({
     const container_version = useAreaStore(state => state.container_version)
     const container = area_container_ref.current?.getBoundingClientRect()
     
-    const open = useAreaStore(state => state.open.concep)
+    const open        = useAreaStore(state => state.open.concep)
     const position    = useAreaStore(state => state.positions[area_id])
     const dragging_me = useAreaStore(state => state.dragging == area_id)
     
@@ -175,7 +175,6 @@ const ConceptArea = React.memo(({
             return
         }
         const handler = ()=>{
-            console.log(cur_side, cur_idx)
             if(cur_side == 0){
                 const M = concept_list.length
                 set_cur_type(concept_list[cur_idx])
@@ -294,3 +293,4 @@ const ConceptArea = React.memo(({
         </motion.div>
     )}</AnimatePresence></Paper>
 })
+
