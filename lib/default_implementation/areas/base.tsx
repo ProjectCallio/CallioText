@@ -26,8 +26,6 @@ import { persist } from "zustand/middleware"
 
 export {
     useAreaStore , 
-    DraggerBox , 
-    drag_offset_ref , 
     area_container_ref , 
 }
 
@@ -37,7 +35,6 @@ export type {
 
 type AreaName = "param" | "concep"
 
-const drag_offset_ref = {current: {x: 0, y: 0}}
 const area_container_ref   = React.createRef<HTMLDivElement | null>()
 
 interface AreaStore{
@@ -103,57 +100,3 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
 }))
 
 
-function DraggerBox(props: BoxProps & {
-    father_name: AreaName
-    onDragStart?: (e: React.MouseEvent<HTMLDivElement>) => void
-    onSetSize  ?: (size: {width: number, height: number}) => void
-    dragging_me?: boolean
-    father_ref?: React.RefObject<HTMLDivElement | null>
-}){
-    let {
-        dragging_me , 
-        father_ref  , 
-        father_name , 
-        ...rest_props
-    } = props
-
-    const {set_dragging, set_sizes} = useAreaStore.getState()
-
-    const positions = useAreaStore(state => state.positions[father_name])
-
-    return <Box
-        {...rest_props}
-        sx={{
-            cursor: "move",
-            width: "100%",
-            height: "0.5rem",
-            minHeight: "0.5rem" , 
-            bgcolor: dragging_me ? "grey.400" : "grey.300",
-            borderRadius: "4px",
-            mb: 1,
-            "&:hover": {
-                bgcolor: "grey.400"
-            }
-        }}
-        onMouseDown = {(e: React.MouseEvent<HTMLDivElement>)=>{
-
-            // 设置当前拖动区域尺寸为父节点的尺寸
-            if(father_ref?.current){
-                const rect = father_ref.current.getBoundingClientRect()
-                set_sizes({[father_name]: {
-                    width : rect.width,
-                    height: rect.height,
-                }})
-            }
-
-            // 设置当前拖动区域为父节点
-            set_dragging(father_name)
-            drag_offset_ref.current = {
-                x: e.clientX - positions.x,
-                y: e.clientY - positions.y,
-            }
-            e.preventDefault()
-            e.stopPropagation()
-        }}
-    />
-}

@@ -28,7 +28,6 @@ import {
 
 import {
     useAreaStore , 
-    DraggerBox,
     AreaName, 
     area_container_ref , 
 } from "./base"
@@ -42,6 +41,7 @@ import {
     mod_scrollbar , 
     ScrollBarBox , 
     usePersistedState,
+    DraggerBox,
 } from "../../uibase"
 
 import {
@@ -143,6 +143,9 @@ const ConceptArea = React.memo(({
     const [navi_space, navi_position] = useSpaceNavigatorState()
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
+    // 拖拽状态
+    const {set_dragging, set_sizes} = useAreaStore.getState()
+
     const sec_concept_list = React.useMemo(()=>{
         let editorcore = editor?.get_editorcore()
         if(!editorcore){
@@ -232,9 +235,19 @@ const ConceptArea = React.memo(({
             }}
         >
             <DraggerBox  
-                father_name = {area_id}
+                my_position = {position}
                 dragging_me = {dragging_me} 
-                father_ref  = {box_ref}
+                onDragStart = {e=>{
+                    set_dragging(area_id)
+                    if(box_ref.current){
+                        const rect = box_ref.current.getBoundingClientRect()
+                        set_sizes({[area_id]: {
+                            width : rect.width,
+                            height: rect.height,
+                        }})
+                    }
+                }}
+
             />
 
             <Box sx={{

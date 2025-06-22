@@ -36,12 +36,13 @@ import {
 
 import {
     usePersistedState,
+    drag_offset_ref,
+    adjust_position , 
 } from "../../uibase"
 
 import {
     useAreaStore , 
     AreaName , 
-    drag_offset_ref , 
     area_container_ref , 
 } from "./base"
 
@@ -53,15 +54,6 @@ export {
 }
 export * from "./base"
 
-function adjust_position(
-    x: number, y: number, 
-    my_width: number, my_height: number, 
-    tar_width: number, tar_height: number
-){
-    x = Math.max(0, Math.min(x, my_width - tar_width))
-    y = Math.max(0, Math.min(y, my_height- tar_height))
-    return [x, y]
-}
 
 // XXX 启用id机制？
 const AreaContainer = React.memo(({area_id = "unique_area"}:{area_id?: string})=>{

@@ -82,6 +82,10 @@ import {
 } from "./sidebar"
 
 import {
+    AbstractEditorArea , 
+} from "./abstract/editor"
+
+import {
     IdxConflictSolver , 
 } from "./idxconflict_solver"
 
@@ -197,57 +201,59 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     borderRight: "1px solid ",
                     left: "1%",
                 }}>
-                    {/* <Test /> */}
-                    <EditorComponentEditingBox>
-                        <EditorComponent
-                            ref 		        = {(editor: EditorComponent)=>{
-                                me.editor_ref.current = editor
-                                if(!me.state.editor_ready){
-                                    // 强制刷新一下
-                                    me.setState({editor_ready: true})
-                                }
-                            }} 
+                {/* <Test /> */}
+                <EditorComponentEditingBox>
+                    <EditorComponent
+                        ref 		        = {(editor: EditorComponent)=>{
+                            me.editor_ref.current = editor
+                            if(!me.state.editor_ready){
+                                // 强制刷新一下
+                                me.setState({editor_ready: true})
+                            }
+                        }} 
 
-                            editorcore          = {me.props.editorcore}
-                            plugin              = {me.props.plugin}
-                            init_rootchildren   = {me.props.init_rootchildren}
-                            init_rootproperty   = {me.props.init_rootproperty}
+                        editorcore          = {me.props.editorcore}
+                        plugin              = {me.props.plugin}
+                        init_rootchildren   = {me.props.init_rootchildren}
+                        init_rootproperty   = {me.props.init_rootproperty}
 
-                            onUpdate            = {(v: any)=>{
-                                me.props.onUpdate && me.props.onUpdate(v)
-                                conflictcheck()
-                            }}
-                            onFocusChange       = {(e)=>{
-                                onFocusChange()
+                        onUpdate            = {(v: any)=>{
+                            me.props.onUpdate && me.props.onUpdate(v)
+                            conflictcheck()
+                        }}
+                        onFocusChange       = {(e)=>{
+                            onFocusChange()
 
-                                let editor = me.get_editor()
-                                if(!editor){
-                                    return
-                                }
-                                useAreaStore.getState().set_editor(editor)
+                            let editor = me.get_editor()
+                            if(!editor){
+                                return
+                            }
+                            useAreaStore.getState().set_editor(editor)
 
-                                const cur_node = editor.get_cur_concept_node()
-                                if(!cur_node){
-                                    return
-                                }
-                                const cached_node = me.edit_cache.current
-                                if( // 只有当节点变化或者参数变化的时候才触发更新
-                                    cur_node?.idx !== cached_node?.idx
-                                    || cur_node.parameters !== cached_node.parameters
-                                ){
-                                    useAreaStore.getState().nodeparam_flush()
-                                }
-                                me.edit_cache.current = cur_node
-                            }}
-                            
-                            onKeyDown           = {onkeydown}
-                            onKeyUp             = {onkeyup}
-                        />
-                    </EditorComponentEditingBox>
+                            const cur_node = editor.get_cur_concept_node()
+                            if(!cur_node){
+                                return
+                            }
+                            const cached_node = me.edit_cache.current
+                            if( // 只有当节点变化或者参数变化的时候才触发更新
+                                cur_node?.idx !== cached_node?.idx
+                                || cur_node.parameters !== cached_node.parameters
+                            ){
+                                useAreaStore.getState().nodeparam_flush()
+                            }
+                            me.edit_cache.current = cur_node
+                        }}
+                        
+                        onKeyDown           = {onkeydown}
+                        onKeyUp             = {onkeyup}
+                    />
+                </EditorComponentEditingBox>
                 </Box>
 
                 {/* 为其他组件提供editor上下文。 */}
                 {me.get_editor() && <EditorGlobalInfo.Provider value={{editor: me.get_editor()}}>
+
+                    <AbstractEditorArea />
 
                     <Box key="area-2" sx = {{
                         position: "absolute", 
