@@ -78,7 +78,7 @@ const useAbstractEditorStore = create<{
     open: boolean
     set_open: (open: boolean) => void
 }>((set) => ({
-    open: true,
+    open: false,
     set_open: (open) => set({open}),
 }))
 

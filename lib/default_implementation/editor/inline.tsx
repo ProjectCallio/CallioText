@@ -45,7 +45,7 @@ import {
     useParameters , 
 } from "../../implbase"
 
-import { DefaultEditAbstractButton, DefaultNewAbstract, DefaultNewAbstractButton } from "./abstract"
+import { DefaultEditAbstractButton, DefaultNewAbstractButton } from "./abstract"
 import { AutoStackedPopper , SimpleAutoStack , AutoStack , AutoTooltip  } from "../../uibase"
 import { 
     EditorComponentPaper as ComponentPaper , 
