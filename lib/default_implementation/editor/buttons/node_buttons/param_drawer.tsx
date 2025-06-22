@@ -36,6 +36,7 @@ import {
     EditorComponent , 
     EditorGlobalInfo , 
     useEditor , 
+    useEditorState , 
 }
  from "../../../../editor"
 
@@ -43,7 +44,6 @@ import {
     DefaultParameterContainerRef , 
     DefaultParameterContainer , 
 } from "../../../../implbase"
-import { useAreaStore } from "../../../areas"
 
 export { 
     DefaultParameterWithEditorWithDrawer , 
@@ -90,7 +90,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
                     if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
                         // 在更新完毕之后，刷新area。
                         editor.add_apply_callback(()=>{
-                            useAreaStore.getState().nodeparam_flush()
+                            useEditorState.getState().flush_cur_conceptnode(editor)
                         })
 
                         // 在退出时更新所服务的节点的参数。

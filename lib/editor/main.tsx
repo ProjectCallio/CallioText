@@ -56,6 +56,10 @@ import {
     EditorCore  ,
 } from "./editorcore"
 
+import {
+    useEditorState , 
+} from "./state"
+
 export {
     EditorComponent , 
 }
@@ -167,7 +171,14 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         this.onUpdate       = props.onUpdate        ?? (()=>{})
         this.onKeyDown      = props.onKeyDown       ?? (()=>{})
         this.onKeyUp        = props.onKeyUp         ?? (()=>{})
-        this.onFocusChange  = props.onFocusChange   ?? (()=>{})
+        this.onFocusChange  = ()=>{
+            // 设置当前编辑器
+            const {set_editor, flush_cur_conceptnode} = useEditorState.getState()
+            set_editor(this)
+            flush_cur_conceptnode(this)
+
+            props.onFocusChange?.(this)
+        }
         this.use_tree_op_mixin()
         
         let me = this

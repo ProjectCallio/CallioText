@@ -7,6 +7,7 @@ import {
 } from "../core"
 import {
     useEditor , 
+    useCurEditor , 
 } from "../editor"
 import {
     createStore,
@@ -109,14 +110,18 @@ function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
     return Slate.Text.isText(node) && point.offset === node.text.length
   }
 
+// XXX 不确定要不要把这个跟../editor/state.tsx合并
 function useResetSelection(){
     const _selection_ref = React.useRef<Slate.Selection | null>(null)
-    const editor = useEditor()
+    const editor = useCurEditor()
 
     
     const reset_selection = React.useCallback(()=>{
         const _selection = _selection_ref.current
         if(!_selection){
+            return
+        }
+        if(!editor){
             return
         }
         const slate = editor.get_slate()
@@ -143,6 +148,9 @@ function useResetSelection(){
     }, [editor])
 
     const set_selection = React.useCallback(()=>{
+        if(!editor){
+            return
+        }
         const slate = editor.get_slate()
         _selection_ref.current = slate.selection
     }, [editor])

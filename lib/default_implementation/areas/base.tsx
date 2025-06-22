@@ -38,12 +38,6 @@ type AreaName = "param" | "concep"
 const area_container_ref   = React.createRef<HTMLDivElement | null>()
 
 interface AreaStore{
-    editor    : EditorComponent | null
-    set_editor    : (editor: EditorComponent) => void
-
-    nodeparam_version   : number
-    nodeparam_flush     : () => void // 当前节点被编辑触发的强制刷新
-
     container_version   : number
     container_flush     : () => void // 容器触发的强制刷新
     
@@ -61,12 +55,6 @@ interface AreaStore{
 }
 
 const useAreaStore = create<AreaStore>()(persist((set)=>({
-    editor        : null,
-    set_editor    : (editor) => set({editor: editor }),
-
-    nodeparam_version  : 0,
-    nodeparam_flush    : () => set(state => ({nodeparam_version: state.nodeparam_version + 1 })),
-
     container_version   : 0,
     container_flush     : () => set(state => ({container_version: state.container_version + 1 })),
 

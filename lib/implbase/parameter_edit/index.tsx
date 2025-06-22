@@ -88,7 +88,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
 
     useEffect(() => {
         set_parameters(node.parameters)
-    }, [JSON.stringify(node.parameters)])
+    }, [node.parameters])
 
     React.useImperativeHandle(ref, () => ({
         get_parameters: ()=>parameters, 
@@ -142,5 +142,5 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
     return prev_props.node.idx == next_props.node.idx 
         && prev_props.onSave === next_props.onSave
         && prev_props.select_paramidx == next_props.select_paramidx
-        && JSON.stringify(prev_props.node.parameters) == JSON.stringify(next_props.node.parameters)
+        && prev_props.node.parameters === next_props.node.parameters
 })

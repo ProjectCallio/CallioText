@@ -35,7 +35,8 @@ import {
     EditorComponent , 
     EditorCore, 
     EditorComponentProps , 
-    EditorGlobalInfo
+    EditorGlobalInfo,
+    useEditorState,
 } from "../../editor"
 import {
     ConceptNode , 
@@ -134,18 +135,14 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
     editor_ref: React.RefObject<EditorComponent | null>
 
-    edit_cache: React.RefObject<any | null>
-
     constructor(props: DefaultEditorComponentprops) {
         super(props)
-
 
         this.onUpdate = props.onUpdate || ((newval: Node[])=>{})
         this.onFocusChange  = props.onFocusChange || (()=>{})
         this.onSave = props.onSave || (()=>{})
 
         this.editor_ref = React.createRef<EditorComponent | null>()
-        this.edit_cache = React.createRef<any | null>()
 
         this.state = {
             editor_ready: false,
@@ -172,12 +169,13 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             me.props.onFocusChange && me.props.onFocusChange()
         }
 
+        // TODO 现在abstracteditor用不了space navigator，因为这里get_editor给出的是父编辑器。
         return <EditorConfigContext.Provider value={config}>
         <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>(
             <EditorBackgroundPaper>
             <KeyEventManager
                 spaces = {[
-                    buttons_get_mouseless_space(me.get_editor),
+                    buttons_get_mouseless_space(),
                     sidebar_space,
                     parameterarea_space , 
                     conceptarea_space , 
@@ -221,28 +219,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                             me.props.onUpdate && me.props.onUpdate(v)
                             conflictcheck()
                         }}
-                        onFocusChange       = {(e)=>{
-                            onFocusChange()
-
-                            let editor = me.get_editor()
-                            if(!editor){
-                                return
-                            }
-                            useAreaStore.getState().set_editor(editor)
-
-                            const cur_node = editor.get_cur_concept_node()
-                            if(!cur_node){
-                                return
-                            }
-                            const cached_node = me.edit_cache.current
-                            if( // 只有当节点变化或者参数变化的时候才触发更新
-                                cur_node?.idx !== cached_node?.idx
-                                || cur_node.parameters !== cached_node.parameters
-                            ){
-                                useAreaStore.getState().nodeparam_flush()
-                            }
-                            me.edit_cache.current = cur_node
-                        }}
+                        onFocusChange       = {onFocusChange}
                         
                         onKeyDown           = {onkeydown}
                         onKeyUp             = {onkeyup}

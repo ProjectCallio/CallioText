@@ -48,6 +48,9 @@ import {
     MouselessButton , 
 } from "../../implbase"
 
+import {
+    useCurEditor , 
+} from "../../editor"
 
 export {
     ConceptArea , 
@@ -122,7 +125,7 @@ const ConceptArea = React.memo(({
     area_id: AreaName
 })=>{
 
-    const editor = useAreaStore(state => state.editor)
+    const editor = useCurEditor() // 当前正在编辑的编辑器
     
     // 为了当container变化的时候获得正确的container_ref
     const container_version = useAreaStore(state => state.container_version)

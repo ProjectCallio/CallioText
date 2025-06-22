@@ -29,7 +29,9 @@ import {
     slate_is_concept , 
     slate_concept_father , 
     slate_idx_to_node , 
+    useCurEditor , 
 } from "../../editor"
+
 export {
     get_mouseless_space , 
     decode_position ,
@@ -146,8 +148,10 @@ function onStartMaker(get_editor: ()=>EditorComponent | undefined): (last?: Node
 }
 
 
-function get_mouseless_space(get_editor: ()=>EditorComponent | undefined): SpaceDefinition{
-    const onStart = onStartMaker(get_editor)    
+function get_mouseless_space(): SpaceDefinition{
+
+    const onStart = onStartMaker(useCurEditor.current)    
+
     return {
         name: SPACE_NAME ,
         holding: HOLDING , 
@@ -157,10 +161,10 @@ function get_mouseless_space(get_editor: ()=>EditorComponent | undefined): Space
     
         // 这个是用来描述按钮的。
         edges: [
-            {pressing: KeyNames.ArrowLeft , onMove: onMoveMaker(get_editor, KeyNames.ArrowLeft ) },
-            {pressing: KeyNames.ArrowRight, onMove: onMoveMaker(get_editor, KeyNames.ArrowRight) },
-            {pressing: KeyNames.ArrowUp   , onMove: onMoveMaker(get_editor, KeyNames.ArrowUp   ) },
-            {pressing: KeyNames.ArrowDown , onMove: onMoveMaker(get_editor, KeyNames.ArrowDown ) },
+            {pressing: KeyNames.ArrowLeft , onMove: onMoveMaker(useCurEditor.current, KeyNames.ArrowLeft ) },
+            {pressing: KeyNames.ArrowRight, onMove: onMoveMaker(useCurEditor.current, KeyNames.ArrowRight) },
+            {pressing: KeyNames.ArrowUp   , onMove: onMoveMaker(useCurEditor.current, KeyNames.ArrowUp   ) },
+            {pressing: KeyNames.ArrowDown , onMove: onMoveMaker(useCurEditor.current, KeyNames.ArrowDown ) },
         ]
     }
 }

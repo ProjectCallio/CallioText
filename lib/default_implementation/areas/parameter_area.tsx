@@ -56,10 +56,16 @@ import {
     area_container_ref , 
 } from "./base"
 import {
-    mod_scrollbar ,
+    mod_scrollbar , 
     usePersistedState ,  
     DraggerBox, 
 } from "../../uibase"
+
+import {
+    useCurEditor , 
+    useCurConceptNode , 
+    useCurConceptNodeIdxParam , 
+} from "../../editor"
 
 export {
     ParameterArea , 
@@ -78,7 +84,7 @@ const SPACE: SpaceDefinition = {
     holding: [KeyNames.alt, KeyNames.z],
     nodes: [],
     onStart: (last?: NodeName)=> {
-        const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
+        const cur_node = useCurConceptNode.current()
         if(!cur_node){
             return NO_ACTION
         }
@@ -93,7 +99,7 @@ const SPACE: SpaceDefinition = {
     } , 
     edges: [
         {pressing: KeyNames.ArrowLeft, onMove: (from?:string)=>{
-            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
+            const cur_node = useCurConceptNode.current()
             if(!cur_node){
                 return from ?? NO_ACTION
             }
@@ -104,7 +110,7 @@ const SPACE: SpaceDefinition = {
             return encode_position(cur_node.idx, 0)
         }} , 
         {pressing: KeyNames.ArrowRight, onMove: (from?:string)=>{
-            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
+            const cur_node = useCurConceptNode.current()
             if(!cur_node){
                 return from ?? NO_ACTION
             }
@@ -115,7 +121,7 @@ const SPACE: SpaceDefinition = {
             return encode_position(cur_node.idx, 0)
         }} , 
         {pressing: KeyNames.ArrowUp, onMove: (from?:string)=>{
-            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
+            const cur_node = useCurConceptNode.current()
             if(!cur_node){
                 return from ?? NO_ACTION
             }
@@ -126,7 +132,7 @@ const SPACE: SpaceDefinition = {
             return encode_position(cur_node.idx, 0)
         }} , 
         {pressing: KeyNames.ArrowDown, onMove: (from?:string)=>{
-            const cur_node = useAreaStore.getState().editor?.get_cur_concept_node()
+            const cur_node = useCurConceptNode.current()
             if(!cur_node){
                 return from ?? NO_ACTION
             }
@@ -147,11 +153,10 @@ const ParameterArea = React.memo(({
     zIndex?: number
     area_id: AreaName
 })=>{
-    const editor = useAreaStore(state => state.editor)
+    const editor = useCurEditor() // 当前正在编辑的编辑器
     
-    // 依赖nodeparam_version是为了当node被外部编辑的时候获得正确的cur_node
-    const nodeparam_version = useAreaStore(state => state.nodeparam_version)
-    const cur_node = React.useMemo(()=>editor?.get_cur_concept_node(), [nodeparam_version, editor])
+    // 当前节点。但是只有参数变化才刷新。
+    const cur_node = useCurConceptNodeIdxParam()
 
     // 依赖container_version是为了获得正确的container_ref
     const container = area_container_ref.current?.getBoundingClientRect()

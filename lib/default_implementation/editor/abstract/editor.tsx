@@ -22,7 +22,8 @@ import {
 import {
     AddBox as AddBoxIcon,
     FilterNone as FilterNoneIcon,
-    ArrowRightAlt as ArrowRightAltIcon
+    ArrowRightAlt as ArrowRightAltIcon,
+    Close as CloseIcon
 } from "@mui/icons-material"
 import {
     useKeyDownUpProxy , 
@@ -61,19 +62,18 @@ import {
 } from "../../../uibase"
 
 import {
-    useAreaStore,
-} from "../../areas"
+    useEditorState,
+    useCurEditor , 
+} from "../../../editor"
 
 export {
     DefaultAbstractEditor ,
     AbstractEditorArea , 
 }
 
-function AbstractEditorArea({
 
-}:{
-    
-}){
+
+function AbstractEditorArea({}:{}){
     const [position, set_position] = React.useState<{x: number, y: number}>({x: 0, y: 0})
     const [dragging, set_dragging] = React.useState(false)
     const fat_editor = useEditor()
@@ -136,7 +136,12 @@ function AbstractEditorArea({
         }}
         ref = {box_ref}
     >
-        <Typography>AbstractEditorArea</Typography>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Typography>AbstractEditorArea</Typography>
+            <IconButton onClick={() => console.log("关闭按钮被点击")}>
+                <CloseIcon />
+            </IconButton>
+        </Box>
         <DraggerBox
             my_position = {position}
             dragging_me = {dragging}
@@ -166,30 +171,9 @@ function AbstractEditorArea({
                     onUpdate            = {(v: any)=>{
                         // conflictcheck()
                     }}
-                    onFocusChange       = {(e)=>{
-
-                        let son_editor = son_editor_ref.current
-                        if(!son_editor){
-                            return
-                        }
-                        useAreaStore.getState().set_editor(son_editor)
-
-                        const cur_node = son_editor.get_cur_concept_node()
-                        if(!cur_node){
-                            return
-                        }
-                        const cached_node = edit_cache.current
-                        if( // 只有当节点变化或者参数变化的时候才触发更新
-                            cur_node?.idx !== cached_node?.idx
-                            || cur_node.parameters !== cached_node.parameters
-                        ){
-                            useAreaStore.getState().nodeparam_flush()
-                        }
-                        edit_cache.current = cur_node
-                    }}
                     
-                    // onKeyDown           = {onkeydown}
-                    // onKeyUp             = {onkeyup}
+                    onKeyDown           = {onkeydown}
+                    onKeyUp             = {onkeyup}
                 >
 
                 </EditorComponent>

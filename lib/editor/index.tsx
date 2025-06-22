@@ -5,4 +5,4 @@ export * from "./utils"
 export * from "./plugins"
 export * from "./globalinfo"
 export * from "./editorcore"
-
+export * from "./state"
