@@ -155,7 +155,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
     }
 
     render() {
-        const me                  = this
+        const me            = this
     
         const paper_widths  = {xs: "88%" , md: "91%" , xl: "93%"} // 纸张的宽度，
         const paper_right   = {xs: "89%" , md: "92%" , xl: "94%"} // 纸张的宽度，

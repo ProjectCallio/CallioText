@@ -41,7 +41,7 @@ export {
 */
 function constraint_group_children(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
-    slate.normalizeNode = (entry: [Node, number[]]) => {
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
         let [node , path] = entry
 
         if(get_normalize_status("initializing")){
@@ -65,6 +65,7 @@ function constraint_group_children(editor: EditorComponent , slate: SlateReact.R
 
             // 第一个子节点必须是段落。
             // XXX 为啥啊？
+            // 是为了防止无法添加新段落。但是无所谓了。
             // if(!is_paragraphnode(node.children[0])){
             //     editor.add_nodes( editor.get_core().create_paragraph("") , [...path , 0] )
             //     return 
@@ -82,7 +83,7 @@ function constraint_group_children(editor: EditorComponent , slate: SlateReact.R
 */
 function constraint_inline_children(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
-    slate.normalizeNode = (entry: [Node, number[]]) => {
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
         let [node , path] = entry
 
         if(get_normalize_status("initializing")){
@@ -114,7 +115,7 @@ function constraint_inline_children(editor: EditorComponent , slate: SlateReact.
 */
 function constraint_struct_children(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
-    slate.normalizeNode = (entry: [Node, number[]]) => {
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
         let [node , path] = entry
 
         if(get_normalize_status("initializing")){
@@ -143,7 +144,7 @@ function constraint_struct_children(editor: EditorComponent , slate: SlateReact.
 */
 function constraint_paragraph_children(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
-    slate.normalizeNode = (entry: [Node, number[]]) => {
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
         let [node , path] = entry
         
         if(get_normalize_status("initializing")){

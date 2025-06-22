@@ -74,7 +74,7 @@ const AreaContainer = React.memo(({area_id = "unique_area"}:{area_id?: string})=
     const my_set_position = React.useMemo(() => {
         return throttle((id: string, pos: { x: number; y: number }) => {
             set_positions({ [id]: pos })
-        }, 50) // 每 100ms 最多执行一次
+        }, 100) // 每 100ms 最多执行一次
     }, [])
 
     React.useEffect(()=>{

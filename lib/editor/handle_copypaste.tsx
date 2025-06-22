@@ -105,8 +105,6 @@ function handle_paste(
         fragment = (fragment[0] as any).children
     }
     
-    console.log("handle_paste", fragment)
-
     if(copy_id == undefined || copy_id_cache[copy_id]){
         for(let cur_node of fragment){
             make_new_idx(cur_node)

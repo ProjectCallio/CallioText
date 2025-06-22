@@ -175,10 +175,10 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         let with_outer_plugin = props.plugin || ((x,y)=>y)
         
         let default_root = this.get_core().create_abstract("root") as AbstractNode
-        let [default_root_children, default_root_but_children] = (()=>{
-            let {children, ..._} = default_root
-            return [children, _] // 把默认根节点拆成儿子和非儿子的部分。
-        })()
+        let { 
+            children: _, 
+            ...default_root_but_children 
+        } = default_root
         
 
         this.state = {
@@ -341,18 +341,16 @@ class EditorComponent extends React.Component<EditorComponentProps , {
 
 
     render(){    
-        let me = this
+        const me = this
 
-        let slate = me.get_slate()
+        const slate = me.get_slate()
         
-        let context = {
+        const context = {
             editor: me , 
-            slate : slate , 
-            core  : me.get_core() , 
         }
 
-        let init_root_children = me.props.init_rootchildren || (
-            this.get_core().create_abstract("root") as AbstractNode
+        const init_root_children = me.props.init_rootchildren || (
+            me.get_core().create_abstract("root") as AbstractNode
         ).children
 
         return <EditorGlobalInfo.Provider value={context}>

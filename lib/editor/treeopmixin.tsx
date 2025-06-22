@@ -38,7 +38,7 @@ export { tree_op_mixin }
 /** 这个混入对象提供所有跟节点树操作有关的函数。
  * 基本上就是`slate`的`Transforms`的代理。
  */
-let tree_op_mixin = {
+const tree_op_mixin = {
     
 
 

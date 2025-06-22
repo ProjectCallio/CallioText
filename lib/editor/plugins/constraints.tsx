@@ -42,7 +42,7 @@ export {
 function constraint_paste(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
 
-    slate.normalizeNode = (entry:[Node, number[]]) => {
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
         
         if(!get_normalize_status("pasting")){ // 如果没有在粘贴，就直接退出。
             normalizeNode(entry)
@@ -94,8 +94,8 @@ function constraint_relation(editor: EditorComponent , slate: SlateReact.ReactEd
         return slate_is_concept(node) && (node.type == "group" || node.type == "structure")
     }
 
-    slate.normalizeNode = (entry:[Node, number[]]) => {
-        const [node , path]: [Node, number[]] = entry
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
+        const [node , path] = entry
 
         if(get_normalize_status("initializing")){
             normalizeNode(entry)
@@ -150,8 +150,8 @@ function constraint_relation(editor: EditorComponent , slate: SlateReact.ReactEd
  function constraint_abstract(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
 
-    slate.normalizeNode = (entry:[Node, number[]]) => {
-        const [node , path]: [Node, number[]] = entry
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
+        const [node , path] = entry
 
         if(get_normalize_status("initializing")){
             normalizeNode(entry)
@@ -181,8 +181,8 @@ function constraint_relation(editor: EditorComponent , slate: SlateReact.ReactEd
  function constraint_parameters(editor: EditorComponent , slate: SlateReact.ReactEditor): SlateReact.ReactEditor{
     const normalizeNode = slate.normalizeNode
 
-    slate.normalizeNode = (entry:[Node, number[]]) => {
-        const [node , path]: [Node, number[]] = entry
+    slate.normalizeNode = (entry: Slate.NodeEntry) => {
+        const [node , path] = entry
 
         if(get_normalize_status("initializing")){
             normalizeNode(entry)
