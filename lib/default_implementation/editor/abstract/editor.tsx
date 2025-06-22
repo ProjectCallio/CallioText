@@ -1,7 +1,7 @@
 /** 这个模块提供默认的抽象节点的渲染方式。
  * @module
  */
-
+// TODO abstract的编辑还没搞完
 import React from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
@@ -25,6 +25,9 @@ import {
     ArrowRightAlt as ArrowRightAltIcon,
     Close as CloseIcon
 } from "@mui/icons-material"
+import {
+    create , 
+} from "zustand"
 import {
     useKeyDownUpProxy , 
 } from "@ftyyy/mouseless"
@@ -71,12 +74,21 @@ export {
     AbstractEditorArea , 
 }
 
+const useAbstractEditorStore = create<{
+    open: boolean
+    set_open: (open: boolean) => void
+}>((set) => ({
+    open: true,
+    set_open: (open) => set({open}),
+}))
 
 
 function AbstractEditorArea({}:{}){
     const [position, set_position] = React.useState<{x: number, y: number}>({x: 0, y: 0})
     const [dragging, set_dragging] = React.useState(false)
     const fat_editor = useEditor()
+    const open = useAbstractEditorStore(state => state.open)
+    const set_open = useAbstractEditorStore.getState().set_open
 
     const box_ref = React.useRef<HTMLDivElement | null>(null)
     const son_editor_ref = React.useRef<EditorComponent | null>(null)
@@ -124,7 +136,7 @@ function AbstractEditorArea({}:{}){
         }
     }, [dragging])
 
-    
+    if(!open) return <></>
     return <Paper 
         sx={{
             position: "fixed",
@@ -138,7 +150,7 @@ function AbstractEditorArea({}:{}){
     >
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Typography>AbstractEditorArea</Typography>
-            <IconButton onClick={() => console.log("关闭按钮被点击")}>
+            <IconButton onClick={() => set_open(false)}>
                 <CloseIcon />
             </IconButton>
         </Box>
