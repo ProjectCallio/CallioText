@@ -1,4 +1,5 @@
-import { Box, BoxProps } from "@mui/material"
+import { Box , BoxProps } from "@mui/material"
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
 export {
     drag_offset_ref,    
@@ -36,14 +37,9 @@ function DraggerBox(props: BoxProps & {
         {...rest_props}
         sx={{
             cursor: "move",
-            width: "100%",
-            height: "0.5rem",
-            minHeight: "0.5rem" , 
-            bgcolor: dragging_me ? "grey.400" : "grey.300",
-            borderRadius: "4px",
-            mb: 1,
+            color: dragging_me ? "grey.400" : "grey.300",
             "&:hover": {
-                bgcolor: "grey.400"
+                color: "grey.400"
             }
         }}
         onMouseDown = {(e: React.MouseEvent<HTMLDivElement>)=>{
@@ -57,5 +53,7 @@ function DraggerBox(props: BoxProps & {
             e.preventDefault()
             e.stopPropagation()
         }}
-    />
+    >
+        <DragIndicatorIcon/>
+    </Box>
 }

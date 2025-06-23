@@ -211,18 +211,24 @@ const ParameterArea = React.memo(({
     }
 
     return <Paper 
-        elevation = {3} 
+        elevation = {8} 
         sx  = {{
             position: "absolute",
             top     : container.y + position.y,
             left    : container.x + position.x,
-            width   : "calc(min(20rem, 20vw))",
+            width   : "calc(min(15rem, 25vw))",
             zIndex  : zIndex,
             height  : "auto" , 
-            overflow: "auto" ,
+            overflow: "hidden" ,
 
-            padding: open ? "2rem" : "0", 
+            padding: open ? "1.5rem" : "0", 
             
+            // 现代化样式
+            background: "rgba(255, 255, 255, 0.8)",
+            
+            // 平滑过渡
+            transition: "top 0.1s, left 0.1s",
+                        
             ...paper_sx
         }}
         ref = {box_ref} 
@@ -232,11 +238,11 @@ const ParameterArea = React.memo(({
     ) && (
         <motion.div
             key         = { cur_node.idx }
-            initial     = {{ opacity: 0 }}
-            animate     = {{ opacity: 1 }}
-            exit        = {{ opacity: 0 }}
+            initial     = {{ opacity: 0, y: 10 }}
+            animate     = {{ opacity: 1, y: 0 }}
+            exit        = {{ opacity: 0, y: -10 }}
             transition  = {{ 
-                duration: 0.15,
+                duration: 0.2,
                 ease: "easeOut"
             }}
             style={{
@@ -246,37 +252,64 @@ const ParameterArea = React.memo(({
 
                 display: "flex",
                 flexDirection: "column",
-                gap: "1rem",
+                gap: "1.25rem",
 
                 height: open ? "100%" : "0", 
             }}
         >
-            <DraggerBox  
-                my_position = {position}
-                dragging_me = {dragging_me} 
-                onDragStart = {e=>{
-                    set_dragging(area_id)
-                    if(box_ref.current){
-                        const rect = box_ref.current.getBoundingClientRect()
-                        set_sizes({[area_id]: {
-                            width : rect.width,
-                            height: rect.height,
-                        }})
-                    }
-                }}
-            />
             <Box sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between"
+                justifyContent: "space-between",
+                paddingBottom: "0.5rem",
+                borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
             }}>
-                <Typography variant="h6">
+                <Typography 
+                    variant="h6" 
+                    sx={{
+                        fontWeight: 600,
+                        color: "rgba(0, 0, 0, 0.87)",
+                        fontSize: "1.1rem",
+                        letterSpacing: "0.02em",
+                    }}
+                >
                     {cur_node.concept}
                 </Typography>
+                <DraggerBox  
+                    my_position = {position}
+                    dragging_me = {dragging_me} 
+                    onDragStart = {e=>{
+                        set_dragging(area_id)
+                        if(box_ref.current){
+                            const rect = box_ref.current.getBoundingClientRect()
+                            set_sizes({[area_id]: {
+                                width : rect.width,
+                                height: rect.height,
+                            }})
+                        }
+                    }}
+                />
             </Box>
             <Box ref = {mod_scrollbar} sx={{
                 overflow: "auto",
-                maxHeight: "calc(min(40rem, 50vh))",
+                maxHeight: "calc(min(45rem, 55vh))",
+                paddingRight: "0.5rem",
+                
+                // 自定义滚动条样式
+                "&::-webkit-scrollbar": {
+                    width: "6px",
+                },
+                "&::-webkit-scrollbar-track": {
+                    background: "rgba(0, 0, 0, 0.05)",
+                    borderRadius: "3px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                    background: "rgba(0, 0, 0, 0.2)",
+                    borderRadius: "3px",
+                    "&:hover": {
+                        background: "rgba(0, 0, 0, 0.3)",
+                    },
+                },
             }}>
                 <DefaultParameterContainer 
                     ref = {parametereditor_ref}

@@ -188,7 +188,7 @@ const ConceptArea = React.memo(({
             position: "absolute",
             top     : container.y + position.y,
             left    : container.x + position.x,
-            width   : "calc(min(32rem, 35vw))",
+            width   : "calc(min(20rem, 30vw))",
             zIndex  : zIndex,
             
             // 更现代的样式
@@ -197,10 +197,12 @@ const ConceptArea = React.memo(({
             border: "1px solid rgba(255, 255, 255, 0.2)",
             borderRadius: "16px",
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06)",
+
+            transition: "top 0.1s, left 0.1s",
             
             ...paper_sx,
 
-            padding: open ? "1.5rem" : "0", 
+            padding: open ? "1rem" : "0", 
         }}
         ref         = {box_ref} 
     >
@@ -221,48 +223,23 @@ const ConceptArea = React.memo(({
                 opacity: 1,
 
                 maxHeight: "calc(min(40rem, 70vh))", 
-                overflow: "hidden",
 
                 display: "flex",
                 flexDirection: "column",
-                gap: "1.25rem",
+                gap: "1rem",
             }}
         >
-            <DraggerBox  
-                my_position = {position}
-                dragging_me = {dragging_me} 
-                onDragStart = {e=>{
-                    set_dragging(area_id)
-                    if(box_ref.current){
-                        const rect = box_ref.current.getBoundingClientRect()
-                        set_sizes({[area_id]: {
-                            width : rect.width,
-                            height: rect.height,
-                        }})
-                    }
-                }}
-            />
-
             <Box sx={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "flex-start",
-                gap: "1.5rem",
+                gap: "1rem",
                 width: "100%",
             }}>
+
                 {/* Concept Type Selector */}
                 <FormControl sx={{ 
-                    minWidth: "9rem",
-                    "& .MuiOutlinedInput-root": {
-                        borderRadius: "12px",
-                        backgroundColor: "rgba(255, 255, 255, 0.4)",
-                        "&:hover": {
-                            backgroundColor: "rgba(255, 255, 255, 0.6)",
-                        },
-                        "&.Mui-focused": {
-                            backgroundColor: "rgba(255, 255, 255, 0.7)",
-                        }
-                    }
+                    flexGrow: 1,
                 }}>
                     <InputLabel sx={{
                         color: "rgba(0, 0, 0, 0.7)",
@@ -293,15 +270,6 @@ const ConceptArea = React.memo(({
                                 fontWeight: 500,
                                 borderRadius: "8px",
                                 margin: "2px 4px",
-                                "&:hover": {
-                                    backgroundColor: "rgba(25, 118, 210, 0.08)",
-                                },
-                                "&.Mui-selected": {
-                                    backgroundColor: "rgba(5, 10, 16, 0.12)",
-                                    "&:hover": {
-                                        backgroundColor: "rgba(25, 118, 210, 0.16)",
-                                    }
-                                }
                             }}>
                                 {{
                                     "group": "组", 
@@ -313,76 +281,57 @@ const ConceptArea = React.memo(({
                         ))}
                     </Select>
                 </FormControl>
-
-                {/* Concept List */}
-                <Box ref={mod_scrollbar} sx={{
-                    overflow: "auto",
-                    minHeight: 0 , 
-                    height: "auto",
-                    flexGrow: 1,
-                    maxHeight: "calc(min(30rem, 60vh))",
-                    "&::-webkit-scrollbar": {
-                        width: "6px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                        background: "rgba(0, 0, 0, 0.05)",
-                        borderRadius: "3px",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                        background: "rgba(0, 0, 0, 0.2)",
-                        borderRadius: "3px",
-                        "&:hover": {
-                            background: "rgba(0, 0, 0, 0.3)",
+                <DraggerBox  
+                    my_position = {position}
+                    dragging_me = {dragging_me} 
+                    onDragStart = {e=>{
+                        set_dragging(area_id)
+                        if(box_ref.current){
+                            const rect = box_ref.current.getBoundingClientRect()
+                            set_sizes({[area_id]: {
+                                width : rect.width,
+                                height: rect.height,
+                            }})
                         }
-                    }
+                    }}
+                />
+
+            </Box>
+
+            {/* Concept List */}
+            <Box ref={mod_scrollbar} sx={{
+                overflow: "auto",
+                minHeight: 0 , 
+                height: "auto",
+                flexGrow: 1,
+                maxHeight: "calc(min(25rem, 30vh))",
+            }}>
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: "0.75rem",
                 }}>
-                    <Box sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: "0.75rem",
-                    }}>
-                        {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
-                            <MouselessButton
-                                key={sec_ccpt}
-                                is_activated={cur_idx == idx}
-                            >
-                            <Button 
-                                variant="outlined"
-                                size="small"
-                                onClick={() => {
-                                    editor.new_concept_node(cur_type_name , sec_ccpt)
-                                }}
-                                sx={{
-                                    minWidth: "fit-content",
-                                    whiteSpace: "nowrap",
-                                    borderRadius: "10px",
-                                    border: "1px solid rgba(255, 255, 255, 0.3)",
-                                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                                    color: "rgba(0, 0, 0, 0.8)",
-                                    fontWeight: 500,
-                                    fontSize: "0.875rem",
-                                    padding: "6px 12px",
-                                    textTransform: "none",
-                                    transition: "all 0.2s ease",
-                                    "&:hover": {
-                                        backgroundColor: "rgba(255, 255, 255, 0.5)",
-                                        borderColor: "rgba(255, 255, 255, 0.6)",
-                                        color: "rgba(0, 0, 0, 0.9)",
-                                        transform: "translateY(-1px)",
-                                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                                    },
-                                    "&:active": {
-                                        transform: "translateY(0px)",
-                                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                                    }
-                                }}
-                            >
-                                {sec_ccpt}
-                            </Button>
-                            </MouselessButton>
-                        ))}
-                    </Box>
+                    {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
+                        <MouselessButton
+                            key={sec_ccpt}
+                            is_activated={cur_idx == idx}
+                        >
+                        <Button 
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                                editor.new_concept_node(cur_type_name , sec_ccpt)
+                            }}
+                            sx={{
+                                minWidth: "fit-content",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            {sec_ccpt}
+                        </Button>
+                        </MouselessButton>
+                    ))}
                 </Box>
             </Box>
         </motion.div>
