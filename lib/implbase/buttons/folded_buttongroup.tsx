@@ -3,29 +3,16 @@
  */
 
 import React from "react"
-import * as Slate from "slate"
-import * as SlateReact from "slate-react"
 import { 
-    Tooltip , 
-    IconButton , 
     ClickAwayListener  , 
     Box, 
     Button, 
-    Typography , 
-    TextField , 
-    Input , 
     Popper , 
     PopperProps , 
     Paper , 
 } from "@mui/material"
 
 import {
-    Close as CloseIcon,
-} from "@mui/icons-material"
-
-import {
-    useSpaceNavigatorOnMoveRegister ,
-    useKeyHoldingState , 
     useSpaceNavigatorState,  
     useKeyEventsHandlerRegister,
     KeyNames, 
@@ -40,7 +27,6 @@ import {
 
 import { 
     AutoTooltip , 
-    click_all, 
     Direction , 
 } from "../../uibase"
 

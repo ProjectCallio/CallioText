@@ -8,8 +8,6 @@ import * as SlateReact from "slate-react"
  
 import {
     slate_is_concept , 
-    slate_is_paragraph , 
-    slate_is_text , 
 
     EditorComponent , 
 } from ".."
@@ -17,9 +15,6 @@ import {
 import {
     StructNode , 
     GroupNode , 
-    InlineNode , 
-    Node , 
-    TextNode, 
 } from "../../core"
 
 import {

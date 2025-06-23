@@ -24,30 +24,18 @@ import {
 } from "@ftyyy/mouseless"
 
 import {
-    EditorComponent , 
     useEditor ,  
 } from "../../editor"
-import {
-    AllConceptTypes, 
-} from "../../core"
 
 import { 
-    DefaultParameterEditButton , 
     DefaultRootParameterEditButton , 
     ParamAreaControlButton,
     ConceptAreaControlButton,
 } from "./buttons"
 
 import { 
-    AutoStackButtons, 
-    TextIcon , 
-    mod_scrollbar ,  
     click_all , 
 } from "../../uibase"
-
-import {
-    useAreaStore,
-} from "../areas"
 
 import {
     MouselessButton,

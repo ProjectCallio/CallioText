@@ -9,10 +9,7 @@ import React from "react"
 import {
     Grid , 
     IconButton , 
-} 
-from "@mui/material"
-import type {
-    PaperProps
+    PaperProps , 
 } 
 from "@mui/material"
 

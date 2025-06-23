@@ -1,13 +1,7 @@
 import * as Slate from "slate"
 import {
     ConceptNode , 
-    ParameterList , 
-    ParameterValue, 
 } from "../core"
-
-import {
-    EditorComponent , 
-} from "../editor"
 import {
     ProcessedParameterList , 
 } from "../printer"

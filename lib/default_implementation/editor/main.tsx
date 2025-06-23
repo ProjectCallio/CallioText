@@ -3,48 +3,29 @@
  * @module
  */
 import React  from "react"
-
-import {
-    Accordion , 
-    AccordionSummary , 
-    Toolbar , 
-    Typography , 
-    Button , 
-    Box , 
-    Paper ,
-    Divider , 
-    Popover , 
-} from "@mui/material"
-
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
 import {
+    Typography , 
+    Box , 
+} from "@mui/material"
+
+
+import {
     KeyEventManager , 
     KeyNames , 
-    useKeyEventsHandlerRegister,
-    useKeyEvents , 
-    useKeyHoldingState,
-    useUpDownHandlers , 
-    useKeyDownUpProxy, 
     useSpaceNavigatorState, 
     useAllHoldingKeys,
 } from "@ftyyy/mouseless"
 
 import {
     EditorComponent , 
-    EditorCore, 
     EditorComponentProps , 
     EditorGlobalInfo,
-    useEditorState,
 } from "../../editor"
 import {
-    ConceptNode , 
-    GroupNode , 
     Node , 
-    AllConceptTypes , 
-    AllNodeTypes, 
-    AbstractNode,
 } from "../../core"
 
 import { 

@@ -4,8 +4,6 @@
 import React from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
-import { withHistory } from "slate-history"
-import produce from "immer"
 
 import {
     Node , 
@@ -22,8 +20,6 @@ import {
     NonLeafNode, 
 
     AllConceptTypes, 
-
-    find_node_by_path , 
 } from "../core"
 
 import {
@@ -32,42 +28,17 @@ import {
 
 import {
     EditorRenderer , 
-    EditorRendererProps , 
 } from "./editor_renderer"
 
 import {
-    slate_is_concept , 
     slate_is_paragraph , 
-    slate_is_same_concept_node , 
     slate_is_text , 
-    slate_get_node_type, 
-    DoSomething, 
 } from "./utils"
 
-import {
-    EditorPlugin , 
-    with_ytext_plugins , 
-    set_normalize_status , 
-    get_normalize_status , 
-} from "./plugins"
-
-import {
-    tree_op_mixin
-} from "./treeopmixin"
-import { UnexpectedParametersError } from "../uibase/exceptions"
-
-import {
-    EditorGlobalInfo , 
-} from "./globalinfo"
 
 import {
     gene_idx , 
 } from "../utils"
-
-import {
-    handle_copy , 
-    handle_paste , 
-} from "./handle_copypaste"
 
 export {
     EditorCore , 

@@ -3,25 +3,16 @@
  * @module
  */
 import React  from "react"
+import * as Slate from "slate"
+import * as SlateReact from "slate-react"
 
 import {
-    Accordion , 
-    AccordionSummary , 
-    Toolbar , 
-    Typography , 
     Button , 
-    Box , 
-    Paper ,
-    Divider , 
     Popover , 
 } from "@mui/material"
 
-import * as Slate from "slate"
-import * as SlateReact from "slate-react"
 import {
     EditorComponent , 
-    EditorCore, 
-    EditorComponentProps , 
 } from "../../editor"
 
 import {

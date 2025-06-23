@@ -18,9 +18,6 @@ import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
 import {
-    ConceptNode,
-    ParameterList , 
-    ParameterValue , 
     AbstractNode, 
 } from "../../../../core"
 

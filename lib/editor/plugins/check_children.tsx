@@ -15,16 +15,6 @@ import {
 } from ".."
 
 import {
-    StructNode , 
-    GroupNode , 
-    InlineNode , 
-    Node , 
-    TextNode, 
-    is_paragraphnode, 
-
-} from "../../core"
-
-import {
     set_normalize_status , 
     get_normalize_status
 } from "./base"

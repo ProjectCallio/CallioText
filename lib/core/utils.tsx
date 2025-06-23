@@ -1,12 +1,6 @@
 import {
     AbstractNode,
-    AllConceptTypes,
     ConceptNode,
-    GroupNode,
-    InlineNode,
-    ParagraphNode,
-    SupportNode,
-    TextNode,
     Node , 
     is_concetnode,
 } from "./intermidiate"

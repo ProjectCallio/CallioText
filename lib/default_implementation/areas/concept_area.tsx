@@ -189,6 +189,7 @@ const ConceptArea = React.memo(({
             top     : container.y + position.y,
             left    : container.x + position.x,
             width   : "calc(min(20rem, 30vw))",
+            
             zIndex  : zIndex,
             
             padding: open ? "1rem" : "0", 
@@ -255,16 +256,9 @@ const ConceptArea = React.memo(({
                             set_cur_mouseless([new_typeidx, new_idx])
                         }}
                         size="small"
-                        sx={{
-                            "& .MuiSelect-select": {
-                                fontWeight: 500,
-                                color: "rgba(0, 0, 0, 0.8)",
-                            }
-                        }}
                     >
                         {concept_list.map((typename) => (
                             <MenuItem key={typename} value={typename} sx={{
-                                fontWeight: 500,
                                 borderRadius: "8px",
                                 margin: "2px 4px",
                             }}>
@@ -296,55 +290,54 @@ const ConceptArea = React.memo(({
             </Box>
 
             {/* Concept List */}
-            <motion.div layout>
+            <motion.div layout transition={{ duration: 0.3, ease: "easeOut" }}>
             <Box ref={mod_scrollbar} sx={{
                 overflow: "auto",
-                minHeight: 0 , 
-                height: "auto",
+                height: "fit-content",
                 flexGrow: 1,
+                minHeight: 0 , 
                 maxHeight: "calc(min(25rem, 30vh))",
             }}>
-                <Box sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: "0.75rem",
-                }}><AnimatePresence mode="popLayout">
-                    {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
-                        <motion.div
-                            key={`${cur_type_name}-${sec_ccpt}`}
-                            layoutId={`${cur_type_name}-${sec_ccpt}`}
-                            layout
-                            initial = {{ opacity: 0, scale: 0.1}}
-                            animate = {{ opacity: 1, scale: 1}}
-                            exit    = {{ opacity: 0, scale: 0.1}}
-                            transition={{ 
-                                duration: 0.3,
-                                ease: "easeOut"
-                            }}
-                        >
-                        <MouselessButton
-                            key={sec_ccpt}
-                            is_activated={cur_idx == idx}
-                        >
-                        <Button 
-                            variant="outlined"
-                            size="small"
-                            onClick={() => {
-                                editor.new_concept_node(cur_type_name , sec_ccpt)
-                            }}
-                            sx={{
-                                minWidth: "fit-content",
-                                whiteSpace: "nowrap",
-                            }}
-                        >
-                            {sec_ccpt}
-                        </Button>
-                        </MouselessButton>
-                        </motion.div>
-                    ))}</AnimatePresence>
-                </Box>
-            </Box></motion.div>
+            <Box sx={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: "0.75rem",
+            }}><AnimatePresence mode="popLayout">
+                {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
+                    <motion.div
+                        key={`${cur_type_name}-${sec_ccpt}`}
+                        layoutId={`${cur_type_name}-${sec_ccpt}`}
+                        layout
+                        initial = {{ opacity: 0, scale: 0.1}}
+                        animate = {{ opacity: 1, scale: 1}}
+                        exit    = {{ opacity: 0, scale: 0.1}}
+                        transition={{ 
+                            duration: 0.3,
+                            ease: "easeOut"
+                        }}
+                    >
+                    <MouselessButton
+                        key={sec_ccpt}
+                        is_activated={cur_idx == idx}
+                    >
+                    <Button 
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                            editor.new_concept_node(cur_type_name , sec_ccpt)
+                        }}
+                        sx={{
+                            minWidth: "fit-content",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        {sec_ccpt}
+                    </Button>
+                    </MouselessButton>
+                    </motion.div>
+                ))}</AnimatePresence>
+            </Box></Box></motion.div>
         </motion.div>
     )}</AnimatePresence></Paper>
 })

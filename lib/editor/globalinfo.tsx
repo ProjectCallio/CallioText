@@ -1,16 +1,8 @@
 import * as React from "react"
 import * as SlateReact from "slate-react"
-
-import {
-    AbstractNode , 
-} from "../core"
-
 import {
     EditorComponent , 
 } from "./main"
-import {
-    EditorCore , 
-} from "./editorcore"
 
 export {
     EditorGlobalInfo , 

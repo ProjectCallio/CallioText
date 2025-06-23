@@ -3,10 +3,6 @@
  */
 import * as React from "react"
 import * as Slate from "slate"
-import {
-    NavigateBefore , 
-    NavigateNext , 
-} from "@mui/icons-material"
 
 import {
     KeyNames , 
@@ -20,15 +16,6 @@ import {
 } from "@ftyyy/mouseless"
 
 import {
-    Node , 
-    find_concept_nodes_by_path , 
-    ConceptNode , 
-    find_node_by_path , 
-} from "../../core"
-import {
-    EditorComponent , 
-} from "../../editor"
-import {
     Box , 
     BoxProps , 
     Button , 
@@ -37,9 +24,6 @@ import {
     IconButton , 
     Stack , 
 } from "@mui/material"
-import {
-    create , 
-} from "zustand"
 import { motion, AnimatePresence } from "framer-motion"
 
 import {

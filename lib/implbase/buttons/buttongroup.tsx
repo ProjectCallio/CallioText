@@ -7,18 +7,6 @@ import React from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
-
-import { 
-    Tooltip , 
-    IconButton , 
-    ClickAwayListener  , 
-    Box, 
-    Button, 
-    Typography , 
-    TextField , 
-    Input , 
-} from "@mui/material"
-
 import {
     useSpaceNavigatorState,  
     useKeyEventsHandlerRegister,
@@ -42,6 +30,10 @@ import {
 import {
     useNode , 
 } from "../hooks"
+
+import {
+    MouselessButton , 
+} from "../mouseless_style"
 
 
 export {
@@ -122,13 +114,11 @@ const ButtonGroup = React.memo(({
 
     return <AutoStack direction = {direction}>{
         buttons.map((button, idx)=>{
-            return <div 
+            return <MouselessButton 
                 key = {idx}
                 ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
-                style={{
-                    border: cur_selected == idx ? "2px solid" : "none" , 
-                }}
-            >{button}</div>
+                is_activated = {cur_selected == idx}
+            >{button}</MouselessButton>
         })
     }</AutoStack>
 })

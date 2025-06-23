@@ -3,16 +3,10 @@
 */
 import * as React from "react"
 import {
-    Grid , 
     Box , 
-    Stack , 
-    IconButton , 
-    Typography , 
-    Paper , 
 } from "@mui/material"
 import { 
     AllNodeTypes,
-    ParagraphNode , 
     Node , 
     GroupNode , 
     InlineNode , 
@@ -28,10 +22,6 @@ import {
     EditorComponentPaper as ComponentPaper , 
     EditorComponentEditingBox as ComponentEditorBox , 
 } from "./uibase"
-
-import {
-    motion,
-} from "framer-motion"
 
 export { get_default_editors }
 

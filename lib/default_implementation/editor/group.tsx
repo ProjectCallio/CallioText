@@ -8,24 +8,8 @@ import * as Slate from "slate"
 
 
 import {
-    Typography , 
-    Button , 
-    Menu , 
-    MenuItem , 
-    Drawer , 
-    AppBar , 
     Box , 
-    AccordionDetails , 
-    Popper , 
-    Tooltip , 
-    Switch , 
-    Toolbar , 
-    Paper , 
-    Grid , 
     IconButton , 
-    Divider  , 
-    Container , 
-    Card , 
 
     PaperProps ,
     useTheme ,
@@ -41,9 +25,7 @@ import { GroupNode  } from "../../core"
 import { 
     EditorRendererProps , 
     EditorRenderer , 
-    EditorComponent ,  
     slate_is_concept , 
-    EditorGlobalInfo , 
 } from "../../editor"
 
 import { 
@@ -72,11 +54,8 @@ import {
     EditorStructureTypography as StructureTypography , 
 } from "./uibase"
 import { 
-    AutoTooltip  , 
     AutoStack , 
-    Direction , 
     SimpleAutoStack , 
-    AutoStackedPopper , 
     mod_scrollbar , 
     with_partial_props,
 
@@ -86,11 +65,9 @@ import {
 import {
     ButtonGroup , 
     FoldedButtonGroup , 
-    EditorNodeInfoFunction , 
 
     useNode , 
     useParameters , 
-    useEditor , 
     NodeInfoProvider , 
 } from "../../implbase"
 
