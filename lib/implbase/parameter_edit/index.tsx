@@ -97,7 +97,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
 
     const init_parameters = React.useMemo(()=>node.parameters, [node.parameters])
 
-    return <React.Fragment>
+    return <Box>
     <List>{Object.keys(init_parameters).map((key, idx) => {
         return <ListItem key={`param-${node.idx}-${key}`}>
         <Box 
@@ -137,7 +137,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
     <Button onClick={()=>{
         onSave?.(parameters)
     }}>保存</Button>
-    </React.Fragment>
+    </Box>
 }), (prev_props, next_props)=>{
     return prev_props.node.idx == next_props.node.idx 
         && prev_props.onSave === next_props.onSave
