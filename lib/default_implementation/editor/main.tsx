@@ -64,7 +64,7 @@ import {
 import {
     useAreaStore, 
     parameterarea_space , 
-    conceptarea_space , 
+    conceptarea_holding , 
     Areas , 
 } from "../areas"
 
@@ -178,7 +178,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     buttons_get_mouseless_space(),
                     sidebar_space,
                     parameterarea_space , 
-                    conceptarea_space , 
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
@@ -186,7 +185,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     extras_keys , 
                     sidebar_space.holding,
                     parameterarea_space.holding,
-                    conceptarea_space.holding,
+                    conceptarea_holding,
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 

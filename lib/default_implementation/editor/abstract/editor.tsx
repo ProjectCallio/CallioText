@@ -195,7 +195,11 @@ function AbstractEditorArea({}:{}){
     </Paper>
 }
 
-const  DefaultAbstractEditor = ()=>{}
+const  DefaultAbstractEditor = (props: { 
+    father: ConceptNode, sonidx: number, open: boolean, onClose?: (e: any) => void 
+})=>{
+    return <></>
+}
 
 /** 这个组件提供默认的Abstract编辑页面。 
  * 这个组件会提供一个完整的文档编辑器，因为每个抽象节点都可以视为一个新文档。

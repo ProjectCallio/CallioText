@@ -8,6 +8,10 @@ import {
     Stack , 
     IconButton , 
     Button , 
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
 } from "@mui/material"
 
 import {
@@ -54,7 +58,7 @@ import {
 
 export {
     ConceptArea , 
-    SPACE , 
+    HOLDING , 
 }
 
 const concept_list = [
@@ -64,57 +68,10 @@ const concept_list = [
     "structure" as "structure"  , 
 ]
 
-function encode_position(
-    side : number , // 0表示在选type，1表示在选concept
-    idx  : number , 
-    otherside_idx: number , 
-): string{
-    return JSON.stringify([side, idx, otherside_idx])
-}
-function decode_position(position: string): [number, number, number]{
-    return JSON.parse(position) as [number, number, number]
-}
 
-const SPACE: SpaceDefinition = {
-    name: "concept_area",
-    holding: [KeyNames.alt, KeyNames.x],
-    nodes: [],
-    onStart: (last?: NodeName)=> {
-        return last ?? encode_position(1, 0, 0)
-    } , 
-    edges: [
-        {pressing: KeyNames.ArrowLeft, onMove: (from?:string)=>{
-            if(!from){
-                return encode_position(1, 0, 0)
-            }
-            const [side, idx, otherside_idx] = decode_position(from)
-            return encode_position(side ^ 1, otherside_idx, idx)
-        }} , 
-        {pressing: KeyNames.ArrowRight, onMove: (from?:string)=>{
-            if(!from){
-                return encode_position(1, 0, 0)
-            }
-            const [side, idx, otherside_idx] = decode_position(from)
-            return encode_position(side ^ 1, otherside_idx, idx)
-        }} , 
-        {pressing: KeyNames.ArrowUp, onMove: (from?:string)=>{
-            if(!from){
-                return encode_position(1, 0, 0)
-            }
-            const [side, idx, otherside_idx] = decode_position(from)
-            return encode_position(side, idx - 1, otherside_idx)
-        }} , 
-        {pressing: KeyNames.ArrowDown, onMove: (from?:string)=>{
-            if(!from){
-                return encode_position(1, 0, 0)
-            }
-            const [side, idx, otherside_idx] = decode_position(from)
-            return encode_position(side, idx + 1, otherside_idx)
-        }} , 
-    ]
-}
+const HOLDING = [KeyNames.alt, KeyNames.x]
 
-
+// 新的 ConceptArea 组件，使用从左到右布局和 MUI Selector
 const ConceptArea = React.memo(({
     paper_sx , 
     zIndex = 1000 , 
@@ -138,12 +95,10 @@ const ConceptArea = React.memo(({
     const box_ref = React.useRef<HTMLDivElement>(null)
 
     // 保存当前选中的概念类型。
-    const [cur_type, set_cur_type] = usePersistedState<
-        Exclude<AllConceptTypes , "abstract">
-    >(`area-${area_id}/concept/cur_type`,"group")
+    const [cur_mouseless, set_cur_mouseless] = usePersistedState<[number, number]>(
+        `area-${area_id}/concept/cur_mouseless`,[0, 0]
+    )
 
-    // 当前无鼠标操作的状态
-    const [navi_space, navi_position] = useSpaceNavigatorState()
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
     // 拖拽状态
@@ -160,40 +115,69 @@ const ConceptArea = React.memo(({
         }, {} as {[key in Exclude<AllConceptTypes , "abstract">]: string[]})
     }, [editor])
 
-    const [cur_side, cur_idx] = React.useMemo(()=>{
-        if(navi_space != SPACE.name ||!navi_position || !sec_concept_list || !editor){
-            return [undefined, undefined]
+
+    const [cur_type, cur_idx] = React.useMemo(()=>{
+        if(!sec_concept_list){
+            return [0, 0]
         }
-        let [side, idx, _] = decode_position(navi_position)
-        let M = 0
-        if(side == 0){
-            M = concept_list.length
-        }
-        if(side == 1){
-            M = sec_concept_list[cur_type].length
-        }
-        idx = M > 0 ? (idx % M + M) % M : 0
-        return [side, idx]
-    }, [navi_space, navi_position, sec_concept_list, editor, cur_type])
+        const [type, idx] = cur_mouseless
+        const M1 = concept_list.length
+        const M2 = sec_concept_list[concept_list[type]].length
+        return [type, (idx + M2) % M2, (type + M1) % M1]
+    }, [cur_mouseless, sec_concept_list])
+    const cur_type_name = React.useMemo(()=>(concept_list[cur_type]), [cur_type])
 
     React.useEffect(()=>{
-        if(cur_side == undefined || cur_idx == undefined || !sec_concept_list || !editor){
-            return
-        }
-        const handler = ()=>{
-            if(cur_side == 0){
-                const M = concept_list.length
-                set_cur_type(concept_list[cur_idx])
-            } 
-            if(cur_side == 1){
-                editor.new_concept_node(cur_type , sec_concept_list[cur_type][cur_idx])
+
+        const handle_left = ()=>{
+            if(!sec_concept_list){
+                return
             }
+            const M = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([cur_type, (cur_idx - 1 + M) % M])
         }
-        add_handler(SPACE.holding, KeyNames.Enter, false, handler)
+        const handle_right = ()=>{
+            if(!sec_concept_list){
+                return
+            }
+            const M = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([cur_type, (cur_idx + 1) % M])
+        }
+        const handle_up = ()=>{
+            if(!sec_concept_list){
+                return
+            }
+            const M1 = concept_list.length
+            const M2 = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([(cur_type - 1 + M1) % M1, Math.min(cur_idx, M2 - 1)])
+        }
+        const handle_down = ()=>{
+            if(!sec_concept_list){
+                return
+            }
+            const M1 = concept_list.length
+            const M2 = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([(cur_type + 1) % M1, Math.min(cur_idx, M2 - 1)])
+        }
+        const handle_enter = ()=>{
+            if(!editor || !sec_concept_list){
+                return
+            }
+            editor.new_concept_node(cur_type_name, sec_concept_list[cur_type_name][cur_idx])
+        }
+        add_handler(HOLDING, KeyNames.Enter     , false, handle_enter)
+        add_handler(HOLDING, KeyNames.ArrowLeft , false, handle_left)
+        add_handler(HOLDING, KeyNames.ArrowRight, false, handle_right)
+        add_handler(HOLDING, KeyNames.ArrowUp   , false, handle_up)
+        add_handler(HOLDING, KeyNames.ArrowDown , false, handle_down)
         return ()=>{
-            del_handler(SPACE.holding, KeyNames.Enter, false, handler)
+            del_handler(HOLDING, KeyNames.Enter     , false, handle_enter)
+            del_handler(HOLDING, KeyNames.ArrowLeft , false, handle_left)
+            del_handler(HOLDING, KeyNames.ArrowRight, false, handle_right)
+            del_handler(HOLDING, KeyNames.ArrowUp   , false, handle_up)
+            del_handler(HOLDING, KeyNames.ArrowDown , false, handle_down)
         }
-    }, [cur_side, cur_idx, sec_concept_list, editor])
+    }, [cur_type, cur_idx, cur_type_name, sec_concept_list, editor])
 
     if(!editor || !container || !sec_concept_list){
         return <></>
@@ -204,12 +188,19 @@ const ConceptArea = React.memo(({
             position: "absolute",
             top     : container.y + position.y,
             left    : container.x + position.x,
-            width   : "calc(min(20rem, 20vw))",
+            width   : "calc(min(32rem, 35vw))",
             zIndex  : zIndex,
+            
+            // 更现代的样式
+            background: "rgba(255, 255, 255, 0.85)",
+            // backdropFilter: "blur(15px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRadius: "16px",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06)",
             
             ...paper_sx,
 
-            padding: open ? "2rem" : "0", 
+            padding: open ? "1.5rem" : "0", 
         }}
         ref         = {box_ref} 
     >
@@ -217,12 +208,12 @@ const ConceptArea = React.memo(({
         open
     ) && (
         <motion.div
-            initial     = {{ opacity: 0 }}
-            animate     = {{ opacity: 1 }}
-            exit        = {{ opacity: 0 }}
+            initial     = {{ opacity: 0, y: -10 }}
+            animate     = {{ opacity: 1, y: 0 }}
+            exit        = {{ opacity: 0, y: -10 }}
             transition  = {{ 
-                duration: 0.2,
-                transition: "easeInOut"
+                duration: 0.3,
+                ease: "easeOut"
             }}
             style={{
                 top     : "0"  , 
@@ -234,7 +225,7 @@ const ConceptArea = React.memo(({
 
                 display: "flex",
                 flexDirection: "column",
-                gap: "1rem",
+                gap: "1.25rem",
             }}
         >
             <DraggerBox  
@@ -250,60 +241,148 @@ const ConceptArea = React.memo(({
                         }})
                     }
                 }}
-
             />
 
             <Box sx={{
                 display: "flex",
                 flexDirection: "row",
-                justifyContent: "space-between",
-
-                overflow: "hidden",
-                minHeight: 0 , 
-                gap: "1rem",
+                alignItems: "flex-start",
+                gap: "1.5rem",
+                width: "100%",
             }}>
-                <Box sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                }}>{concept_list.map((typename, type_idx) => {
-                    return <MouselessButton
-                        key={typename}
-                        is_activated={(
-                            cur_side == 0 && type_idx == cur_idx
-                        )}
-                    ><Button 
-                        onClick={() => set_cur_type(typename)}
-                    >{{
-                        "group": "组", 
-                        "inline": "行内", 
-                        "support": "支持", 
-                        "structure": "结构", 
-                    }[typename]}</Button></MouselessButton>
-                })}</Box>
+                {/* Concept Type Selector */}
+                <FormControl sx={{ 
+                    minWidth: "9rem",
+                    "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        backgroundColor: "rgba(255, 255, 255, 0.4)",
+                        "&:hover": {
+                            backgroundColor: "rgba(255, 255, 255, 0.6)",
+                        },
+                        "&.Mui-focused": {
+                            backgroundColor: "rgba(255, 255, 255, 0.7)",
+                        }
+                    }
+                }}>
+                    <InputLabel sx={{
+                        color: "rgba(0, 0, 0, 0.7)",
+                        fontWeight: 500,
+                    }}>
+                        概念类型
+                    </InputLabel>
+                    <Select
+                        value={cur_type_name}
+                        label="概念类型"
+                        onChange={(e) => {
+                            const new_typename = e.target.value as Exclude<AllConceptTypes, "abstract">
+                            const new_typeidx = concept_list.indexOf(new_typename)
+                            const M = sec_concept_list[new_typename].length
+                            const new_idx  = Math.min(cur_idx ?? 0, M - 1)
+                            set_cur_mouseless([new_typeidx, new_idx])
+                        }}
+                        size="small"
+                        sx={{
+                            "& .MuiSelect-select": {
+                                fontWeight: 500,
+                                color: "rgba(0, 0, 0, 0.8)",
+                            }
+                        }}
+                    >
+                        {concept_list.map((typename) => (
+                            <MenuItem key={typename} value={typename} sx={{
+                                fontWeight: 500,
+                                borderRadius: "8px",
+                                margin: "2px 4px",
+                                "&:hover": {
+                                    backgroundColor: "rgba(25, 118, 210, 0.08)",
+                                },
+                                "&.Mui-selected": {
+                                    backgroundColor: "rgba(5, 10, 16, 0.12)",
+                                    "&:hover": {
+                                        backgroundColor: "rgba(25, 118, 210, 0.16)",
+                                    }
+                                }
+                            }}>
+                                {{
+                                    "group": "组", 
+                                    "inline": "行内", 
+                                    "support": "支持", 
+                                    "structure": "结构", 
+                                }[typename]}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
+                {/* Concept List */}
                 <Box ref={mod_scrollbar} sx={{
                     overflow: "auto",
                     minHeight: 0 , 
                     height: "auto",
                     flexGrow: 1,
-                }}><Box sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.5rem",
-                }}>{sec_concept_list[cur_type].map((sec_ccpt) => (
-                    <MouselessButton
-                        key={sec_ccpt}
-                        is_activated={(
-                            cur_side == 1 && cur_idx == sec_concept_list[cur_type].indexOf(sec_ccpt)
-                        )}
-                    >
-                        <Button 
-                            onClick={() => {
-                                editor.new_concept_node(cur_type , sec_ccpt)
-                            }}
-                        >{sec_ccpt}</Button>
-                    </MouselessButton>
-                ))}</Box>
+                    maxHeight: "calc(min(30rem, 60vh))",
+                    "&::-webkit-scrollbar": {
+                        width: "6px",
+                    },
+                    "&::-webkit-scrollbar-track": {
+                        background: "rgba(0, 0, 0, 0.05)",
+                        borderRadius: "3px",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                        background: "rgba(0, 0, 0, 0.2)",
+                        borderRadius: "3px",
+                        "&:hover": {
+                            background: "rgba(0, 0, 0, 0.3)",
+                        }
+                    }
+                }}>
+                    <Box sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        gap: "0.75rem",
+                    }}>
+                        {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
+                            <MouselessButton
+                                key={sec_ccpt}
+                                is_activated={cur_idx == idx}
+                            >
+                            <Button 
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                    editor.new_concept_node(cur_type_name , sec_ccpt)
+                                }}
+                                sx={{
+                                    minWidth: "fit-content",
+                                    whiteSpace: "nowrap",
+                                    borderRadius: "10px",
+                                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                                    color: "rgba(0, 0, 0, 0.8)",
+                                    fontWeight: 500,
+                                    fontSize: "0.875rem",
+                                    padding: "6px 12px",
+                                    textTransform: "none",
+                                    transition: "all 0.2s ease",
+                                    "&:hover": {
+                                        backgroundColor: "rgba(255, 255, 255, 0.5)",
+                                        borderColor: "rgba(255, 255, 255, 0.6)",
+                                        color: "rgba(0, 0, 0, 0.9)",
+                                        transform: "translateY(-1px)",
+                                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                    },
+                                    "&:active": {
+                                        transform: "translateY(0px)",
+                                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                                    }
+                                }}
+                            >
+                                {sec_ccpt}
+                            </Button>
+                            </MouselessButton>
+                        ))}
+                    </Box>
                 </Box>
             </Box>
         </motion.div>

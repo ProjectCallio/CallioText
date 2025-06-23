@@ -31,7 +31,7 @@ import {
 } from "./parameter_area"
 import {
     ConceptArea , 
-    SPACE as conceptarea_space , 
+    HOLDING as conceptarea_holding , 
 } from "./concept_area"
 
 import {
@@ -49,7 +49,7 @@ import {
 export {
     AreaContainer , 
     parameterarea_space , 
-    conceptarea_space , 
+    conceptarea_holding , 
     Areas , 
 }
 export * from "./base"
