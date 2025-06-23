@@ -218,15 +218,16 @@ const ParameterArea = React.memo(({
                 left    : container.x + position.x,
                 width   : "calc(min(15rem, 25vw))",
                 zIndex  : zIndex,
-                overflow: "visible" ,
+                overflow: "hidden" ,
 
                 padding: open ? "1.5rem" : "0", 
+
+                // opacity: open ? 1 : 0,
                 
-                // 现代化样式
                 background: "rgba(255, 255, 255, 0.8)",
                 
                 // 移除 height 过渡，让 framer-motion 处理
-                transition: "top 0.1s, left 0.1s",
+                transition: "top 0.1s, left 0.1s, opacity 0.3s, padding 0.3s",
                             
                 ...paper_sx
             }}

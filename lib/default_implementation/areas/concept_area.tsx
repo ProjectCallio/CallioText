@@ -191,18 +191,15 @@ const ConceptArea = React.memo(({
             width   : "calc(min(20rem, 30vw))",
             zIndex  : zIndex,
             
-            // 更现代的样式
+            padding: open ? "1rem" : "0", 
             background: "rgba(255, 255, 255, 0.85)",
-            // backdropFilter: "blur(15px)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            borderRadius: "16px",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06)",
 
-            transition: "top 0.1s, left 0.1s",
+            transition: "top 0.1s, left 0.1s, padding 0.3s",
             
             ...paper_sx,
 
-            padding: open ? "1rem" : "0", 
+            overflow: "hidden",
+
         }}
         ref         = {box_ref} 
     >
@@ -210,9 +207,9 @@ const ConceptArea = React.memo(({
         open
     ) && (
         <motion.div
-            initial     = {{ opacity: 0, y: -10 }}
-            animate     = {{ opacity: 1, y: 0 }}
-            exit        = {{ opacity: 0, y: -10 }}
+            initial     = {{ height: 0, opacity: 0 }}
+            animate     = {{ height: "fit-content" , opacity: 1  }}
+            exit        = {{ height: 0 , opacity: 0 }}
             transition  = {{ 
                 duration: 0.3,
                 ease: "easeOut"
@@ -299,6 +296,7 @@ const ConceptArea = React.memo(({
             </Box>
 
             {/* Concept List */}
+            <motion.div layout>
             <Box ref={mod_scrollbar} sx={{
                 overflow: "auto",
                 minHeight: 0 , 
@@ -311,8 +309,20 @@ const ConceptArea = React.memo(({
                     flexDirection: "row",
                     flexWrap: "wrap",
                     gap: "0.75rem",
-                }}>
+                }}><AnimatePresence mode="popLayout">
                     {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
+                        <motion.div
+                            key={`${cur_type_name}-${sec_ccpt}`}
+                            layoutId={`${cur_type_name}-${sec_ccpt}`}
+                            layout
+                            initial = {{ opacity: 0, scale: 0.1}}
+                            animate = {{ opacity: 1, scale: 1}}
+                            exit    = {{ opacity: 0, scale: 0.1}}
+                            transition={{ 
+                                duration: 0.3,
+                                ease: "easeOut"
+                            }}
+                        >
                         <MouselessButton
                             key={sec_ccpt}
                             is_activated={cur_idx == idx}
@@ -331,9 +341,10 @@ const ConceptArea = React.memo(({
                             {sec_ccpt}
                         </Button>
                         </MouselessButton>
-                    ))}
+                        </motion.div>
+                    ))}</AnimatePresence>
                 </Box>
-            </Box>
+            </Box></motion.div>
         </motion.div>
     )}</AnimatePresence></Paper>
 })
