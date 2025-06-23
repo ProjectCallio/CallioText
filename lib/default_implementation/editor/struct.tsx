@@ -14,8 +14,8 @@ import {
 from "@mui/material"
 
 import {
-    KeyboardArrowDown as KeyboardArrowDownIcon
-} from "@mui/icons-material"
+    ChevronDown as ChevronDownIcon
+} from "lucide-react"
 
 
 import * as Slate from "slate"
@@ -51,6 +51,7 @@ import {
     useNode , 
     NodeInfoProvider , 
     useParameters , 
+    AutoIconButton , 
 } from "../../implbase"
 
 import { 
@@ -198,11 +199,11 @@ function get_default_struct_editor_with_rightbar({
                             opacity: "80%" , 
                         }
                     }}
-                    button_comp = {with_partial_props(IconButton, {
+                    button_comp = {with_partial_props(AutoIconButton, {
                         size: "small" , 
-                        children: <KeyboardArrowDownIcon fontSize="small"/> , 
+                        icon: ChevronDownIcon , 
+                        title: "展开" , 
                     })}
-                    label = "展开"
                     buttons = {[
                         <DefaultParameterEditButton /> , 
                         <DefaultNewAbstractButton /> , 

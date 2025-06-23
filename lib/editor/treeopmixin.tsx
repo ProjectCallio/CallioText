@@ -190,12 +190,7 @@ const tree_op_mixin = {
             editor.get_slate() , 
             node , 
             {
-                match: (n: Slate.Node, path: number[])=>{
-                    if(options.match){
-                        return options.match(n)
-                    }
-                    return true
-                } , 
+                ...(options.match ? {match: options.match} : {}) , 
                 split: options.split , 
             }
         )
@@ -228,12 +223,7 @@ const tree_op_mixin = {
                     anchor: from , 
                     focus: to , 
                 } , 
-                match: (n: Slate.Node, path: number[])=>{
-                    if(options.match){
-                        return options.match(n)
-                    }
-                    return true
-                } , 
+                ...(options.match ? {match: options.match} : {}) , 
                 split: options.split , 
             }
         )

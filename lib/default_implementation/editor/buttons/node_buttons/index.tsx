@@ -21,13 +21,13 @@ import {
 } from "@mui/material"
 
 import {
-    Close as CloseIcon, 
+    CircleX  as CircleXIcon, 
     Settings as SettingsIcon, 
-    North as NorthIcon, 
-    South as SouthIcon, 
+    ArrowDownFromLine as ArrowDownFromLineIcon, 
+    ArrowUpToLine as ArrowUpToLineIcon, 
     MoveUp as MoveUpIcon, 
-    PhoneMissed as PhoneMissedIcon
-} from "@mui/icons-material"
+    PhoneMissed as PhoneMissedIcon,
+} from "lucide-react"
 
 import {
     GroupNode, 
@@ -42,11 +42,11 @@ import {
 } from "../../../../editor"
 import { AutoTooltip } from "../../../../uibase"
 import { DefaultParameterWithEditorWithDrawer } from "./param_drawer" 
-import { AutoIconButton } from "../base"
 import {
     useNode, 
     useParameters, 
     useEditor, 
+    AutoIconButton , 
 } from "../../../../implbase"
 
 export {    
@@ -86,7 +86,7 @@ const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) =
     }, [node.parameters, node.idx, open, onExit])
 
     return <Box sx={{ marginX: "auto" }}>
-        <AutoIconButton onClick={()=>{set_open(true)}} title="设置参数" icon={SettingsIcon} />
+        <AutoIconButton onClick={()=>{set_open(true)}} title="设置参数" icon={SettingsIcon} size="medium"/>
         {subcomp}
     </Box>
 })
@@ -104,7 +104,7 @@ const DefaultCloseButton = React.memo(() => {
         }
     }, [node.idx, editor])
 
-    return <AutoIconButton onClick={run} title="删除组件" icon={CloseIcon} />
+    return <AutoIconButton onClick={run} title="删除组件" icon={CircleXIcon} size="medium"/>
 })
 
 /** 这个组件提供一个删除节点，但是将其子节点移动到节点外的按钮。 */
@@ -130,7 +130,7 @@ const DefaultSoftDeleteButton = React.memo(({ puretext }: { puretext?: boolean }
         }
     }, [node.idx, editor])
 
-    return <AutoIconButton onClick={run} title="解除组件" icon={MoveUpIcon} />
+    return <AutoIconButton onClick={run} title="解除组件" icon={MoveUpIcon} size="medium"/>
 })
 
 /** 这个组件提供一个在组件的上新建段落的节点。 */
@@ -145,7 +145,7 @@ const NewParagraphButtonUp = React.memo(() => {
         editor.add_nodes_before(editor.get_core().create_paragraph(), node)    
     }, [node.idx, editor])
 
-    return <AutoIconButton onClick={run} title="向上添加段落" icon={NorthIcon} />
+    return <AutoIconButton onClick={run} title="向上添加段落" icon={ArrowUpToLineIcon} size="medium"/>
 })
 
 /** 这个组件提供一个在组件的下新建段落的节点。 */
@@ -160,7 +160,7 @@ const NewParagraphButtonDown = React.memo(() => {
         editor.add_nodes_after(editor.get_core().create_paragraph(), node)    
     }, [node.idx, editor])
 
-    return <AutoIconButton onClick={run} title="向下添加段落" icon={SouthIcon} />
+    return <AutoIconButton onClick={run} title="向下添加段落" icon={ArrowDownFromLineIcon} size="medium"/>
 })
 
 /** 这个按钮在一个概念下方复制此概念，并设置同样的参数。 */
@@ -196,7 +196,7 @@ const CopyButton = React.memo(() => {
         }
     }, [node.idx, node.type, node.concept, node.parameters, editor])
 
-    return <AutoIconButton onClick={run} title="复制此节点" icon={PhoneMissedIcon} />
+    return <AutoIconButton onClick={run} title="复制此节点" icon={PhoneMissedIcon} size="medium"/>
 })
 
 /** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 */
@@ -226,16 +226,14 @@ const DefaultSwicth = React.memo(() => {
 
     return <AutoTooltip title = "贴贴">
         <Switch 
+            size="small"
             checked = {checked} 
             onChange = {switch_check_change} 
             sx = {{
-                transform: "scale(0.8)",
-                transformOrigin: "center center", 
-                marginX: "-0.5rem"
             }}
             slotProps = {{
                 input: {
-                    ref: switchref
+                    ref: switchref , 
                 }
             }}
         />

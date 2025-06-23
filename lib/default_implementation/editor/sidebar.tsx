@@ -5,19 +5,12 @@
 import React  from "react"
 
 import {
-    IconButton , 
-    Button , 
-    Paper ,
     Divider , 
-    Box, 
-    PaperProps, 
-    BoxProps , 
 } from "@mui/material"
 
 import {
     SpaceDefinition , 
     KeyNames , 
-    KeyName , 
     NodeName, 
     useSpaceNavigatorState, 
     useKeyEventsHandlerRegister , 
@@ -35,6 +28,7 @@ import {
 
 import { 
     click_all , 
+    AutoStack , 
 } from "../../uibase"
 
 import {
@@ -112,7 +106,13 @@ function DefaultSidebar({
     } , [cur_activated])
 
 
-    return <React.Fragment>
+    return <AutoStack 
+        force_direction="column"
+        sx={{
+            alignItems: "center",
+            paddingLeft: "0.15rem",
+        }}
+    >
         <MouselessButton 
             is_activated={cur_activated == 0}
             ref = {(el: HTMLDivElement)=>{refs.current[0] = el}}
@@ -145,5 +145,5 @@ function DefaultSidebar({
                 <Ex />
             </MouselessButton>
         })}
-    </React.Fragment>
+    </AutoStack>
 }

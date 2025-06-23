@@ -16,13 +16,7 @@ import {
 
 import {
     KeyNames , 
-    KeyName , 
-    useKeyHoldingState , 
-    NodeName, 
-    SpaceDefinition, 
-    useSpaceNavigatorState,
     useKeyEventsHandlerRegister , 
-    NO_ACTION , 
 } from "@ftyyy/mouseless"
 
 import {

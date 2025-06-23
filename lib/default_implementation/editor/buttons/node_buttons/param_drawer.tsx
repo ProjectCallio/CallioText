@@ -9,23 +9,10 @@ import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
 import { 
-    Typography ,  
-    Card , 
-    TextField ,
     Button , 
     Drawer , 
     Box , 
-    Select , 
-    Switch , 
-    MenuItem  , 
     Divider, 
-    List , 
-    FormControlLabel  , 
-    ListItem, 
-    FormControl , 
-    FormLabel  , 
-    RadioGroup , 
-    Radio  , 
 } from "@mui/material"
 
 
@@ -33,8 +20,6 @@ import { ConceptNode } from "../../../../core"
 
 import { EditorStructureTypography as StructureTypography } from "../../uibase/components"
 import { 
-    EditorComponent , 
-    EditorGlobalInfo , 
     useEditor , 
     useEditorState , 
 }

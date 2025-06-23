@@ -4,3 +4,4 @@
  */
 export * from "./folded_buttongroup"
 export * from "./buttongroup"
+export * from "./base"

@@ -8,41 +8,25 @@ import * as SlateReact from "slate-react"
 import { produce } from "immer"
 
 import {
-    Button,
     Box,
     Menu,
     MenuItem,
-    Drawer,
-    IconButton,
-    ThemeOptions,
 } from "@mui/material"
 import {
-    AddBox as AddBoxIcon,
-    FilterNone as FilterNoneIcon,
-    ArrowRightAlt as ArrowRightAltIcon
-} from "@mui/icons-material"
+    FilePen as FilePenIcon,
+} from "lucide-react"
 
-import { AutoTooltip, ForceContain, AutoStackedPopper } from "../../../uibase"
-import {
-    ConceptNode,
-    AllNodeTypes,
-    AllConceptTypes,
-    AbstractNode,
-    GroupNode,
-} from "../../../core"
-import {
-    EditorComponent,
-    EditorGlobalInfo,
-} from "../../../editor"
-import {
-    DefaultEditorComponent
-} from "../main"
-import type { EditorRendererProps, EditorRenderer } from "../../../editor"
+import { 
+    AutoTooltip, 
+    ForceContain, 
+    AutoStackedPopper 
+} from "../../../uibase"
 
 import {
     EditorNodeInfoFunction,
     useNode,
     useEditor,
+    AutoIconButton,
 } from "../../../implbase"
 
 import {
@@ -115,13 +99,14 @@ function DefaultEditAbstractButton() {
     return <React.Fragment>
         <Box sx={{
             marginX: "auto",
-        }} ref={boxref}><AutoTooltip title="编辑抽象">
-            <IconButton onClick={() => open()} sx={{
-                transform: "scale(0.8)",
-                transformOrigin: "center center",
-                paddingX: "0.05rem",
-            }}><FilterNoneIcon /></IconButton>
-        </AutoTooltip></Box>
+        }} ref={boxref}>
+            <AutoIconButton
+                onClick={() => open()}
+                icon={FilePenIcon}
+                title="编辑抽象"
+                size="medium"
+            />
+        </Box>
         <DefaultAbstractEditorGroup
             anchor_element={ae}
             open={ae != undefined}

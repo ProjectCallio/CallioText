@@ -15,8 +15,8 @@ import {
     Paper , 
 } from "@mui/material"
 import {
-    KeyboardArrowDown as KeyboardArrowDownIcon , 
-} from "@mui/icons-material"
+    ChevronDown as ChevronDownIcon , 
+} from "lucide-react"
 
 import {
     InlineNode , 
@@ -43,6 +43,7 @@ import {
     useNode , 
     NodeInfoProvider , 
     useParameters , 
+    AutoIconButton , 
 } from "../../implbase"
 
 import { DefaultEditAbstractButton, DefaultNewAbstractButton } from "./abstract"
@@ -99,17 +100,11 @@ function get_default_inline_editor({
                                 opacity: "80%" , 
                             }
                         }}
-                        button_comp = {with_partial_props(IconButton, {
-                            sx: {
-                                height: "1.25rem" , 
-                                width: "1.25rem" , 
-                                padding: "0" , 
-                                margin: "0",
-                            } , 
-                            children: <KeyboardArrowDownIcon sx={{height: "1.25rem"}}/> ,
+                        button_comp = {with_partial_props(AutoIconButton, {
+                            size: "very-small" , 
+                            icon: ChevronDownIcon , 
+                            title: "展开" , 
                         })} 
-                        // label = {"展开" + (label ? ` / ${label}` : "") }
-                        label = {"展开"}
                         buttons = {[
                             <DefaultParameterEditButton /> , 
                             <DefaultCloseButton /> , 

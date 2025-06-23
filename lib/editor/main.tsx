@@ -431,8 +431,9 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         if(type == "group"){
             let selection = me.get_slate().selection
             let flag = true
-            if (selection != undefined)
+            if (selection != undefined){
                 flag = JSON.stringify(selection.anchor) == JSON.stringify(selection.focus) // 是否没有选择
+            }
             
             let node = me.get_editorcore().create_group(sec_ccpt)
             if(flag){ // 没有选东西，直接添加节点
@@ -446,9 +447,9 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         if(type == "inline"){
             let selection = me.get_slate().selection
             let flag = true // 是否没有选择任何东西
-            if(selection != undefined)
+            if(selection != undefined){
                 flag = JSON.stringify(selection.anchor) == JSON.stringify(selection.focus) // 是否没有选择
-
+            }
             let node = me.get_editorcore().create_inline(sec_ccpt , "")
 
             if(flag){ // 如果没有选择任何东西，就新建节点。

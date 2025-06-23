@@ -12,7 +12,7 @@ import {
 } from "@mui/material"
 import { 
     Settings as SettingsIcon , 
-} from "@mui/icons-material"
+} from "lucide-react"
 
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
@@ -26,10 +26,10 @@ import {
     EditorComponent , 
     EditorGlobalInfo , 
 } from "../../../../editor"
-import { AutoIconButton } from "../base"
 import {
     DefaultParameterContainer , 
     DefaultParameterContainerRef , 
+    AutoIconButton , 
 } from "../../../../implbase"
 
 export { 
@@ -125,15 +125,15 @@ interface DefaultRootParameterEditButtonProps{
  * 这个组件提供`DefaultRootParameterWithEditorWithDrawer`的按钮
  */
 function DefaultRootParameterEditButton(props: DefaultRootParameterEditButtonProps) {
-    const [open, setOpen] = React.useState(false)
+    const [open, set_open] = React.useState(false)
     const onExit = props.onExit || ((e: any) => {})
 
     return <Box sx={{ marginX: "auto" }}>
         <AutoIconButton 
-            onClick={() => setOpen(true)} 
+            onClick={() => set_open(true)} 
             title="设置参数" 
             icon={SettingsIcon} 
-            size="medium" 
+            size="large" 
         />
         <DefaultRootParameterWithEditorWithDrawer 
             root={props.root} 
@@ -141,7 +141,7 @@ function DefaultRootParameterEditButton(props: DefaultRootParameterEditButtonPro
             open={open} 
             onClose={e => { 
                 onExit(e)
-                setOpen(false)
+                set_open(false)
             }} 
         />
     </Box>

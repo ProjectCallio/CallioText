@@ -4,4 +4,3 @@
  */
 export * from "./node_buttons"
 export * from "./sidebar_buttons"
-export * from "./base"

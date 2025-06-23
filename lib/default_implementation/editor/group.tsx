@@ -10,15 +10,15 @@ import * as Slate from "slate"
 import {
     Box , 
     IconButton , 
-
+    Divider , 
     PaperProps ,
     useTheme ,
 } 
 from "@mui/material"
 
 import {
-    KeyboardArrowDown as KeyboardArrowDownIcon, Opacity
-} from "@mui/icons-material"
+    ChevronDown as ChevronDownIcon, 
+} from "lucide-react"
 
 
 import { GroupNode  } from "../../core"
@@ -69,6 +69,7 @@ import {
     useNode , 
     useParameters , 
     NodeInfoProvider , 
+    AutoIconButton,  
 } from "../../implbase"
 
 import Color from "color"
@@ -132,8 +133,11 @@ function get_deafult_group_editor_with_appbar({
                     <Box ref={mod_scrollbar} sx={{
                         overflow: "auto" , 
                         paddingX: "1rem" , 
-                    }}><AutoStack>
+                    }}><AutoStack sx={{
+                        gap: "0.75rem",
+                    }}>
                         <StructureTypography><GetLabel /></StructureTypography>
+                        <Divider orientation="vertical" flexItem />
                         <ButtonGroup 
                             level     = {0}
                             max_level = {0}
@@ -225,9 +229,10 @@ function get_default_group_editor_with_rightbar({
                     force_direction = {"column"}
                     sx = {{
                         paddingX: "0.25rem" , 
-                        paddingY: "0.15rem" , 
+                        paddingY: "0.25rem" , 
                         border: "1px solid rgba(30,30,30,0.3)" , 
                     }}
+                    gap = "0.25rem"
                 >
                     {normal_title}
                     
@@ -239,24 +244,21 @@ function get_default_group_editor_with_rightbar({
                                 opacity: "80%" , 
                             }
                         }), [])}
-                        button_comp = {React.useMemo(()=>(with_partial_props(IconButton, {
-                            size: "small" , 
-                            children: <KeyboardArrowDownIcon fontSize="small"/> , 
-                            sx: {
-                                marginY: "auto" , 
-                            }
+                        button_comp = {React.useMemo(()=>(with_partial_props(AutoIconButton, {
+                            size: "medium" , 
+                            icon: ChevronDownIcon , 
+                            title: "展开" , 
                         })), [])}
-                        label = "展开"
                         buttons = {React.useMemo(()=>([
                             <DefaultParameterEditButton key="param"/> , 
-                            <DefaultNewAbstractButton  key="newabs"/> , 
-                            <DefaultEditAbstractButton key="editabs"/> , 
-                            <DefaultSwicth             key="switch"/> , 
-                            <DefaultCloseButton        key="close"/> , 
-                            <DefaultSoftDeleteButton   key="softdel"/> , 
-                            <NewParagraphButtonUp      key="up"/> , 
-                            <NewParagraphButtonDown    key="down"/> , 
-                            <CopyButton                key="copy"/> , 
+                            <DefaultNewAbstractButton   key="newabs"/> , 
+                            <DefaultEditAbstractButton  key="editabs"/> , 
+                            <DefaultSwicth              key="switch"/> , 
+                            <DefaultCloseButton         key="close"/> , 
+                            <DefaultSoftDeleteButton    key="softdel"/> , 
+                            <NewParagraphButtonUp       key="up"/> , 
+                            <NewParagraphButtonDown     key="down"/> , 
+                            <CopyButton                 key="copy"/> , 
                             ... buttons_extra.map((B, idx) => <B key={idx}/>)
                         ]), [buttons_extra])}
                     /> 

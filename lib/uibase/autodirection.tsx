@@ -45,17 +45,18 @@ const ForceContain = React.createContext<boolean>(false)
  * @param title 要为元素创建的 Tooltip 的值。
  * @param children 子元素。由 React 自动提供。
  */
-function AutoTooltip(props: {
+const AutoTooltip = React.memo(({
+    title , 
+    children , 
+}: {
     title?: string, 
     children?: any , 
-}){
-    let title = props.title || ""
-    return <Direction.Consumer>{nowdir => { 
-        return <Tooltip title={title} placement={nowdir == "row" ? "left" : "top"} >
-            {props.children}
-        </Tooltip>
-    }}</Direction.Consumer>
-}
+})=>{
+    const nowdir = React.useContext(Direction)
+    return <Tooltip title={title} placement={nowdir == "row" ? "left" : "top"} >
+        {children}
+    </Tooltip>
+})
 
 /** 这个组件用于创建一个根据当前方向自动堆叠的对象。子元素会自动转向。
  * @param force_direction 强制设置一个当前方向。
@@ -94,7 +95,7 @@ function AutoStackButtons(props: {
  * @param props.children 子元素。由 React 自动提供。
  * @param props.simple 是否为一个小堆叠，如果为 true ，则子组件不会转向。
  */
-function AutoStack({
+const AutoStack = React.memo(({
     force_direction , 
     children , 
     simple , 
@@ -103,8 +104,8 @@ function AutoStack({
     force_direction?: DirectionValues
     children?: any
     simple?: boolean
-} & StackProps){
-    let flip_direction = ! simple // 如果是简单版本，就不翻转方向，否则翻转
+} & StackProps)=>{
+    const flip_direction = ! simple // 如果是简单版本，就不翻转方向，否则翻转
     let nowdir = React.useContext(Direction)
     if(force_direction){
         nowdir = force_direction
@@ -112,7 +113,7 @@ function AutoStack({
 
     let newdir = flip_direction ? (nowdir == "row" ? "column" : "row") : nowdir
 
-    let {sx, ...other_stack_props} = other_props
+    const {sx, ...other_stack_props} = other_props
 
     return <Direction.Provider value={newdir}>
         <Stack 
@@ -121,7 +122,7 @@ function AutoStack({
             {...other_stack_props}
         >{children}</Stack>
     </Direction.Provider>
-}
+})
 
 /** 这个组件用于创建一个根据当前方向自动堆叠的对象。子元素不会自动转向。
  * 相当于 <AutoStack simple>

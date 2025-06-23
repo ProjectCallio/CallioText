@@ -107,12 +107,12 @@ const ButtonGroup = React.memo(({
         }
     } , [cur_selected])
 
-    const ret = React.useMemo(()=>{
-        return <React.Fragment>
-        </React.Fragment>
-    } , [buttons, cur_selected])
-
-    return <AutoStack direction = {direction}>{
+    return <AutoStack force_direction={direction} sx={{
+        alignItems: "center",
+        gap: "0.5rem",
+        paddingY: "0.5rem",
+        paddingX: "0.5rem",
+    }}>{
         buttons.map((button, idx)=>{
             return <MouselessButton 
                 key = {idx}

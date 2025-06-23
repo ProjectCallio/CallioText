@@ -11,9 +11,9 @@ import {
 }
 from "@mui/material"
 import {
-    KeyboardArrowDown as KeyboardArrowDownIcon , 
+    ChevronDown as ChevronDownIcon , 
 }
-from "@mui/icons-material"
+from "lucide-react"
 
 import {
     SupportNode , 
@@ -42,6 +42,7 @@ import {
     useNode , 
     NodeInfoProvider, 
     useParameters, 
+    AutoIconButton , 
 } from "../../implbase"
 import { 
     EditorComponentPaper as ComponentPaper , 
@@ -83,11 +84,11 @@ function get_default_spliter_editor({
                         <FoldedButtonGroup 
                             level = {0}
                             max_level = {0}
-                            button_comp = {with_partial_props(IconButton, {
+                            button_comp = {with_partial_props(AutoIconButton, {
                                 size: "small" , 
-                                children: <KeyboardArrowDownIcon fontSize="small"/> , 
+                                icon: ChevronDownIcon , 
+                                title: "展开" , 
                             })}
-                            label = "展开"
                             buttons = {[
                                 <DefaultParameterEditButton /> , 
                                 <DefaultNewAbstractButton /> , 
@@ -143,11 +144,11 @@ function get_default_display_editor({
                     </StructureTypography>
                     
                     <FoldedButtonGroup 
-                        button_comp = {with_partial_props(IconButton, {
+                        button_comp = {with_partial_props(AutoIconButton, {
                             size: "small" , 
-                            children: <KeyboardArrowDownIcon fontSize="small"/> , 
+                            icon: ChevronDownIcon , 
+                            title: "展开" , 
                         })}
-                        label = "展开"
                         buttons = {[
                             <DefaultParameterEditButton /> , 
                             <DefaultNewAbstractButton /> , 

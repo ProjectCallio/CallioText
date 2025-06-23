@@ -4,9 +4,9 @@ import {
 } from "@mui/material"
 
 import {
-    Build as BuildIcon,
-    Category as CategoryIcon,
-} from "@mui/icons-material"
+    Columns3Cog as Columns3CogIcon    ,
+    Puzzle  as PuzzleIcon ,
+} from "lucide-react"
 
 import {
     useAreaStore,
@@ -14,7 +14,7 @@ import {
 
 import {
     AutoIconButton,
-} from "../base"
+} from "../../../../implbase"
 
 export {
     ParamAreaControlButton,
@@ -27,18 +27,10 @@ function ParamAreaControlButton(){
 
     return <AutoIconButton 
         onClick = {() => set_open("param", !open.param)} 
-        icon    = {BuildIcon}
+        icon    = {Columns3CogIcon}
         title   = "参数区域"
-        size    = "medium" 
-        icon_props = {{
-            sx: {
-                color: open.param ? "white" : "inherit",
-                backgroundColor: open.param ? "primary.main" : "transparent",
-                "&:hover": {
-                    backgroundColor: open.param ? "primary.dark" : "action.hover"
-                }
-            }
-        }}
+        size    = "large" 
+        activate = {open.param}
     />
 }
 
@@ -48,17 +40,9 @@ function ConceptAreaControlButton(){
 
     return <AutoIconButton 
         onClick = {() => set_open("concep", !open.concep)} 
-        icon    = {CategoryIcon}
+        icon    = {PuzzleIcon}
         title   = "概念区域"
-        size    = "medium" 
-        icon_props = {{
-            sx: {
-                color: open.concep ? "white" : "inherit",
-                backgroundColor: open.concep ? "primary.main" : "transparent",
-                "&:hover": {
-                    backgroundColor: open.concep ? "primary.dark" : "action.hover"
-                }
-            }
-        }}
+        size    = "large" 
+        activate = {open.concep}
     />
 }

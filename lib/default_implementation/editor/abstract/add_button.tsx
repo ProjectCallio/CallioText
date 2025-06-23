@@ -17,32 +17,19 @@ import {
     ThemeOptions,
 } from "@mui/material"
 import {
-    AddBox as AddBoxIcon,
-    FilterNone as FilterNoneIcon,
-    ArrowRightAlt as ArrowRightAltIcon
-} from "@mui/icons-material"
+    FilePlus2 as FilePlus2Icon,
+} from "lucide-react"
 
-import { AutoTooltip, ForceContain, AutoStackedPopper } from "../../../uibase"
-import {
-    ConceptNode,
-    AllNodeTypes,
-    AllConceptTypes,
-    AbstractNode,
-    GroupNode,
-} from "../../../core"
 import {
     EditorComponent,
     EditorGlobalInfo,
 } from "../../../editor"
-import {
-    DefaultEditorComponent
-} from "../main"
-import type { EditorRendererProps, EditorRenderer } from "../../../editor"
 
 import {
     EditorNodeInfoFunction,
     useNode,
     useEditor,
+    AutoIconButton,
 } from "../../../implbase"
 
 export {
@@ -123,13 +110,14 @@ function DefaultNewAbstractButton() {
         return <React.Fragment>
             <Box sx={{
                 marginX: "auto",
-            }} ref={boxref}><AutoTooltip title="新建抽象">
-                <IconButton onClick={() => open()} sx={{
-                    transform: "scale(0.8)",
-                    transformOrigin: "center center",
-                    paddingX: "0.05rem",
-                }}><AddBoxIcon /></IconButton>
-            </AutoTooltip></Box>
+            }} ref={boxref}>
+                <AutoIconButton
+                    onClick={() => open()}
+                    icon={FilePlus2Icon}
+                    title="新建抽象"
+                    size="medium"
+                />
+            </Box>
             <DefaultNewAbstract
                 anchor_element={ae}
                 open={ae != undefined}

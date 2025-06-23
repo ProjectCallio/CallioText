@@ -10,6 +10,7 @@ import {
     Popper , 
     PopperProps , 
     Paper , 
+    Divider , 
 } from "@mui/material"
 
 import {
@@ -37,7 +38,7 @@ import {
 import {
     useNode ,
     useEditor,
-} from "../../implbase"
+} from "../hooks"
 
 export {
     FoldedButtonGroup , 
@@ -50,7 +51,6 @@ const FoldedButtonGroup = React.memo(({
     max_level , 
     popper_props , 
     button_comp , 
-    label , 
     children = <></>,
 }:{
     buttons : React.ReactNode[]
@@ -61,7 +61,6 @@ const FoldedButtonGroup = React.memo(({
     button_comp  ?: React.ComponentType<{
         onClick: (e: any)=>void, 
     }>
-    label ?: string
     children ?: React.ReactNode
 })=>{
     const my_nodeidx = useNode((prev, next) => (prev.idx == next.idx)).idx
@@ -117,19 +116,27 @@ const FoldedButtonGroup = React.memo(({
 
     return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
         <Box>
-            <AutoTooltip title={label}>
-                <Box ref = {(el)=>{
-                        if(!el || el === anchor_ref.current){
-                            return 
-                        }
-                        anchor_ref.current = el as HTMLDivElement
-                        set_version(version + 1)
-                    }}>
+            <Box 
+                ref = {(el)=>{
+                    if(!el || el === anchor_ref.current){
+                        return 
+                    }
+                    anchor_ref.current = el as HTMLDivElement
+                    set_version(version + 1)
+                }}
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: "auto",
+                    height: "auto",
+                    marginTop: "0.1rem",
+                }}
+            >
                 <ButtonComp
                     onClick = {()=>{set_menu_open(!menu_open)}}
                 />
-                </Box>
-            </AutoTooltip>
+            </Box>
             <Popper
                 open     = {menu_open || mouseless_open}
                 anchorEl = {anchor_ref.current}
@@ -140,6 +147,7 @@ const FoldedButtonGroup = React.memo(({
                 border: "1px solid" , 
             }}>
                 {children}
+                <Divider />
                 <ButtonGroup
                     buttons = {buttons}
                     level   = {level}
