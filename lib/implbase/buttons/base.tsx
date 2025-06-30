@@ -4,6 +4,7 @@
  */
 
 import * as React from "react"
+import { motion } from "framer-motion"
 
 import { 
     IconButton, 
@@ -14,6 +15,14 @@ import { AutoTooltip } from "../../uibase"
 
 export {    
     AutoIconButton, 
+    MouselessSelect , 
+    AutoElement , 
+}
+
+const MouselessSelect = React.createContext<boolean>(false)
+
+function useMouselessSelect(){
+    return React.useContext(MouselessSelect)
 }
 
 /** 这个函数是一个语法糖，用于自动创建带tooltip的按钮。 */
@@ -36,12 +45,43 @@ const AutoIconButton = React.memo(({
 })=>{
     const {sx, ...rest} = icon_props
     const Icon = icon
+
+    const mouseless_select = useMouselessSelect()
+    const [hover, set_hover] = React.useState(false)
+
+    const flag = mouseless_select || hover
     
-    return <AutoTooltip title={title}>
+    const Component = component == "button" ? motion.button : motion.span
+    
+    return <AutoTooltip title={title} open={flag}>
         <IconButton 
+            component   = {Component} 
             onClick     = {onClick} 
-            component   = {component} 
+            onMouseEnter = {() => set_hover(true)}
+            onMouseLeave = {() => set_hover(false)}
+            animate = {{
+                scale     : flag ? 1.1 : 1,
+                boxShadow : flag ? "0px 4px 8px rgba(0, 0, 0, 0.3)" : "none",
+                rotate    : flag ? [-20, 0] : 0,
+            }}
+            transition = {{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+            }}
+
             sx          = {{
+
+                "&:hover": { // 鼠标悬停
+                    backgroundColor: "transparent !important",
+                },
+                "&:active": { // 鼠标点击
+                    backgroundColor: "transparent !important",
+                },
+                "&.Mui-focusVisible": { // 键盘聚焦（无障碍）
+                    backgroundColor: "transparent !important",
+                },
+                
                 ...(size == "small" ? {
                     paddingX: "0.05rem",
                     paddingY: "0.05rem" , 
@@ -78,10 +118,45 @@ const AutoIconButton = React.memo(({
                     color: "white",
                 } : {}),
                 ...(sx || {})
-            }}
+            }}    
             {...rest} 
         >
             <Icon />
         </IconButton>
+    </AutoTooltip>
+})
+
+/** 通用的按钮栏元素包裹器。 */
+const AutoElement = React.memo(({
+    title, 
+    children,
+    ref,
+}: {
+    title?: string,
+    children: React.ReactNode,
+    ref?: React.Ref<HTMLDivElement>,
+}) => {
+    const mouseless_select = useMouselessSelect()
+    const [hover, set_hover] = React.useState(false)
+    const flag = mouseless_select || hover
+
+    return <AutoTooltip title={title} open={flag}>
+    <motion.div 
+        ref = {ref}
+        onMouseEnter = {() => set_hover(true)}
+        onMouseLeave = {() => set_hover(false)}
+        animate = {{
+            scale     : flag ? 1.1 : 1,
+            boxShadow : flag ? "0px 4px 8px rgba(0, 0, 0, 0.3)" : "none",
+            rotate    : flag ? [-20, 0] : 0,
+        }}
+        transition = {{
+            type: "spring",
+            stiffness: 300,
+            damping: 20,
+        }}
+        >
+            {children}
+        </motion.div>
     </AutoTooltip>
 })

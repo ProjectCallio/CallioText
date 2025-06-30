@@ -291,6 +291,7 @@ const ConceptArea = React.memo(({
                 flexGrow: 1,
                 minHeight: 0 , 
                 maxHeight: "calc(min(25rem, 30vh))",
+                padding: "0.2rem",
             }}>
             <Box sx={{
                 display: "flex",
@@ -310,10 +311,14 @@ const ConceptArea = React.memo(({
                             duration: 0.3,
                             ease: "easeOut"
                         }}
+                        style={{
+                            overflow: "visible"
+                        }}
                     >
                     <MouselessButton
                         key={sec_ccpt}
                         is_activated={cur_idx == idx}
+                        auto_element
                     >
                     <Button 
                         variant="outlined"
@@ -336,3 +341,4 @@ const ConceptArea = React.memo(({
     )}</AnimatePresence></Paper>
 })
 
+ConceptArea.whyDidYouRender = true

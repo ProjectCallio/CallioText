@@ -47,6 +47,7 @@ import {
     useParameters, 
     useEditor, 
     AutoIconButton , 
+    AutoElement , 
 } from "../../../../implbase"
 
 export {    
@@ -224,7 +225,7 @@ const DefaultSwicth = React.memo(() => {
     }, [node, editor])
 
 
-    return <AutoTooltip title = "贴贴">
+    return <AutoElement title = "贴贴">
         <Switch 
             size="small"
             checked = {checked} 
@@ -237,7 +238,7 @@ const DefaultSwicth = React.memo(() => {
                 }
             }}
         />
-    </AutoTooltip>
+    </AutoElement>
 })
 
 // DefaultParameterEditButton.whyDidYouRender = true

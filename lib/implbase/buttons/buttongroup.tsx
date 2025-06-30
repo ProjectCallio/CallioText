@@ -9,6 +9,7 @@ import * as SlateReact from "slate-react"
 
 import {
     useSpaceNavigatorState,  
+    useSpaceNavigatorRawState,
     useKeyEventsHandlerRegister,
     KeyNames, 
 } from "@ftyyy/mouseless"
@@ -33,12 +34,14 @@ import {
 
 import {
     MouselessButton , 
-} from "../mouseless_style"
+} from "./msless_style"
 
 
 export {
     ButtonGroup , 
 }
+
+
 
 const ButtonGroup = React.memo(({
     buttons, 
@@ -56,23 +59,12 @@ const ButtonGroup = React.memo(({
 })=>{
     const node                         = useNode((prev, next) => (prev.idx == next.idx))
 
-    const [cur_space , cur_position]   = useSpaceNavigatorState()
-    const [cur_selected, set_cur_selected] = React.useState<number | undefined>(undefined)
-
-    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
-    
-    const button_cnt = buttons.length // 作为组件的按钮数量
-    const refs = React.useRef<HTMLDivElement[]>([])
-
-    // 设置当前选中的按钮
-    React.useEffect(()=>{   
-        if(cur_space != SPACE_NAME || !cur_position){
-            set_cur_selected(undefined)
-            return 
+    const button_idx   = useSpaceNavigatorRawState(React.useCallback(state=>{
+        const {space, node: position} = state
+        if(space != SPACE_NAME || !position){
+            return undefined
         }
-
-        // 在纵向排列的时候，要交换level跟button_idx。
-        let [node_idx, level_idx, button_idx] = decode_position(cur_position)
+        let [node_idx, level_idx, button_idx] = decode_position(position)
         if(direction == "column"){
             let swap = level_idx
             level_idx = button_idx
@@ -82,14 +74,32 @@ const ButtonGroup = React.memo(({
         level_idx = ((level_idx % M) + M) % M 
 
         if(node_idx != node.idx || level_idx != level){
-            set_cur_selected(undefined)
+            return undefined
+        }
+        return button_idx
+    }, [direction, max_level, node.idx, level]))
+
+    const [cur_selected, set_cur_selected] = React.useState<number | undefined>(undefined)
+
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
+    
+    const button_cnt = buttons.length // 作为组件的按钮数量
+    const refs = React.useRef<HTMLDivElement[]>([])
+
+    // 设置当前选中的按钮
+    React.useEffect(()=>{   
+        if(button_idx == undefined){
+            if(cur_selected != undefined){
+                set_cur_selected(undefined)
+            }
             return 
         }
 
         const act_but_idx = (button_idx % button_cnt + button_cnt) % button_cnt
-        set_cur_selected(act_but_idx)
-
-    } , [cur_space, cur_position, level, button_cnt, node.idx, direction ])
+        if(cur_selected != act_but_idx){
+            set_cur_selected(act_but_idx)
+        }
+    } , [button_idx, button_cnt, cur_selected])
 
     // 设置选中按钮的行为
     React.useEffect(()=>{
@@ -116,11 +126,9 @@ const ButtonGroup = React.memo(({
         buttons.map((button, idx)=>{
             return <MouselessButton 
                 key = {idx}
-                ref = {(el: HTMLDivElement)=>{refs.current[idx] = el}}
-                is_activated = {cur_selected == idx}
+                ref = {React.useCallback((el: HTMLDivElement)=>{refs.current[idx] = el}, [])}
+                is_activated = { React.useMemo(()=>(cur_selected == idx), [cur_selected, idx]) }
             >{button}</MouselessButton>
         })
     }</AutoStack>
 })
-
-// ButtonGroup.whyDidYouRender = true

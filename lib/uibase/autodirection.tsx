@@ -48,12 +48,14 @@ const ForceContain = React.createContext<boolean>(false)
 const AutoTooltip = React.memo(({
     title , 
     children , 
+    open , 
 }: {
     title?: string, 
     children?: any , 
+    open?: boolean , 
 })=>{
     const nowdir = React.useContext(Direction)
-    return <Tooltip title={title} placement={nowdir == "row" ? "left" : "top"} >
+    return <Tooltip title={title} placement={nowdir == "row" ? "left" : "top"} open={open} >
         {children}
     </Tooltip>
 })

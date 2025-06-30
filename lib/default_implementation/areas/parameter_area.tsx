@@ -128,6 +128,7 @@ const SPACE: SpaceDefinition = {
         }} , 
     ]
 }
+// TODO 调整mouseless select样式
 const ParameterArea = React.memo(({
     paper_sx , 
     zIndex = 1000 , 
@@ -155,7 +156,7 @@ const ParameterArea = React.memo(({
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef>(null)
 
     // 无鼠标状态
-    const [navi_space, navi_position] = useSpaceNavigatorState()
+    const [navi_space, navi_position] = useSpaceNavigatorState(SPACE.name)
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
     // 拖拽状态

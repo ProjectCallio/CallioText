@@ -68,9 +68,9 @@ function DefaultSidebar({
 }){
     const editor = useEditor()
     const root = editor.get_root()
-    const [cur_space, cur_node] = useSpaceNavigatorState()
+    const [cur_space, cur_node] = useSpaceNavigatorState(SPACE.name)
 
-    const button_cnt = React.useMemo(()=>(extras.length + 1), [extras])
+    const button_cnt = React.useMemo(()=>(extras.length + 3), [extras])
 
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
     const refs = React.useRef<HTMLDivElement[]>([])
