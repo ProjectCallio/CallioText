@@ -131,30 +131,33 @@ const AutoElement = React.memo(({
     title, 
     children,
     ref,
+    style , 
 }: {
     title?: string,
     children: React.ReactNode,
     ref?: React.Ref<HTMLDivElement>,
+    style?: React.CSSProperties
 }) => {
     const mouseless_select = useMouselessSelect()
     const [hover, set_hover] = React.useState(false)
     const flag = mouseless_select || hover
 
     return <AutoTooltip title={title} open={flag}>
-    <motion.div 
-        ref = {ref}
-        onMouseEnter = {() => set_hover(true)}
-        onMouseLeave = {() => set_hover(false)}
-        animate = {{
-            scale     : flag ? 1.1 : 1,
-            boxShadow : flag ? "0px 4px 8px rgba(0, 0, 0, 0.3)" : "none",
-            rotate    : flag ? [-20, 0] : 0,
-        }}
-        transition = {{
-            type: "spring",
-            stiffness: 300,
-            damping: 20,
-        }}
+        <motion.div 
+            ref = {ref}
+            onMouseEnter = {() => set_hover(true)}
+            onMouseLeave = {() => set_hover(false)}
+            animate = {{
+                scale     : flag ? 1.1 : 1,
+                boxShadow : flag ? "0px 4px 8px rgba(0, 0, 0, 0.3)" : "none",
+                rotate    : flag ? [-20, 0] : 0,
+            }}
+            transition = {{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+            }}
+            style = {style}
         >
             {children}
         </motion.div>

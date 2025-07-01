@@ -16,7 +16,9 @@ import {
 
 import {
     KeyNames , 
-    useKeyEventsHandlerRegister , 
+    useKeyEventsHandlerRegister, 
+    useKeyHoldingState, 
+    KeyName,
 } from "@ftyyy/mouseless"
 
 import {
@@ -44,6 +46,7 @@ import {
 
 import {
     MouselessButton , 
+    AutoElement , 
 } from "../../implbase"
 
 import {
@@ -92,6 +95,7 @@ const ConceptArea = React.memo(({
     const [cur_mouseless, set_cur_mouseless] = usePersistedState<[number, number]>(
         `area-${area_id}/concept/cur_mouseless`,[0, 0]
     )
+    const holding = useKeyHoldingState(HOLDING)
 
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
 
@@ -141,17 +145,15 @@ const ConceptArea = React.memo(({
             if(!sec_concept_list){
                 return
             }
-            const M1 = concept_list.length
-            const M2 = sec_concept_list[cur_type_name].length
-            set_cur_mouseless([(cur_type - 1 + M1) % M1, Math.min(cur_idx, M2 - 1)])
+            const M = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([cur_type, (cur_idx - (4 % M) + M) % M])
         }
         const handle_down = ()=>{
             if(!sec_concept_list){
                 return
             }
-            const M1 = concept_list.length
-            const M2 = sec_concept_list[cur_type_name].length
-            set_cur_mouseless([(cur_type + 1) % M1, Math.min(cur_idx, M2 - 1)])
+            const M = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([cur_type, (cur_idx + 4) % M])
         }
         const handle_enter = ()=>{
             if(!editor || !sec_concept_list){
@@ -159,17 +161,38 @@ const ConceptArea = React.memo(({
             }
             editor.new_concept_node(cur_type_name, sec_concept_list[cur_type_name][cur_idx])
         }
+        const handle_dot = ()=>{
+            if(!sec_concept_list){
+                return
+            }
+            const M1 = concept_list.length
+            const M2 = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([(cur_type - 1 + M1) % M1, Math.min(cur_idx, M2 - 1)])
+        }
+        const handle_slash = ()=>{
+            if(!sec_concept_list){
+                return
+            }
+            const M1 = concept_list.length
+            const M2 = sec_concept_list[cur_type_name].length
+            set_cur_mouseless([(cur_type + 1 + M1) % M1, Math.min(cur_idx, M2 - 1)])
+        }
+
         add_handler(HOLDING, KeyNames.Enter     , false, handle_enter)
         add_handler(HOLDING, KeyNames.ArrowLeft , false, handle_left)
         add_handler(HOLDING, KeyNames.ArrowRight, false, handle_right)
         add_handler(HOLDING, KeyNames.ArrowUp   , false, handle_up)
         add_handler(HOLDING, KeyNames.ArrowDown , false, handle_down)
+        add_handler(HOLDING, "." as KeyName, false, handle_dot)
+        add_handler(HOLDING, "/" as KeyName, false, handle_slash)
         return ()=>{
             del_handler(HOLDING, KeyNames.Enter     , false, handle_enter)
             del_handler(HOLDING, KeyNames.ArrowLeft , false, handle_left)
             del_handler(HOLDING, KeyNames.ArrowRight, false, handle_right)
             del_handler(HOLDING, KeyNames.ArrowUp   , false, handle_up)
             del_handler(HOLDING, KeyNames.ArrowDown , false, handle_down)
+            del_handler(HOLDING, "." as KeyName, false, handle_dot)
+            del_handler(HOLDING, "/" as KeyName, false, handle_slash)
         }
     }, [cur_type, cur_idx, cur_type_name, sec_concept_list, editor])
 
@@ -317,22 +340,27 @@ const ConceptArea = React.memo(({
                     >
                     <MouselessButton
                         key={sec_ccpt}
-                        is_activated={cur_idx == idx}
+                        is_activated={cur_idx == idx && holding}
                         auto_element
-                    >
-                    <Button 
-                        variant="outlined"
-                        size="small"
-                        onClick={() => {
-                            editor.new_concept_node(cur_type_name , sec_ccpt)
-                        }}
-                        sx={{
-                            minWidth: "fit-content",
-                            whiteSpace: "nowrap",
+                        autoel_style={{
+                            borderRadius: "8px",
                         }}
                     >
-                        {sec_ccpt}
-                    </Button>
+                        <Button 
+                            size="small"
+                            component = { "span" }
+                            onClick={() => {
+                                editor.new_concept_node(cur_type_name , sec_ccpt)
+                            }}
+                            sx={{
+                                minWidth: "fit-content",
+                                whiteSpace: "nowrap",
+                                borderRadius: "8px",
+                                border: (cur_idx == idx) ? "1px solid rgba(0, 0, 0, 0.4)" : "none",
+                            }}
+                        >
+                            {sec_ccpt}
+                        </Button>
                     </MouselessButton>
                     </motion.div>
                 ))}</AnimatePresence>
@@ -341,4 +369,4 @@ const ConceptArea = React.memo(({
     )}</AnimatePresence></Paper>
 })
 
-ConceptArea.whyDidYouRender = true
+// ConceptArea.whyDidYouRender = true

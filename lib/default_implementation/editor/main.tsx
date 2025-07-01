@@ -39,10 +39,6 @@ import {
 } from "../../implbase/buttons/mouseless"
 
 import {
-    ActivateKeys as extras_keys,
-} from "../../implbase/extras/mouseless"
-
-import {
     useAreaStore, 
     parameterarea_space , 
     conceptarea_holding , 
@@ -163,7 +159,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
                     buttons_holding ,
-                    extras_keys , 
                     sidebar_space.holding,
                     parameterarea_space.holding,
                     conceptarea_holding,

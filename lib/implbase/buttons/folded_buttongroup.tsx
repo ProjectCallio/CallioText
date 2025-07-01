@@ -15,6 +15,7 @@ import {
 
 import {
     useSpaceNavigatorState,  
+    useSpaceNavigatorRawState , 
     useKeyEventsHandlerRegister,
     KeyNames, 
 } from "@ftyyy/mouseless"
@@ -63,13 +64,31 @@ const FoldedButtonGroup = React.memo(({
     }>
     children ?: React.ReactNode
 })=>{
-    const my_nodeidx = useNode((prev, next) => (prev.idx == next.idx)).idx
+    const node = useNode((prev, next) => (prev.idx == next.idx))
     const direction  = React.useContext(Direction)
 
     const [menu_open, set_menu_open] = React.useState(false) // 手动打开
     const [mouseless_open, set_mouseless_open] = React.useState(false) // 键盘操作打开
 
-    const [cur_space , cur_position]   = useSpaceNavigatorState()
+    const button_idx: number | "_unopen" | "_other" = useSpaceNavigatorRawState(React.useCallback(state=>{
+        const {space, node: position} = state
+        if(space != SPACE_NAME || !position){
+            return "_unopen" // 在这个组件中，需要区分没有进入空间和在其他区域进入空间的情况
+        }
+        let [node_idx, level_idx, button_idx] = decode_position(position)
+        if(direction == "column"){
+            let swap = level_idx
+            level_idx = button_idx
+            button_idx = swap
+        }
+        const M = Math.max(max_level  + 1, 1)
+        level_idx = ((level_idx % M) + M) % M 
+
+        if(node_idx != node.idx || level_idx != level){
+            return "_other"
+        }
+        return button_idx
+    }, [direction, max_level, node.idx, level]))
     
     const anchor_ref = React.useRef<HTMLDivElement>(null)
     const [version, set_version] = React.useState(0)
@@ -88,73 +107,68 @@ const FoldedButtonGroup = React.memo(({
 
     // 设置当前选中的按钮
     React.useEffect(()=>{
-        if(cur_space != SPACE_NAME || !cur_position){
-            set_mouseless_open(false)
+        if(button_idx == "_other"){
+            if(menu_open){
+                set_menu_open(false)
+            }
+            if(mouseless_open){
+                set_mouseless_open(false)
+            }
             return 
         }
-
-        // 在纵向排列的时候，要交换level跟button_idx。
-        let [node_idx, level_idx, button_idx] = decode_position(cur_position)
-        if(direction == "column"){
-            let swap = level_idx
-            level_idx = button_idx
-            button_idx = swap
-        }
-        const M = Math.max(max_level + 1, 1) // 设置一个表示关闭的level
-        level_idx = ((level_idx % M) + M) % M 
-
-        const flag = (node_idx == my_nodeidx && level_idx == level)
+        const flag = (button_idx != "_unopen") // 是数字
         if(flag != mouseless_open){
             set_mouseless_open(flag)
         }
         if(flag && menu_open){ // 取消持久化的打开状态
             set_menu_open(false)
         }
-    } , [cur_space, cur_position, level, my_nodeidx, mouseless_open ])
+    } , [button_idx, level, mouseless_open ])
 
-    const ButtonComp = button_comp || Button
+    const ButtonComp = React.useMemo(()=>(button_comp || Button), [button_comp])
 
     return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
-        <Box>
-            <Box 
-                ref = {(el)=>{
-                    if(!el || el === anchor_ref.current){
-                        return 
-                    }
-                    anchor_ref.current = el as HTMLDivElement
-                    set_version(version + 1)
-                }}
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    width: "auto",
-                    height: "auto",
-                    marginTop: "0.1rem",
-                }}
-            >
-                <ButtonComp
-                    onClick = {()=>{set_menu_open(!menu_open)}}
-                />
-            </Box>
-            <Popper
-                open     = {menu_open || mouseless_open}
-                anchorEl = {anchor_ref.current}
-                placement = "bottom-start"
-                {...popper_props}
-                disablePortal
-            ><Paper sx={{
-                border: "1px solid" , 
-            }}>
-                {children}
-                <Divider />
-                <ButtonGroup
-                    buttons = {buttons}
-                    level   = {level}
-                    max_level = {max_level}
-                    direction = "column"
-                />
-            </Paper></Popper>
+    <Box>
+        <Box 
+            ref = {(el)=>{
+                if(!el || el === anchor_ref.current){
+                    return 
+                }
+                anchor_ref.current = el as HTMLDivElement
+                set_version(version + 1)
+            }}
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "auto",
+                height: "auto",
+                marginTop: "0.1rem",
+            }}
+        >
+            <ButtonComp
+                onClick = {()=>{set_menu_open(!menu_open)}}
+            />
         </Box>
+        <Popper
+            open     = {menu_open || mouseless_open}
+            anchorEl = {anchor_ref.current}
+            placement = "bottom-start"
+            {...popper_props}
+            disablePortal
+        ><Paper sx={{
+            border: "1px solid" , 
+        }}>
+            {children}
+            <Divider />
+            <ButtonGroup
+                buttons = {buttons}
+                level   = {level}
+                max_level = {max_level}
+                direction = "column"
+            />
+        </Paper></Popper>
+    </Box>
     </ClickAwayListener>
 })
+FoldedButtonGroup.whyDidYouRender = true

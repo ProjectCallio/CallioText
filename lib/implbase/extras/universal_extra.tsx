@@ -32,18 +32,11 @@ import {
     useResetSelection , 
 } from "../hooks"
 
-import {
-    ActivateKeys,
-} from "./mouseless"
-
 export {
     UniversalExtra , 
 }
 
-interface UniversalExtraProps {
-    width?: number
-}
-
+const ActivateKeys = [KeyNames.alt, KeyNames.w]
   
 
 function UniversalExtra({

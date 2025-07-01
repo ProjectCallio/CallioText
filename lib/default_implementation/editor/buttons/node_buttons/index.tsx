@@ -27,6 +27,8 @@ import {
     ArrowUpToLine as ArrowUpToLineIcon, 
     MoveUp as MoveUpIcon, 
     PhoneMissed as PhoneMissedIcon,
+    CopyPlus as CopyPlusIcon,
+    CaptionsOff as CaptionsOffIcon,
 } from "lucide-react"
 
 import {
@@ -131,7 +133,7 @@ const DefaultSoftDeleteButton = React.memo(({ puretext }: { puretext?: boolean }
         }
     }, [node.idx, editor])
 
-    return <AutoIconButton onClick={run} title="解除组件" icon={MoveUpIcon} size="medium"/>
+    return <AutoIconButton onClick={run} title="解除组件" icon={CaptionsOffIcon} size="medium"/>
 })
 
 /** 这个组件提供一个在组件的上新建段落的节点。 */
@@ -197,7 +199,7 @@ const CopyButton = React.memo(() => {
         }
     }, [node.idx, node.type, node.concept, node.parameters, editor])
 
-    return <AutoIconButton onClick={run} title="复制此节点" icon={PhoneMissedIcon} size="medium"/>
+    return <AutoIconButton onClick={run} title="复制此节点" icon={CopyPlusIcon} size="medium"/>
 })
 
 /** 这个组件给一个`Group`或`Struct`组件提供一个开关，用于控制`Group`或`Struct`的`relation`。 */

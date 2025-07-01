@@ -57,7 +57,7 @@ const ButtonGroup = React.memo(({
     level   : number
     max_level: number
 })=>{
-    const node                         = useNode((prev, next) => (prev.idx == next.idx))
+    const node = useNode((prev, next) => (prev.idx == next.idx))
 
     const button_idx   = useSpaceNavigatorRawState(React.useCallback(state=>{
         const {space, node: position} = state
