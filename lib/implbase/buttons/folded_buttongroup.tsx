@@ -11,6 +11,8 @@ import {
     PopperProps , 
     Paper , 
     Divider , 
+    useTheme, 
+    alpha, 
 } from "@mui/material"
 import { AnimatePresence, motion } from "framer-motion"
 
@@ -70,6 +72,8 @@ const FoldedButtonGroup = React.memo(({
 
     const [menu_open, set_menu_open] = React.useState(false) // 手动打开
     const [mouseless_open, set_mouseless_open] = React.useState(false) // 键盘操作打开
+    const theme = useTheme()
+    const palette = theme.palette
 
     const button_idx: number | "_irrelv" | "_other" = useSpaceNavigatorRawState(React.useCallback(state=>{
         const {space, node: position} = state
@@ -130,6 +134,7 @@ const FoldedButtonGroup = React.memo(({
 
     return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
     <Box>
+
         <Box 
             ref = {(el)=>{
                 if(!el || el === anchor_ref.current){
@@ -152,12 +157,17 @@ const FoldedButtonGroup = React.memo(({
             />
         </Box>
         <AnimatePresence>{(menu_open || mouseless_open) && (
+            // 不知道为什么，现在这个popper一打开，内容就会凭空变宽
             <Popper
-                open     = {true} // open在前面设置了。
+                open     = {menu_open || mouseless_open} // open在前面设置了。
                 anchorEl = {anchor_ref.current}
                 placement = "bottom-start"
                 {...popper_props}
                 disablePortal
+                
+                sx={{
+                    zIndex: 2000,
+                }}
             >
             <motion.div
                 animate    = {{ opacity: 1, scale: 1, y: 0 }}
@@ -168,10 +178,14 @@ const FoldedButtonGroup = React.memo(({
                     ease: "easeOut" 
                 }}
             >
-                
-                <Paper sx={{
-                    border: "1px solid" , 
-                }}>
+                <Paper 
+                    elevation={3}
+                    sx={{
+                        border: "1px solid" , 
+                        backgroundColor: alpha(palette.background.paper, 0.75),
+                        backdropFilter: "blur(1px)",
+                    }}
+                >
                     {children}
                     <Divider />
                     <ButtonGroup
