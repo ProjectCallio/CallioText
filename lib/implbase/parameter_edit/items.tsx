@@ -49,16 +49,27 @@ const ParameterItemSelect = React.forwardRef(({
     autoblur?: (e: React.KeyboardEvent)=>boolean
     onAutoBlur?: ()=>void
 }, ref: React.Ref<ParameterItemComponentRef>)=>{
+
     const [val, set_val] = React.useState<any>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
     const select_ref = React.useRef<HTMLInputElement>(null)
+    const input_ref  = React.useRef<HTMLInputElement>(null)
+
+    const handle_keydown = React.useCallback((e: KeyboardEvent)=>{
+        console.log("select keydown:", e.key)
+        if(autoblur?.(e as any)){
+            select_ref.current?.blur()
+            reset_selection()
+            onAutoBlur?.()
+        }
+    }, [])
 
     React.useEffect(()=>{
         set_val(init_val)   
     }, [init_val])
     
     React.useImperativeHandle(ref, ()=>({
-        get_formel: ()=>select_ref.current
+        get_formel: ()=>input_ref.current
     }))
 
     // TODO 这个元素捕获不到keydown事件
@@ -72,24 +83,15 @@ const ParameterItemSelect = React.forwardRef(({
         sx = {{
             marginLeft: "5%" , 
         }}
-        slotProps = {{
-            input: {
-                onFocus: ()=>{
-                    autoblur && (set_selection())
-                },
-                onKeyDown: (e)=>{
-                    console.log("select inp:", e.key)
-                    if(autoblur?.(e)){
-                        select_ref.current?.blur()
-                        reset_selection()
-                        onAutoBlur?.()
-                    }
-                },
-            },
+        inputRef = {input_ref}
+        ref      = {select_ref}
+
+        onFocus = {()=>{
+            autoblur && (set_selection())
+            window.addEventListener("keydown", handle_keydown)
         }}
-        inputRef = {select_ref}
-        onKeyDown={(e)=>{
-            console.log("select:", e.key)
+        onBlur = {()=>{
+            window.removeEventListener("keydown", handle_keydown)
         }}
     >
         {choices.map((c,idx)=>(

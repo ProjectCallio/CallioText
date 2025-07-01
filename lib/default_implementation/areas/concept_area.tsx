@@ -321,7 +321,7 @@ const ConceptArea = React.memo(({
                 display: "flex",
                 flexDirection: "row",
                 flexWrap: "wrap",
-                gap: "0.75rem",
+                gap: "0.73rem",
             }}><AnimatePresence mode="popLayout">
                 {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
                     <motion.div
@@ -341,7 +341,7 @@ const ConceptArea = React.memo(({
                     >
                     <MouselessButton
                         key={sec_ccpt}
-                        is_activated={cur_idx == idx && holding}
+                        is_activated={(cur_idx == idx) && holding}
                         auto_element
                         autoel_style={{
                             borderRadius: "8px",

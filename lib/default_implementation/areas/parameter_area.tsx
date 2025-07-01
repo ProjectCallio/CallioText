@@ -222,7 +222,7 @@ const ParameterArea = React.memo(({
         initial = {{ opacity: 0.1 , y: 50 , height: 0 }}
         animate = {{ opacity: 1 , y: 0 , height: "fit-content" }}
         exit    = {{ opacity: 0.1 , y: -50 , height: 0 }}
-        transition = {{ duration: 0.3, ease: "easeOut" }}
+        transition = {{ duration: 0.3 }}
     >
     <Box sx={{
         display: "flex",
@@ -246,7 +246,7 @@ const ParameterArea = React.memo(({
                 initial = {{ opacity: 0 , y: 50  }}
                 animate = {{ opacity: 1 , y: 0   }}
                 exit    = {{ opacity: 0 , y: -50 }}
-                transition = {{ duration: 0.3, ease: "easeIn" }}
+                transition = {{ duration: 0.3 }}
                 key = {cur_node.idx}
                 layout = {true}
             >{cur_node.concept}</motion.div>
@@ -277,10 +277,7 @@ const ParameterArea = React.memo(({
         initial     = {{ height: 0, opacity: 0 , y: 50 }}
         animate     = {{ height: "fit-content" , opacity: 1 , y: 0 }}
         exit        = {{ height: 0 , opacity: 0 , y: -50 }}
-        transition  = {{ 
-            duration: 0.3,
-            ease: "easeOut"
-        }}
+        transition  = {{ duration: 0.3 }}
         layout     = {true}
         style={{
             top     : "0"  , 
