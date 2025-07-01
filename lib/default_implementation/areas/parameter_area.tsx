@@ -216,93 +216,107 @@ const ParameterArea = React.memo(({
             ...paper_sx
         }}
         ref = {box_ref} 
-    ><AnimatePresence mode="wait">{(
-        open
-    ) && (
-        <Box
-            style={{
-                top     : "0"  , 
-                width   : "100%",
-                opacity: 1,
+    >            
+    
+    <AnimatePresence mode="sync">{open && <motion.div
+        initial = {{ opacity: 0.1 , y: 50 , height: 0 }}
+        animate = {{ opacity: 1 , y: 0 , height: "fit-content" }}
+        exit    = {{ opacity: 0.1 , y: -50 , height: 0 }}
+        transition = {{ duration: 0.3, ease: "easeOut" }}
+    >
+    <Box sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingBottom: "0.5rem",
+        borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+    }}>
+        <AnimatePresence mode="sync">
+        <Typography 
 
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
+            variant="h6" 
+            sx={{
+                fontWeight: 600,
+                color: "rgba(0, 0, 0, 0.87)",
+                fontSize: "1.1rem",
+                letterSpacing: "0.02em",
             }}
         >
-            <Box sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingBottom: "0.5rem",
-                borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
-            }}>
-                <Typography 
-                    component = {motion.div}
-                    variant="h6" 
-                    sx={{
-                        fontWeight: 600,
-                        color: "rgba(0, 0, 0, 0.87)",
-                        fontSize: "1.1rem",
-                        letterSpacing: "0.02em",
-                    }}
-                    key={cur_node.idx}
-                    initial     = {{ opacity: 0 , y: -50 }}
-                    animate     = {{ opacity: 1 , y: 0 }}
-                    exit        = {{ opacity: 0 , y: 50 }}
-                    transition  = {{ duration: 0.3, ease: "easeOut"}}    
-                >
-                    {cur_node.concept}
-                </Typography>
-                <DraggerBox  
-                    my_position = {position}
-                    dragging_me = {dragging_me} 
-                    onDragStart = {e=>{
-                        set_dragging(area_id)
-                        if(box_ref.current){
-                            const rect = box_ref.current.getBoundingClientRect()
-                            set_sizes({[area_id]: {
-                                width : rect.width,
-                                height: rect.height,
-                            }})
-                        }
-                    }}
-                />
-            </Box>
-            <motion.div 
-                initial     = {{ height: 0, opacity: 0 , y: -50 }}
-                animate     = {{ height: "fit-content" , opacity: 1 , y: 0 }}
-                exit        = {{ height: 0 , opacity: 0 , y: 50 }}
-                transition  = {{ duration: 0.3, ease: "easeOut"}}
-                layout     = {true}
-                key={cur_node.idx}
-            
-            >
-            <Box                
-                ref = {mod_scrollbar_nohide}
-                key={cur_node.idx}
-                sx={{
-                    overflow: "auto",
-                    maxHeight: "calc(min(35rem, 35vh))",
-                    paddingRight: "0.5rem",
-                }}
-            ><DefaultParameterContainer 
-                ref = {parametereditor_ref}
-                node = {cur_node}
-                autoblur = {e=>e.key == KeyNames.z && e.altKey}
-                onSave = {(parameters: ParameterList) => {
-                    editor.auto_set_parameter(cur_node, parameters)
-                }}
-                select_paramidx = {navi_paramidx}
-                onAutoBlur = {()=>{
-                    const parameters = parametereditor_ref.current?.get_parameters()
-                    if(!parameters){
-                        return
-                    }
-                    editor.auto_set_parameter(cur_node, parameters)
-                }}
-            /></Box>
-            </motion.div>
-        </Box>
-    )}</AnimatePresence></Paper>
+            <motion.div
+                initial = {{ opacity: 0 , y: 50  }}
+                animate = {{ opacity: 1 , y: 0   }}
+                exit    = {{ opacity: 0 , y: -50 }}
+                transition = {{ duration: 0.3, ease: "easeIn" }}
+                key = {cur_node.idx}
+                layout = {true}
+            >{cur_node.concept}</motion.div>
+        </Typography>
+        </AnimatePresence>
+        <DraggerBox  
+            my_position = {position}
+            dragging_me = {dragging_me} 
+            onDragStart = {e=>{
+                set_dragging(area_id)
+                if(box_ref.current){
+                    const rect = box_ref.current.getBoundingClientRect()
+                    set_sizes({[area_id]: {
+                        width : rect.width,
+                        height: rect.height,
+                    }})
+                }
+            }}
+        />
+    </Box>
+    </motion.div>}</AnimatePresence>
+        
+    <AnimatePresence mode="sync">{(
+        open // 不知道为什么但是这里open && 后面必须立刻接一个motion.div，
+             // 哪怕是套一个React.Fragment都不行。
+    ) && <motion.div
+        key         = { cur_node.idx }
+        initial     = {{ height: 0, opacity: 0 , y: 50 }}
+        animate     = {{ height: "fit-content" , opacity: 1 , y: 0 }}
+        exit        = {{ height: 0 , opacity: 0 , y: -50 }}
+        transition  = {{ 
+            duration: 0.3,
+            ease: "easeOut"
+        }}
+        layout     = {true}
+        style={{
+            top     : "0"  , 
+            width   : "100%",
+            opacity: 1,
+
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+        }}
+    >
+        <Box
+            ref = {mod_scrollbar_nohide}
+            key={cur_node.idx}
+            sx={{
+                overflow: "auto",
+                maxHeight: "calc(min(35rem, 35vh))",
+                paddingRight: "0.5rem",
+            }}
+        ><DefaultParameterContainer 
+            ref = {parametereditor_ref}
+            node = {cur_node}
+            autoblur = {e=>e.key == KeyNames.z && e.altKey}
+            onSave = {(parameters: ParameterList) => {
+                editor.auto_set_parameter(cur_node, parameters)
+            }}
+            select_paramidx = {navi_paramidx}
+            onAutoBlur = {()=>{
+                const parameters = parametereditor_ref.current?.get_parameters()
+                if(!parameters){
+                    return
+                }
+                editor.auto_set_parameter(cur_node, parameters)
+            }}
+        /></Box>
+    </motion.div>}</AnimatePresence>
+    
+    </Paper>
 })
