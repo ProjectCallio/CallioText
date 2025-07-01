@@ -201,6 +201,7 @@ const ConceptArea = React.memo(({
     }
 
     return <Paper 
+        elevation = {3} 
         sx  = {{
             position: "absolute",
             top     : container.y + position.y,

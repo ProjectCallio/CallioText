@@ -158,6 +158,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
+                    [KeyNames.Alt] , 
                     buttons_holding ,
                     sidebar_space.holding,
                     parameterarea_space.holding,

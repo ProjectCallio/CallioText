@@ -1,5 +1,7 @@
 import { Box , BoxProps } from "@mui/material"
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
+import {
+    Grip as GripIcon,
+} from "lucide-react"
 
 export {
     drag_offset_ref,    
@@ -37,10 +39,11 @@ function DraggerBox(props: BoxProps & {
         {...rest_props}
         sx={{
             cursor: "move",
-            color: dragging_me ? "grey.400" : "grey.300",
+            color    : dragging_me ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.7)",
             "&:hover": {
-                color: "grey.400"
-            }
+                color: dragging_me ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.5)"
+            },
+            transition: "all 0.2s ease-in-out",
         }}
         onMouseDown = {(e: React.MouseEvent<HTMLDivElement>)=>{
 
@@ -54,6 +57,6 @@ function DraggerBox(props: BoxProps & {
             e.stopPropagation()
         }}
     >
-        <DragIndicatorIcon/>
+        <GripIcon/>
     </Box>
 }
