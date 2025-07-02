@@ -21,6 +21,7 @@ import {
     useEditor , 
     useCurEditor , 
 } from "../editor"
+
 export {
     useNode , 
     useParameters , 
@@ -108,53 +109,55 @@ function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
     if (!node_entry) return false
   
     const node = node_entry[0]
-    return Slate.Text.isText(node) && point.offset === node.text.length
-  }
+    return Slate.Text.isText(node) && point.offset >= node.text.length
+}
 
 // XXX 不确定要不要把这个跟../editor/state.tsx合并
 function useResetSelection(){
     const _selection_ref = React.useRef<Slate.Selection | null>(null)
-    const editor = useCurEditor()
 
-    
+    const _editor = useCurEditor()
+    const editor_ref = React.useRef(_editor)
+    React.useEffect(()=>{
+        editor_ref.current = _editor
+    }, [_editor])
+
     const reset_selection = React.useCallback(()=>{
-        const _selection = _selection_ref.current
-        if(!_selection){
-            return
-        }
+
+        // 使用ref来获得editor是为了让set_selection和reset_selection的成为稳定函数。
+        const editor = editor_ref.current
+        
         if(!editor){
             return
         }
         const slate = editor.get_slate()
+        ReactSlate.ReactEditor.focus(slate)
         
-        setTimeout(() => { // 延迟执行，等待React渲染完毕
-            ReactSlate.ReactEditor.focus(slate)
+        const _selection = _selection_ref.current
+        if(_selection){
             Slate.Transforms.select(slate, _selection)
+        }
+        
+        // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
+        Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
+        Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
 
-            
-            // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
+        
+        // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
+        // 这个好像是slate的bug...
+        if((!_selection) || is_textend(slate, _selection.focus)){
             Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
-            Slate.Transforms.move(slate, { distance: 1, unit: "offset" })
-
-            
-            // XXX 现在还是有一个bug，就是他在组件末尾的时候，往后挪动也会导致失焦，要再往前挪一下
-            // 这个好像是slate的bug...
-            const at_end = is_textend(slate, _selection.focus)
-            if(at_end){
-                Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
-            }
-          
-        }, 0)
-
-    }, [editor])
+        }
+    }, [])
 
     const set_selection = React.useCallback(()=>{
+        const editor = editor_ref.current
         if(!editor){
             return
         }
         const slate = editor.get_slate()
         _selection_ref.current = slate.selection
-    }, [editor])
+    }, [])
 
     return [set_selection, reset_selection]
 }

@@ -14,6 +14,7 @@ import {
     useKeyEventsHandlerRegister,
     KeyNames,
     useKeyDownUpProxy , 
+    useAllHoldingKeys , 
 } from "@ftyyy/mouseless"
 
 import {
@@ -58,7 +59,7 @@ function UniversalExtra({
         prev_value: string , 
     ) => string | undefined
 }) {
-    const node = useNode()
+    const node   = useNode()
     const editor = useEditor()
 
     const [value, set_value] = React.useState("")
@@ -76,9 +77,9 @@ function UniversalExtra({
             return 
         }
 
-        set_activated(activated => !activated)
         set_selection()
-
+        set_activated(activated => !activated)
+        
     }, [editor, node.idx])
 
 
@@ -154,7 +155,7 @@ function UniversalExtra({
             onFocus   = {handle_focus}
 
             onKeyDown = {(e)=>{
-                if(e.key == "w" && e.altKey){ // XXX 草...
+                if(e.key == "w" && e.altKey && !e.repeat){ // XXX 草...
                     set_activated(false)
                 }
             }}
@@ -174,3 +175,4 @@ function UniversalExtra({
         />
     </Box>
 }
+
