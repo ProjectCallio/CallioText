@@ -81,7 +81,15 @@ const ParameterItemSelect = React.forwardRef(({
     }, [init_val])
     
     React.useImperativeHandle(ref, ()=>({
-        get_formel: ()=>input_ref.current
+        get_formel: ()=>{
+            const inp_el = input_ref.current
+            const sel_el = select_ref.current
+            if(inp_el && sel_el){
+                inp_el.scrollIntoView = sel_el.scrollIntoView.bind(sel_el)
+            }
+
+            return inp_el
+        }
     }))
 
     return <Box sx={{
@@ -124,9 +132,7 @@ const ParameterItemSelect = React.forwardRef(({
             }}
         >
             {choices.map((c,idx)=>(
-                <MenuItem key={idx} value={c} onKeyDown={(e)=>{
-                    console.log("item:", c, "keydown:", e.key)
-                }}>{c}</MenuItem>
+                <MenuItem key={idx} value={c}>{c}</MenuItem>
             ))}
         </Select>
         <Divider orientation="vertical" flexItem />

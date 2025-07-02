@@ -86,10 +86,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
             return
         }
         const el = item_refs.current[select_paramidx]
-        if(!el){
-            return 
-        }
-        el.scrollIntoView({behavior: "smooth", block: "center"})
+        el?.scrollIntoView?.({behavior: "smooth", block: "center"})
     }, [select_paramidx])
 
     React.useImperativeHandle(ref, () => ({

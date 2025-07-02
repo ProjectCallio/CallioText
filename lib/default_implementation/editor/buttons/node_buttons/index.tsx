@@ -76,7 +76,7 @@ const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) =
     const [open, set_open] = React.useState(false)
     const [set_selection, reset_selection] = useResetSelection()
 
-    const is_activated = React.useContext(MouselessSelect)
+    const is_selected = React.useContext(MouselessSelect)
     
     React.useEffect(()=>{
         // 必须在打开drawer之前设置位置。
@@ -84,7 +84,7 @@ const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) =
         if(!open){
             set_selection() 
         }
-    }, [is_activated])
+    }, [is_selected, open])
 
     const node = useNode((prev, next) => (
         prev.parameters === next.parameters && prev.idx == next.idx

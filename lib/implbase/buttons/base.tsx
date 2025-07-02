@@ -34,6 +34,7 @@ const AutoIconButton = React.memo(({
     activate = false,
     component = "button", 
     icon_props = {}, 
+    ignore_mouseless = false,
 }:{
     onClick?: IconButtonProps["onClick"]
     size?: "small" | "very-small" | "large" | "medium"
@@ -42,6 +43,7 @@ const AutoIconButton = React.memo(({
     activate?: boolean
     component?: "button" | "span"
     icon_props?: IconButtonProps
+    ignore_mouseless?: boolean
 })=>{
     const {sx, ...rest} = icon_props
     const Icon = icon
@@ -49,7 +51,7 @@ const AutoIconButton = React.memo(({
     const mouseless_select = useMouselessSelect()
     const [hover, set_hover] = React.useState(false)
 
-    const flag = mouseless_select || hover
+    const flag = (!ignore_mouseless && mouseless_select) || hover
     
     const Component = component == "button" ? motion.button : motion.span
     

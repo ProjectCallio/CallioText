@@ -117,6 +117,23 @@ const ButtonGroup = React.memo(({
         }
     } , [cur_selected])
 
+    React.useEffect(()=>{
+        if(cur_selected == undefined || !refs.current[cur_selected]){
+            return 
+        }
+        const div = refs.current[cur_selected]
+
+        const rect = div.getBoundingClientRect()
+        const is_visible = rect.top >= 0 
+            && rect.left >= 0 
+            && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) 
+            && rect.right  <= (window.innerWidth  || document.documentElement.clientWidth )
+
+        if(!is_visible){
+            div?.scrollIntoView?.({behavior: "smooth", block: "center"})
+        }
+    } , [cur_selected])
+
     return <AutoStack force_direction={direction} sx={{
         alignItems: "center",
         gap: "0.5rem",

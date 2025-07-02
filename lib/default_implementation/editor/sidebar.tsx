@@ -61,11 +61,11 @@ const SPACE: SpaceDefinition = {
  * @param props.editor 所服务的编辑器。
  * @param props.extra 所要额外添加的按钮列表。
 */
-function DefaultSidebar({
+const DefaultSidebar = React.memo(({
     extras = [],
 }: {
     extras?: (() => React.ReactNode)[]
-}){
+})=>{
     const editor = useEditor()
     const root = editor.get_root()
     const [cur_space, cur_node] = useSpaceNavigatorState(SPACE.name)
@@ -134,7 +134,11 @@ function DefaultSidebar({
             <ConceptAreaControlButton/>
         </MouselessButton>
         
-        <Divider />
+        <Divider flexItem sx={{
+            width: "calc(100% + 0.15rem)",
+            marginY: "0.5rem",
+            marginLeft: "-0.15rem",
+        }}/>
         {extras.map((extra, exidx)=>{
             const Ex = extra
             return <MouselessButton 
@@ -146,4 +150,4 @@ function DefaultSidebar({
             </MouselessButton>
         })}
     </AutoStack>
-}
+})

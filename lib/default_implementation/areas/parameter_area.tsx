@@ -248,7 +248,6 @@ const ParameterArea = React.memo(({
                 if(!parameters){
                     return
                 }
-                console.log("cur_node", cur_node)
                 editor.auto_set_parameter(cur_node, parameters)
                 enqueueSnackbar("修改参数成功", {
                     variant: "success",

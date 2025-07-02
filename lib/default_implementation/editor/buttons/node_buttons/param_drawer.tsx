@@ -13,7 +13,14 @@ import {
     Drawer , 
     Box , 
     Divider, 
+    Typography , 
 } from "@mui/material"
+import {
+    HardDriveDownload as HardDriveDownloadIcon , 
+} from "lucide-react"
+import {
+    useSnackbar,
+} from "notistack"
 
 
 import { ConceptNode } from "../../../../core"
@@ -29,6 +36,7 @@ import {
     DefaultParameterContainerRef , 
     DefaultParameterContainer , 
     useResetSelection,
+    AutoIconButton,
 } from "../../../../implbase"
 
 export { 
@@ -55,7 +63,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
 })=>{
     const editor = useEditor()
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef | null>(null)
-    const [set_selection, reset_selection] = useResetSelection()
+    const {enqueueSnackbar} = useSnackbar()
 
     return editor && <Drawer 
         anchor      = "left"
@@ -67,37 +75,83 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         }}
         slotProps = {{
             transition: {
-                onEnter: ()=>{
-                    // set_selection()
-                } , 
                 onExited: () => {
-                    if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
-                        // 在更新完毕之后，刷新area。
-                        editor.add_apply_callback(()=>{
-                            useEditorState.getState().flush_cur_conceptnode(editor)
-                        })
-
-                        // 在退出时更新所服务的节点的参数。
-                        let parameters = parametereditor_ref.current.get_parameters()
-                        editor.auto_set_parameter(node, parameters)
+                    const par_editor = parametereditor_ref.current
+                    if(!par_editor){
+                        return
                     }
-                    // reset_selection()
+                    // 在更新完毕之后，刷新area。
+                    editor.add_apply_callback(()=>{
+                        useEditorState.getState().flush_cur_conceptnode(editor)
+                    })
+
+                    // 在退出时更新所服务的节点的参数。
+                    const parameters = par_editor.get_parameters()
+                    editor.auto_set_parameter(node, parameters)
+                    enqueueSnackbar("已自动应用参数", {
+                        variant: "success",
+                    })
                 }    
             },
             paper: {
                 sx: {
-                    width: "12rem"
+                    width: "13rem" , 
+                    padding: "1rem",
                 }
             }
         }}
     >
-        <Box><StructureTypography>idx: {node.idx}</StructureTypography></Box>
-        <Divider />
+        <Box sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginBottom: "0.5rem",
+        }}>
+            <Typography 
+                component = "div"
+                sx = {{
+                    fontWeight: 600,
+                    color: "rgba(0, 0, 0, 0.87)",
+                    fontSize: "1.05rem",
+                    letterSpacing: "0.02em",
+                }}
+            >{node.concept}</Typography>
+
+            <Typography 
+                component = "div"
+                sx = {{
+                    fontSize: "0.6rem", 
+                    color: "rgba(0, 0, 0, 0.5)",
+                }}
+            >{node.idx}</Typography>
+        </Box>
+        {/* <Divider /> */}
         <DefaultParameterContainer 
             node     = {node} 
             ref      = {parametereditor_ref}
         />
-        <Button onClick={onClose}>Close</Button>
+        <Box sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginTop: "0.5rem",
+            paddingTop: "1rem",
+            paddingRight: "1rem",
+        }}>
+            <AutoIconButton 
+                title = "关闭并应用"
+                icon = {HardDriveDownloadIcon}
+                size = "large"
+                onClick = {onClose}
+                icon_props = {{
+                    sx: {
+                        width: "2rem",
+                        height: "2rem",
+                        padding: "0.35rem",
+                    }
+                }}
+                ignore_mouseless // 这个按钮在mouseless模式下不生效。
+            />
+        </Box>
     </Drawer>
 }, (prev, next)=>{
     return prev.node.idx == next.node.idx 
