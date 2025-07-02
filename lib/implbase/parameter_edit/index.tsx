@@ -3,7 +3,9 @@
  * @module
  */
 
-import React, {useEffect, useState} from "react"
+import React from "react"
+import * as Slate from "slate"
+import * as SlateReact from "slate-react"
 
 import { 
     Button , 
@@ -11,9 +13,12 @@ import {
     List , 
     ListItem, 
 } from "@mui/material"
+import {
+    motion, 
+    AnimatePresence,
+} from "framer-motion"
 
-import * as Slate from "slate"
-import * as SlateReact from "slate-react"
+
 
 import {
     ConceptNode,
@@ -50,6 +55,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
     select_paramidx, 
     autoblur , 
     onAutoBlur , 
+    no_savebutton = false,
 }: {
     node     : Slate.Node & ConceptNode
     onSave  ?: (parameters: ParameterList)=>void
@@ -62,16 +68,30 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
 
     /** 如果有自动失焦，那么触发这个回调函数。 */
     onAutoBlur?: ()=>void
+
+    /** 是否不显示保存按钮。 */
+    no_savebutton?: boolean
 }, ref) => {
 
     // 初始化
-    const [parameters, set_parameters] = useState<ParameterList>(node.parameters)
+    const [parameters, set_parameters] = React.useState<ParameterList>(node.parameters)
 
     const item_refs = React.useRef<(HTMLInputElement | null)[]>([])
 
-    useEffect(() => {
+    React.useEffect(() => {
         set_parameters(node.parameters)
     }, [node.parameters])
+
+    React.useEffect(()=>{
+        if(select_paramidx == undefined){
+            return
+        }
+        const el = item_refs.current[select_paramidx]
+        if(!el){
+            return 
+        }
+        el.scrollIntoView({behavior: "smooth", block: "center"})
+    }, [select_paramidx])
 
     React.useImperativeHandle(ref, () => ({
         get_parameters: ()=>parameters, 
@@ -82,10 +102,35 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
 
     return <Box>
     <List>{Object.keys(init_parameters).map((key, idx) => {
-        return <ListItem key={`param-${node.idx}-${key}`}>
-        <Box 
+        const is_selected = select_paramidx == idx
+        return <ListItem 
+            key={`param-${node.idx}-${key}`}
             sx={{
-                border: select_paramidx == idx ? "1px solid #000" : "none",
+                paddingX: "0.5rem",
+            }}
+        >
+        <motion.div 
+            initial={{
+                boxShadow: "none",
+                scale: 1,
+                rotate: 0,
+            }}
+            animate={{
+                boxShadow: is_selected ? "0 0 10px 0 rgba(0, 0, 0, 0.5)" : "none",
+                scale    : is_selected ? 1.05 : 1,
+                rotate   : is_selected ? [7, 0] : 0,
+            }}
+            exit={{
+                boxShadow: "none",
+                scale: 1,
+                rotate: 0,
+            }}
+            transition={{
+                duration: 0.3,
+            }}
+            style={{
+                borderRadius: "0.5rem",
+                width: "100%",
             }}
         >
         <ParameterItemComponent
@@ -115,15 +160,17 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
             }}
             autoblur = {autoblur}
             onAutoBlur = {onAutoBlur}
-        /></Box></ListItem>
+        /></motion.div></ListItem>
     })}</List>
-    <Button onClick={()=>{
+    {(!no_savebutton) && <Button onClick={()=>{
         onSave?.(parameters)
-    }}>保存</Button>
+    }}>保存</Button>}
     </Box>
 }), (prev_props, next_props)=>{
     return prev_props.node.idx == next_props.node.idx 
         && prev_props.onSave === next_props.onSave
+        && prev_props.autoblur === next_props.autoblur
+        && prev_props.onAutoBlur === next_props.onAutoBlur
         && prev_props.select_paramidx == next_props.select_paramidx
         && prev_props.node.parameters === next_props.node.parameters
 })

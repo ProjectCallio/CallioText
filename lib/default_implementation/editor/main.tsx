@@ -48,11 +48,12 @@ import {
 import { 
     EditorBackgroundPaper , 
     EditorComponentEditingBox  ,
+} from "./uibase"
+import {
     EditorConfigContext , 
     make_editorconfig , 
-    EditorConfig , 
     PartialEditorConfig , 
-} from "./uibase"
+} from "../../implbase/editorconfig"
 
 import {
     DefaultSidebar , 

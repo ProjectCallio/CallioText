@@ -23,8 +23,8 @@ import type {
 import  Color  from "color"
 
 import {
-    EditorConfigContext , 
-} from "./config"
+    useEditorConfig , 
+} from "../../../implbase/editorconfig"
 
 import {
     light_grey
@@ -57,7 +57,7 @@ const EditorUnselecableBox = React.memo((props: BoxProps) => <Box
 
 /** 这个组件定义默认的段落渲染方式。 */
 const EditorParagraphBox = React.memo((props: TypographyProps) => {
-    const config = React.useContext(EditorConfigContext)
+    const config = useEditorConfig()
     return <Typography 
         component = {Box}
         {...props}
@@ -73,7 +73,7 @@ const EditorParagraphBox = React.memo((props: TypographyProps) => {
 
 /** 结构性的文字。 */
 const EditorStructureTypography = React.memo((props: TypographyProps) => {
-    const config = React.useContext(EditorConfigContext)
+    const config = useEditorConfig()
     return <Typography 
         component = {Box}
         {...props}
@@ -94,7 +94,7 @@ const EditorStructureTypography = React.memo((props: TypographyProps) => {
  * @param props.autogrow 如果为 true ，则区域会自动横向增长以填满父元素。
  */
 const EditorComponentEditingBox = React.memo((props: BoxProps & {autogrow?: boolean}) => {
-    const config = React.useContext(EditorConfigContext)
+    const config = useEditorConfig()
     return <Box 
         {...{...props , autogrow: undefined}} // 去掉自己定义的属性。
         sx = {[
@@ -124,7 +124,7 @@ const EditorComponentPaper = React.memo((
     const net_level = React.useContext(EditorComponentPaperNestLevel) // 已经嵌套了多少层了
     const {children , is_inline, sx, ...other_props} = props
     
-    const config = React.useContext(EditorConfigContext)
+    const config = useEditorConfig()
     const theme  = useTheme()
 
     let bgcolor = Color( theme.palette.background.paper )
@@ -160,7 +160,7 @@ const EditorComponentPaper = React.memo((
 
 /** 对于一个不用纸张作为最外层元素的节点，这个组件用来提供其边框。 */
 const EditorComponentBox = React.memo((props: BoxProps) => {
-    const config = React.useContext(EditorConfigContext)
+    const config = useEditorConfig()
     return <Box 
         {...props}
         sx = {[

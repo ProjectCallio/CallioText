@@ -28,6 +28,7 @@ import {
 import { 
     DefaultParameterContainerRef , 
     DefaultParameterContainer , 
+    useResetSelection,
 } from "../../../../implbase"
 
 export { 
@@ -52,11 +53,9 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
     /** 抽屉应该关闭时的回调。 */
     onClose?: (e:any)=>void
 })=>{
-    const parametereditor_ref = React.useRef<DefaultParameterContainerRef | null>(null)
     const editor = useEditor()
-     
-    // 记录进入时的光标位置，以便在退出时还原。
-    const [enter_selection , set_ec] = React.useState<Slate.BaseSelection | null>(null)
+    const parametereditor_ref = React.useRef<DefaultParameterContainerRef | null>(null)
+    const [set_selection, reset_selection] = useResetSelection()
 
     return editor && <Drawer 
         anchor      = "left"
@@ -69,7 +68,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         slotProps = {{
             transition: {
                 onEnter: ()=>{
-                    set_ec(editor.get_slate().selection)
+                    // set_selection()
                 } , 
                 onExited: () => {
                     if(parametereditor_ref && parametereditor_ref.current){ // 在退出时更新所服务的节点的参数。
@@ -82,15 +81,12 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
                         let parameters = parametereditor_ref.current.get_parameters()
                         editor.auto_set_parameter(node, parameters)
                     }
-                    SlateReact.ReactEditor.focus(editor.get_slate())
-                    if(enter_selection && enter_selection["anchor"] && enter_selection["anchor"]["path"]){
-                        Slate.Transforms.select(editor.get_slate() , enter_selection) // 设置为保存的selection。
-                    }
+                    // reset_selection()
                 }    
             },
             paper: {
                 sx: {
-                    width: "40%"
+                    width: "12rem"
                 }
             }
         }}
@@ -100,6 +96,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         <DefaultParameterContainer 
             node     = {node} 
             ref      = {parametereditor_ref}
+            no_savebutton
         />
         <Button onClick={onClose}>Close</Button>
     </Drawer>

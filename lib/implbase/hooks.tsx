@@ -111,12 +111,20 @@ function is_textend(slate: Slate.Editor, point: Slate.Point): boolean {
     const node = node_entry[0]
     return Slate.Text.isText(node) && point.offset >= node.text.length
 }
+function is_articlestart(point: Slate.Point): boolean {
+    if(point.offset != 0){  return false }
+    for(const v of point.path){
+        if(v != 0){ return false }
+    }
+    return true
+    
+}
 
 // XXX 不确定要不要把这个跟../editor/state.tsx合并
 function useResetSelection(){
     const _selection_ref = React.useRef<Slate.Selection | null>(null)
 
-    const _editor = useCurEditor()
+    const _editor = useEditor()
     const editor_ref = React.useRef(_editor)
     React.useEffect(()=>{
         editor_ref.current = _editor
@@ -137,6 +145,11 @@ function useResetSelection(){
         if(_selection){
             Slate.Transforms.select(slate, _selection)
         }
+
+        // 如果在文章的最开头，就往后挪一下
+        if(_selection && is_articlestart(_selection.focus)){
+            Slate.Transforms.move(slate, { distance: 2, unit: "offset"})
+        }
         
         // XXX 不知道为啥，必须要移动一下光标，不然不能正确focus
         Slate.Transforms.move(slate, { distance: 1, unit: "offset", reverse: true})
@@ -156,6 +169,9 @@ function useResetSelection(){
             return
         }
         const slate = editor.get_slate()
+        if(slate.selection && is_articlestart(slate.selection.focus)){
+            return // 如果光标在文章开头，则不设置。
+        }
         _selection_ref.current = slate.selection
     }, [])
 

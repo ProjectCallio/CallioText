@@ -11,12 +11,22 @@ import {
     Switch , 
     MenuItem  , 
     FormControlLabel  , 
+    Box , 
+    Typography , 
+    Divider , 
+    useTheme
 } from "@mui/material"
+import {
+    ArrowBigRightDash as ArrowBigRightDashIcon, 
+} from "lucide-react"
 
 import {
     useResetSelection , 
 } from "../hooks"
 
+import {
+    useEditorConfig , 
+} from "../editorconfig"
 
 import {
     ParameterValue , 
@@ -55,8 +65,10 @@ const ParameterItemSelect = React.forwardRef(({
     const select_ref = React.useRef<HTMLInputElement>(null)
     const input_ref  = React.useRef<HTMLInputElement>(null)
 
+    const [is_focus, set_is_focus] = React.useState<boolean>(false)
+    const palette = useTheme().palette
+
     const handle_keydown = React.useCallback((e: KeyboardEvent)=>{
-        console.log("select keydown:", e.key)
         if(autoblur?.(e as any)){
             select_ref.current?.blur()
             reset_selection()
@@ -72,34 +84,59 @@ const ParameterItemSelect = React.forwardRef(({
         get_formel: ()=>input_ref.current
     }))
 
-    // TODO 这个元素捕获不到keydown事件
-    return <Select 
-        value = {val}
-        label = {name}
-        onChange = {e=>{
-            set_val(e.target.value)
-            onUpdate?.(e.target.value)
-        }}
-        sx = {{
-            marginLeft: "5%" , 
-        }}
-        inputRef = {input_ref}
-        ref      = {select_ref}
+    return <Box sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        width: "100%",
 
-        onFocus = {()=>{
-            autoblur && (set_selection())
-            window.addEventListener("keydown", handle_keydown)
-        }}
-        onBlur = {()=>{
-            window.removeEventListener("keydown", handle_keydown)
-        }}
-    >
-        {choices.map((c,idx)=>(
-            <MenuItem key={idx} value={c} onKeyDown={(e)=>{
-                console.log("item:", c, "keydown:", e.key)
-            }}>{c}</MenuItem>
-        ))}
-    </Select>
+        border: is_focus ? `1px solid ${palette.primary.main}` : "none",
+        borderRadius: "0.5rem",
+        padding: is_focus ? "0.5rem" : "0",
+        transition: "all 0.2s ease-in", 
+    }}>
+        <Select 
+            variant = "standard"
+            name = {name}
+            value = {val}
+            label = {name}
+            onChange = {e=>{
+                set_val(e.target.value)
+                onUpdate?.(e.target.value)
+            }}
+            sx = {{
+                marginLeft: "5%" , 
+                marginRight: "5%",
+                fontFamily: "Dengxian",
+            }}
+            inputRef = {input_ref}
+            ref      = {select_ref}
+
+            onFocus = {()=>{
+                autoblur && (set_selection())
+                window.addEventListener("keydown", handle_keydown)
+                set_is_focus(true)
+            }}
+            onBlur = {()=>{
+                window.removeEventListener("keydown", handle_keydown)
+                set_is_focus(false)
+            }}
+        >
+            {choices.map((c,idx)=>(
+                <MenuItem key={idx} value={c} onKeyDown={(e)=>{
+                    console.log("item:", c, "keydown:", e.key)
+                }}>{c}</MenuItem>
+            ))}
+        </Select>
+        <Divider orientation="vertical" flexItem />
+        <Typography sx={{
+                marginLeft: "5%",
+                marginRight: "5%",
+                fontFamily: "Dengxian",
+            }}>{name}</Typography>
+
+    </Box>
 })
 const ParameterItemString = React.forwardRef(({
     name , 
@@ -117,6 +154,9 @@ const ParameterItemString = React.forwardRef(({
     const [val, set_val] = React.useState<string>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
     const textfield_ref = React.useRef<HTMLInputElement>(null)
+    
+    const [is_focus, set_is_focus] = React.useState<boolean>(false)
+    const palette = useTheme().palette
 
     React.useEffect(()=>{
         set_val(init_val)
@@ -126,7 +166,19 @@ const ParameterItemString = React.forwardRef(({
         get_formel: ()=>textfield_ref.current
     }))
 
-    return <TextField 
+    return <Box sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        width: "100%",
+
+        border: is_focus ? `1px solid ${palette.primary.main}` : "none",
+        borderRadius: "0.5rem",
+        padding: is_focus ? "0.5rem" : "0",
+        transition: "all 0.2s ease-in", 
+    }}><TextField 
+        variant = "standard"
         value = {val}
         label = {name}
         onChange = {e=>{
@@ -138,21 +190,28 @@ const ParameterItemString = React.forwardRef(({
         }}        
         slotProps = {{
             input: {
-                onFocus: ()=>{
+                onFocus: (e)=>{
                     autoblur && (set_selection())
+                    set_is_focus(true)
                 },
-            onKeyDown: (e)=>{
+                onKeyDown: (e)=>{
                     if(autoblur?.(e)){
                         textfield_ref.current?.blur()
                         reset_selection()
                         onAutoBlur?.()
                     }
                 },
+                sx: {
+                    fontFamily: "Dengxian",
+                },
+                onBlur: ()=>{
+                    set_is_focus(false)
+                }
             },
         }}
 
         inputRef = {textfield_ref}
-    />
+    /></Box>
 })
 
 const ParameterItemNumber = React.forwardRef(({
@@ -172,6 +231,9 @@ const ParameterItemNumber = React.forwardRef(({
     const [set_selection, reset_selection] = useResetSelection()
     const textfield_ref = React.useRef<HTMLInputElement>(null)
 
+    const [is_focus, set_is_focus] = React.useState<boolean>(false)
+    const palette = useTheme().palette
+
     React.useEffect(()=>{
         set_val(init_val)
     }, [init_val])
@@ -180,7 +242,14 @@ const ParameterItemNumber = React.forwardRef(({
         get_formel: ()=>textfield_ref.current
     }))
 
-    return <TextField 
+    return <Box sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        width: "100%",
+    }}><TextField 
+        variant = "standard"
         name = {name}
         value = {val}
         onChange = {e=>{
@@ -190,23 +259,25 @@ const ParameterItemNumber = React.forwardRef(({
         sx = {{
             marginLeft: "5%" , 
         }}
-        slotProps = {{
-            input: {
-                onFocus: ()=>{
-                    autoblur && (set_selection())
-                },
+        slotProps = {{input: {
             onKeyDown: (e)=>{
-                    if(autoblur?.(e)){
-                        textfield_ref.current?.blur()
-                        reset_selection()
-                        onAutoBlur?.()
-                    }
-                },
+                if(autoblur?.(e)){
+                    textfield_ref.current?.blur()
+                    reset_selection()
+                    onAutoBlur?.()
+                }
             },
-        }}
+            onFocus: ()=>{
+                autoblur && (set_selection())
+                set_is_focus(true)
+            },
+            onBlur: ()=>{
+                set_is_focus(false)
+            }
+        },}}
         inputRef = {textfield_ref}
         type = "number"
-    />
+    /></Box>
 })
 
 const ParameterItemBoolean = React.forwardRef(({    
@@ -222,6 +293,10 @@ const ParameterItemBoolean = React.forwardRef(({
     autoblur?: (e: React.KeyboardEvent)=>boolean
     onAutoBlur?: ()=>void
 }, ref: React.Ref<ParameterItemComponentRef>)=>{
+
+    const palette = useTheme().palette
+    const [is_focus, set_is_focus] = React.useState<boolean>(false)
+
     const [val, set_val] = React.useState<boolean>(init_val)
     const [set_selection, reset_selection] = useResetSelection()
     const switch_ref = React.useRef<HTMLInputElement>(null)
@@ -234,18 +309,33 @@ const ParameterItemBoolean = React.forwardRef(({
         get_formel: ()=>switch_ref.current
     }))
 
-    return <FormControlLabel 
-        label = {name} 
-        control = {<Switch 
-            checked = {val}
-            onChange = {e=>{
-                set_val(e.target.checked)     
-                onUpdate?.(e.target.checked)
-            }}
-            slotProps = {{
-                input: {
-                    onFocus: ()=>{
+    return <Box sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+
+        border: is_focus ? `1px solid ${palette.primary.main}` : "none",
+        borderRadius: "0.5rem",
+        padding: is_focus ? "0.5rem" : "0",
+        transition: "all 0.2s ease-in",
+    }}>
+        <FormControlLabel 
+            label = {""} 
+            control = {<Switch 
+                name = {name}
+                checked = {val}
+                onChange = {e=>{
+                    set_val(e.target.checked)     
+                    onUpdate?.(e.target.checked)
+                }}
+                slotProps = {{input: {
+                    onFocus: (e)=>{
                         autoblur && (set_selection())
+                        set_is_focus(true)
+                    },
+                    onBlur: ()=>{
+                        set_is_focus(false)
                     },
                     onKeyDown: (e)=>{
                         if(autoblur?.(e)){
@@ -253,14 +343,31 @@ const ParameterItemBoolean = React.forwardRef(({
                             reset_selection()
                             onAutoBlur?.()
                         }
+                        if(e.key == "Enter" 
+                            || e.key == " " 
+                            || e.key == "ArrowLeft" 
+                            || e.key == "ArrowRight"
+                        ){
+                            set_val(v => !v)
+                        }
                     },
-                },
+            
+                    ref: switch_ref , 
+                },}}
+            />} 
+            sx = {{
+                marginLeft: "5%" , 
+                marginRight: "5%"
             }}
-        />} 
-        sx = {{
-            marginLeft: "5%" , 
-        }}
-    />
+        />
+        <Divider orientation="vertical" flexItem />
+        <Typography sx={{
+            marginLeft: "5%",
+            fontFamily: "Dengxian",
+            fontSize: name.length >= 10 ? "0.8rem" : "1rem",
+        }}>{name}</Typography>
+
+    </Box>
 
 })
 

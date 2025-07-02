@@ -50,6 +50,7 @@ import {
     useEditor, 
     AutoIconButton , 
     AutoElement , 
+    useResetSelection,
 } from "../../../../implbase"
 
 export {    
@@ -72,6 +73,18 @@ function MyImg(props: {img_url: string}){
  */
 const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) => void }) => {
     const [open, set_open] = React.useState(false)
+    const [set_selection, reset_selection] = useResetSelection()
+    
+    React.useEffect(()=>{
+        // 必须在打开drawer之前设置位置。
+        // 如果是onClick的时候设置（此时drawer已经打开），则对于第一个小节线，光标会跳到最前面。
+        // 而且很奇怪，如果只是mouseless选中这个节点，那么这个函数还是会被调用，
+        // 即使open一直都是false。（好像是因为打开panel的时候会重新渲染？）
+        if(!open){
+            set_selection() 
+        }
+    }, [open])
+
     const node = useNode((prev, next) => (
         prev.parameters === next.parameters && prev.idx == next.idx
     ))
@@ -83,13 +96,16 @@ const DefaultParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) =
             open = {open} 
             onClose = {(e: any) => { 
                 onExit?.(e)
+                reset_selection()
                 set_open(false)
             }}
         />
     }, [node.parameters, node.idx, open, onExit])
 
     return <Box sx={{ marginX: "auto" }}>
-        <AutoIconButton onClick={()=>{set_open(true)}} title="设置参数" icon={SettingsIcon} size="medium"/>
+        <AutoIconButton onClick={()=>{
+            set_open(true)
+        }} title="设置参数" icon={SettingsIcon} size="medium"/>
         {subcomp}
     </Box>
 })

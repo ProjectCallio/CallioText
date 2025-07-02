@@ -2,21 +2,22 @@ import * as React from "react"
 
 import type {
     TypographyConfig , 
-} from "../../../uibase"
+} from "../uibase"
 
-import "../../../uibase/fonts.css"
+import "../uibase/fonts.css"
 
 import {
     merge_object , 
-} from "../../../utils"
+} from "../utils"
 import {
     MyPartial , 
-} from "../../../uibase"
+} from "../uibase"
 
 export {
     EditorConfigContext    , 
     default_editorconfig , 
     make_editorconfig , 
+    useEditorConfig , 
 }
 export type {
     EditorConfig , 
@@ -91,6 +92,9 @@ function make_editorconfig(config: PartialEditorConfig = {}){
     return actual_config
 }
 
+function useEditorConfig(){
+    return React.useContext(EditorConfigContext)
+}
 
 
 
