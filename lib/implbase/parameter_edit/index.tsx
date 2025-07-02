@@ -17,7 +17,9 @@ import {
     motion, 
     AnimatePresence,
 } from "framer-motion"
-
+import {
+    Save as SaveIcon,
+} from "lucide-react"
 
 
 import {
@@ -30,6 +32,7 @@ import {
     ParameterItemComponent , 
     ParameterItemComponentRef , 
 } from "./items"
+import { AutoIconButton } from "../buttons"
 
 export {
     DefaultParameterContainer , 
@@ -55,7 +58,6 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
     select_paramidx, 
     autoblur , 
     onAutoBlur , 
-    no_savebutton = false,
 }: {
     node     : Slate.Node & ConceptNode
     onSave  ?: (parameters: ParameterList)=>void
@@ -68,9 +70,6 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
 
     /** 如果有自动失焦，那么触发这个回调函数。 */
     onAutoBlur?: ()=>void
-
-    /** 是否不显示保存按钮。 */
-    no_savebutton?: boolean
 }, ref) => {
 
     // 初始化
@@ -162,9 +161,6 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
             onAutoBlur = {onAutoBlur}
         /></motion.div></ListItem>
     })}</List>
-    {(!no_savebutton) && <Button onClick={()=>{
-        onSave?.(parameters)
-    }}>保存</Button>}
     </Box>
 }), (prev_props, next_props)=>{
     return prev_props.node.idx == next_props.node.idx 

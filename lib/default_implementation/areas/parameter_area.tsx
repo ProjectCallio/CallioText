@@ -25,10 +25,13 @@ import {
     Stack , 
 } from "@mui/material"
 import { motion, AnimatePresence } from "framer-motion"
-
+import {
+    Save as SaveIcon,
+} from "lucide-react"
 import {
     DefaultParameterContainer , 
     DefaultParameterContainerRef, 
+    AutoIconButton , 
 } from "../../implbase"
 import {
     ParameterList , 
@@ -128,7 +131,7 @@ const SPACE: SpaceDefinition = {
         }} , 
     ]
 }
-// TODO 调整mouseless select样式
+
 const ParameterArea = React.memo(({
     paper_sx , 
     zIndex = 1000 , 
@@ -226,48 +229,88 @@ const ParameterArea = React.memo(({
     >
     <Box sx={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "space-between",
         justifyContent: "space-between",
+        borderBottom: "1px solid rgba(0, 0, 0, 0.3)",
         paddingBottom: "0.5rem",
-        borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
     }}>
-        <AnimatePresence mode="sync">
-        <Typography 
-
-            variant="h6" 
-            sx={{
-                fontWeight: 600,
-                color: "rgba(0, 0, 0, 0.87)",
-                fontSize: "1.1rem",
-                letterSpacing: "0.02em",
-            }}
-        >
-            <motion.div
-                initial = {{ opacity: 0 , y: 50  }}
-                animate = {{ opacity: 1 , y: 0   }}
-                exit    = {{ opacity: 0 , y: -50 }}
-                transition = {{ duration: 0.3 }}
-                key = {cur_node.idx}
-                layout = {true}
-            >{cur_node.concept}</motion.div>
-        </Typography>
-        </AnimatePresence>
-        <DraggerBox  
-            my_position = {position}
-            dragging_me = {dragging_me} 
-            onDragStart = {e=>{
-                set_dragging(area_id)
-                if(box_ref.current){
-                    const rect = box_ref.current.getBoundingClientRect()
-                    set_sizes({[area_id]: {
-                        width : rect.width,
-                        height: rect.height,
-                    }})
+        
+        <AutoIconButton 
+            onClick={()=>{
+                const parameters = parametereditor_ref.current?.get_parameters()
+                if(!parameters){
+                    return
                 }
+                editor.auto_set_parameter(cur_node, parameters)
             }}
+            title = "保存"
+            icon = {SaveIcon}
+            size = "medium"
         />
+
+        <Box sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            flexDirection: "row",
+            gap: "1rem",
+        }}>
+
+            <AnimatePresence mode="sync">
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                }}>
+                <Typography 
+                    sx={{
+                        fontWeight: 600,
+                        color: "rgba(0, 0, 0, 0.87)",
+                        fontSize: "1.05rem",
+                        letterSpacing: "0.02em",
+                    }}
+                ><motion.div
+                    initial = {{ opacity: 0 , x: -50  }}
+                    animate = {{ opacity: 1 , x: 0   }}
+                    exit    = {{ opacity: 0 , x: 50 }}
+                    transition = {{ duration: 0.3 }}
+                    key = {cur_node.idx}
+                    layout = {true}
+                >{cur_node.concept}</motion.div>
+                </Typography>
+
+                <Typography sx={{
+                    fontSize: "0.6rem",
+                    color: "rgba(0, 0, 0, 0.5)",
+                    marginY: "-0.2rem",
+                }}><motion.div
+                    initial = {{ opacity: 0 , x: -50  }}
+                    animate = {{ opacity: 1 , x: 0   }}
+                    exit    = {{ opacity: 0 , x: 50 }}
+                    transition = {{ duration: 0.3 }}
+                    key = {cur_node.idx}
+                    layout = {true}
+                >{cur_node.idx}</motion.div></Typography>
+                </Box>
+            </AnimatePresence>
+            <DraggerBox  
+                my_position = {position}
+                dragging_me = {dragging_me} 
+                onDragStart = {e=>{
+                    set_dragging(area_id)
+                    if(box_ref.current){
+                        const rect = box_ref.current.getBoundingClientRect()
+                        set_sizes({[area_id]: {
+                            width : rect.width,
+                            height: rect.height,
+                        }})
+                    }
+                }}
+            />
+        </Box>
     </Box>
     </motion.div>}</AnimatePresence>
+
+
         
     <AnimatePresence mode="sync">{(
         open // 不知道为什么但是这里open && 后面必须立刻接一个motion.div，

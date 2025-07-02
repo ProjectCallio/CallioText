@@ -96,7 +96,6 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         <DefaultParameterContainer 
             node     = {node} 
             ref      = {parametereditor_ref}
-            no_savebutton
         />
         <Button onClick={onClose}>Close</Button>
     </Drawer>
