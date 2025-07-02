@@ -201,6 +201,8 @@ const ParameterArea = React.memo(({
         return <></>
     }
 
+    const has_parameters = Object.keys(cur_node.parameters).length > 0
+
     return <Paper 
         sx  = {{
             position: "absolute",
@@ -234,8 +236,10 @@ const ParameterArea = React.memo(({
         display: "flex",
         alignItems: "space-between",
         justifyContent: "space-between",
-        borderBottom: "1px solid rgba(0, 0, 0, 0.3)",
-        paddingBottom: "0.5rem",
+        paddingBottom: has_parameters ? "0.5rem" : "0",
+        borderBottom : "1px solid",
+        borderBottomColor: has_parameters ? "rgba(0, 0, 0, 0.3)" : "transparent",
+        transition: "all 0.3s",
     }}>
         
         <AutoIconButton 
@@ -263,42 +267,44 @@ const ParameterArea = React.memo(({
             gap: "1rem",
         }}>
 
-            <AnimatePresence mode="sync">
-                <Box sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                }}>
+            <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+            }}>
                 <Typography 
-                    sx={{
+                    component = "div"
+                    sx = {{
                         fontWeight: 600,
                         color: "rgba(0, 0, 0, 0.87)",
                         fontSize: "1.05rem",
                         letterSpacing: "0.02em",
                     }}
-                ><motion.span
+                ><AnimatePresence mode="wait"><motion.div
                     initial = {{ opacity: 0 , x: -50  }}
                     animate = {{ opacity: 1 , x: 0   }}
                     exit    = {{ opacity: 0 , x: 50 }}
-                    transition = {{ duration: 0.3 }}
+                    transition = {{ duration: 0.15, ease: "easeInOut" }}
                     key = {cur_node.idx}
-                    layout = {true}
-                >{cur_node.concept}</motion.span>
+                    layout = {  true}
+                >{cur_node.concept}</motion.div></AnimatePresence>
                 </Typography>
 
-                <Typography sx={{
-                    fontSize: "0.6rem",
-                    color: "rgba(0, 0, 0, 0.5)",
-                    marginY: "-0.2rem",
-                }}><motion.span
+                <Typography 
+                    component = "div"
+                    sx = {{
+                        fontSize: "0.6rem", 
+                        color: "rgba(0, 0, 0, 0.5)",
+                        marginY: "-0.2rem",
+                    }}
+                ><AnimatePresence mode="wait"><motion.div
                     initial = {{ opacity: 0 , x: -50  }}
                     animate = {{ opacity: 1 , x: 0   }}
                     exit    = {{ opacity: 0 , x: 50 }}
-                    transition = {{ duration: 0.3 }}
+                    transition = {{ duration: 0.15, ease: "easeInOut" }}
                     key = {cur_node.idx}
-                    layout = {true}
-                >{cur_node.idx}</motion.span></Typography>
-                </Box>
-            </AnimatePresence>
+                    // layout = {true}
+                >{cur_node.idx}</motion.div></AnimatePresence></Typography>
+            </Box>
             <DraggerBox  
                 my_position = {position}
                 dragging_me = {dragging_me} 
@@ -322,6 +328,7 @@ const ParameterArea = React.memo(({
     <AnimatePresence mode="sync">{(
         open // 不知道为什么但是这里open && 后面必须立刻接一个motion.div，
              // 哪怕是套一个React.Fragment都不行。
+        && has_parameters
     ) && <motion.div
         key         = { cur_node.idx }
         initial     = {{ height: 0, opacity: 0 , y: 50 }}
