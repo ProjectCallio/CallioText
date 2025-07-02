@@ -20,6 +20,10 @@ import {
 } from "@ftyyy/mouseless"
 
 import {
+    SnackbarProvider 
+} from "notistack"
+
+import {
     EditorComponent , 
     EditorComponentProps , 
     EditorGlobalInfo,
@@ -149,6 +153,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
         // TODO 现在abstracteditor用不了space navigator，因为这里get_editor给出的是父编辑器。
         return <EditorConfigContext.Provider value={config}>
+        <SnackbarProvider maxSnack={3} anchorOrigin={{vertical: "top", horizontal: "right"}}>
         <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>(
             <EditorBackgroundPaper>
             <KeyEventManager
@@ -233,6 +238,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             </React.Fragment>)}</KeyEventManager>
             </EditorBackgroundPaper>
         )}</IdxConflictSolver>
+        </SnackbarProvider>
         </EditorConfigContext.Provider>
     }
 }

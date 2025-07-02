@@ -26,8 +26,10 @@ import {
 } from "@mui/material"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    Save as SaveIcon,
+    HardDriveDownload as HardDriveDownloadIcon,
 } from "lucide-react"
+import { useSnackbar } from "notistack"
+
 import {
     DefaultParameterContainer , 
     DefaultParameterContainerRef, 
@@ -141,6 +143,7 @@ const ParameterArea = React.memo(({
     zIndex?: number
     area_id: AreaName
 })=>{
+    const {enqueueSnackbar} = useSnackbar()
     const editor = useCurEditor() // 当前正在编辑的编辑器
     
     // 当前节点。但是只有参数变化才刷新。
@@ -241,10 +244,14 @@ const ParameterArea = React.memo(({
                 if(!parameters){
                     return
                 }
+                console.log("cur_node", cur_node)
                 editor.auto_set_parameter(cur_node, parameters)
+                enqueueSnackbar("修改参数成功", {
+                    variant: "success",
+                })
             }}
-            title = "保存"
-            icon = {SaveIcon}
+            title = "应用参数"
+            icon = {HardDriveDownloadIcon}
             size = "medium"
         />
 
@@ -268,28 +275,28 @@ const ParameterArea = React.memo(({
                         fontSize: "1.05rem",
                         letterSpacing: "0.02em",
                     }}
-                ><motion.div
+                ><motion.span
                     initial = {{ opacity: 0 , x: -50  }}
                     animate = {{ opacity: 1 , x: 0   }}
                     exit    = {{ opacity: 0 , x: 50 }}
                     transition = {{ duration: 0.3 }}
                     key = {cur_node.idx}
                     layout = {true}
-                >{cur_node.concept}</motion.div>
+                >{cur_node.concept}</motion.span>
                 </Typography>
 
                 <Typography sx={{
                     fontSize: "0.6rem",
                     color: "rgba(0, 0, 0, 0.5)",
                     marginY: "-0.2rem",
-                }}><motion.div
+                }}><motion.span
                     initial = {{ opacity: 0 , x: -50  }}
                     animate = {{ opacity: 1 , x: 0   }}
                     exit    = {{ opacity: 0 , x: 50 }}
                     transition = {{ duration: 0.3 }}
                     key = {cur_node.idx}
                     layout = {true}
-                >{cur_node.idx}</motion.div></Typography>
+                >{cur_node.idx}</motion.span></Typography>
                 </Box>
             </AnimatePresence>
             <DraggerBox  
@@ -354,6 +361,9 @@ const ParameterArea = React.memo(({
                     return
                 }
                 editor.auto_set_parameter(cur_node, parameters)
+                enqueueSnackbar("已自动应用参数", {
+                    variant: "success",
+                })
             }}
         /></Box>
     </motion.div>}</AnimatePresence>

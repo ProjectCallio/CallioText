@@ -80,9 +80,12 @@ function slate_is_same_concept_node(node1: Slate.Node, node2: Slate.Node): boole
 // XXX：这个函数的实现太沙雕了，应该换一个更有效率的实现。
 /** 获得一个节点在节点树中的路径。 */
 function slate_concept_node2path<RootType>(
-    root: RootType & Slate.Node, 
+    root: RootType & Slate.Node & ConceptNode, 
     node: Slate.Node & ConceptNode
 ): Slate.Path | undefined{
+    if(node.idx == root.idx){
+        return []
+    }
     for(let [nd , path] of Slate.Node.descendants(root)){
         if(slate_is_same_concept_node(nd,node)){
             return path
@@ -108,7 +111,7 @@ function slate_concept_father_path<RootType = ConceptNode>(root: RootType & Slat
 
 /** 获得一个概念节点的最近的概念父亲节点。 */
 function slate_concept_father<RootType = ConceptNode>(
-    root: RootType & Slate.Node, 
+    root: RootType & Slate.Node & ConceptNode, 
     node: Slate.Node & ConceptNode
 ): (Slate.Node & ConceptNode) | undefined {
     let path = slate_concept_node2path(root, node)
@@ -118,8 +121,8 @@ function slate_concept_father<RootType = ConceptNode>(
     return slate_concept_father_path<RootType>(root, path)
 }
 
-function slate_idx_to_node<RootType = ConceptNode>(
-    root: Slate.Editor, 
+function slate_idx_to_node(
+    root: Slate.Node & ConceptNode & Slate.BaseEditor, 
     idx: string , 
 ): (Slate.Node & ConceptNode) | undefined{
     let ret = Array.from( 
