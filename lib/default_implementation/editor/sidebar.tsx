@@ -33,6 +33,8 @@ import {
 
 import {
     MouselessButton,
+    MouselessHint,
+    ShowHintControlButton,
 } from "../../implbase"
 
 export {
@@ -113,6 +115,14 @@ const DefaultSidebar = React.memo(({
             paddingLeft: "0.15rem",
         }}
     >
+        <MouselessHint 
+            get_anchor_el={()=> refs.current[0]} 
+            ctrl_key={KeyNames.Alt} 
+            keys={SPACE.holding} 
+            placement = "top"
+            info = "↑ ↓ ⏎"
+        />
+
         <MouselessButton 
             is_activated={cur_activated == 0}
             ref = {(el: HTMLDivElement)=>{refs.current[0] = el}}
@@ -133,6 +143,12 @@ const DefaultSidebar = React.memo(({
         >
             <ConceptAreaControlButton/>
         </MouselessButton>
+        <MouselessButton 
+            is_activated={cur_activated == 3}
+            ref = {(el: HTMLDivElement)=>{refs.current[3] = el}}
+        >
+            <ShowHintControlButton/>
+        </MouselessButton>
         
         <Divider flexItem sx={{
             width: "calc(100% + 0.15rem)",
@@ -142,9 +158,9 @@ const DefaultSidebar = React.memo(({
         {extras.map((extra, exidx)=>{
             const Ex = extra
             return <MouselessButton 
-                is_activated={cur_activated == exidx + 3}
+                is_activated={cur_activated == exidx + 4}
                 key = {exidx}
-                ref = {(el: HTMLDivElement)=>{refs.current[exidx + 3] = el}}
+                ref = {(el: HTMLDivElement)=>{refs.current[exidx + 4] = el}}
             >
                 <Ex />
             </MouselessButton>

@@ -49,6 +49,7 @@ import {
 import {
     MouselessButton , 
     AutoElement , 
+    MouselessHint , 
 } from "../../implbase"
 
 import {
@@ -275,10 +276,17 @@ const ConceptArea = React.memo(({
         }}
         ref         = {box_ref} 
     >
-    <AnimatePresence mode="wait">{(
-        open
-    ) && (
-        <motion.div
+        <MouselessHint 
+            get_anchor_el={()=> box_ref.current} 
+            ctrl_key={KeyNames.Alt} 
+            keys={HOLDING} 
+            placement = "top"
+            with_portal
+            info = "← → ↑ ↓ . / ⏎"
+        />
+        <AnimatePresence mode="wait">{(
+            open
+        ) && <motion.div
             initial     = {{ height: 0, opacity: 0 }}
             animate     = {{ height: "fit-content" , opacity: 1  }}
             exit        = {{ height: 0 , opacity: 0 }}
@@ -305,8 +313,6 @@ const ConceptArea = React.memo(({
                 gap: "1rem",
                 width: "100%",
             }}>
-
-                {/* Concept Type Selector */}
                 <FormControl sx={{ 
                     flexGrow: 1,
                 }}>
@@ -324,21 +330,17 @@ const ConceptArea = React.memo(({
                             set_cur_mouseless([new_typeidx, new_idx])
                         }}
                         size="small"
-                    >
-                        {concept_list.map((typename) => (
-                            <MenuItem key={typename} value={typename} sx={{
-                                borderRadius: "8px",
-                                margin: "2px 4px",
-                            }}>
-                                {{
-                                    "group": "组", 
-                                    "inline": "行内", 
-                                    "support": "支持", 
-                                    "structure": "结构", 
-                                }[typename]}
-                            </MenuItem>
-                        ))}
-                    </Select>
+                    >{concept_list.map((typename) => (
+                        <MenuItem key={typename} value={typename} sx={{
+                            borderRadius: "8px",
+                            margin: "2px 4px",
+                        }}>{{
+                            "group": "组", 
+                            "inline": "行内", 
+                            "support": "支持", 
+                            "structure": "结构", 
+                        }[typename]}</MenuItem>
+                    ))}</Select>
                 </FormControl>
                 <DraggerBox  
                     my_position = {position}
@@ -354,7 +356,6 @@ const ConceptArea = React.memo(({
                         }
                     }}
                 />
-
             </Box>
 
             {/* Concept List */}
@@ -375,8 +376,8 @@ const ConceptArea = React.memo(({
             }}><AnimatePresence mode="popLayout">
                 {concept_list_component}
             </AnimatePresence></Box></Box></motion.div>
-        </motion.div>
-    )}</AnimatePresence></Paper>
+        </motion.div>}</AnimatePresence>
+    </Paper>
 })
 
 // ConceptArea.whyDidYouRender = true

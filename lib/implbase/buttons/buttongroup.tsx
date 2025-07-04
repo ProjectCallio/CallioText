@@ -8,6 +8,10 @@ import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
 import {
+    Box
+} from "@mui/material"
+
+import {
     useSpaceNavigatorState,  
     useSpaceNavigatorRawState,
     useKeyEventsHandlerRegister,
@@ -35,6 +39,10 @@ import {
 import {
     MouselessButton , 
 } from "./msless_style"
+
+import {
+    MouselessHint
+} from "../msls_hint"
 
 
 export {
@@ -85,6 +93,7 @@ const ButtonGroup = React.memo(({
     
     const button_cnt = buttons.length // 作为组件的按钮数量
     const refs = React.useRef<HTMLDivElement[]>([])
+    const father_ref = React.useRef<HTMLDivElement>(null)
 
     // 设置当前选中的按钮
     React.useEffect(()=>{   
@@ -134,18 +143,26 @@ const ButtonGroup = React.memo(({
         }
     } , [cur_selected])
 
-    return <AutoStack force_direction={direction} sx={{
-        alignItems: "center",
-        gap: "0.5rem",
-        paddingY: "0.5rem",
-        paddingX: "0.5rem",
-    }}>{
-        buttons.map((button, idx)=>{
-            return <MouselessButton 
-                key = {idx}
-                ref = {React.useCallback((el: HTMLDivElement)=>{refs.current[idx] = el}, [])}
-                is_activated = { React.useMemo(()=>(cur_selected == idx), [cur_selected, idx]) }
-            >{button}</MouselessButton>
-        })
-    }</AutoStack>
+    return <Box ref={father_ref} > 
+        <MouselessHint 
+            get_anchor_el = {()=>father_ref.current} 
+            ctrl_key    ={KeyNames.Alt} 
+            keys        ={HOLDING} 
+            placement   = "left"
+            info        = "← → ⏎"
+        />
+        <AutoStack force_direction={direction} sx={{
+            alignItems: "center",
+            gap: "0.5rem",
+            paddingY: "0.5rem",
+            paddingX: "0.5rem",
+        }}>{
+            buttons.map((button, idx)=>{
+                return <MouselessButton 
+                    key = {idx}
+                    ref = {React.useCallback((el: HTMLDivElement)=>{refs.current[idx] = el}, [])}
+                    is_activated = { React.useMemo(()=>(cur_selected == idx), [cur_selected, idx]) }
+                >{button}</MouselessButton>
+            })
+        }</AutoStack></Box>
 })

@@ -33,6 +33,10 @@ import {
     useResetSelection , 
 } from "../hooks"
 
+import {
+    MouselessHint,
+} from "../msls_hint"
+
 export {
     UniversalExtra , 
 }
@@ -140,6 +144,13 @@ function UniversalExtra({
             flexDirection: "column",
         }}
     >
+        <MouselessHint 
+            get_anchor_el={()=>div_ref.current} 
+            ctrl_key={KeyNames.Alt} 
+            keys={ActivateKeys} 
+            placement = "top"
+            with_portal 
+        />
         <TextField
             variant = {variation}
             inputRef = {div_ref}

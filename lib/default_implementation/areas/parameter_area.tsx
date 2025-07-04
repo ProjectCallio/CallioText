@@ -36,6 +36,7 @@ import {
     DefaultParameterContainer , 
     DefaultParameterContainerRef, 
     AutoIconButton , 
+    MouselessHint , 
 } from "../../implbase"
 import {
     ParameterList , 
@@ -228,158 +229,165 @@ const ParameterArea = React.memo(({
         }}
         ref = {box_ref} 
     >            
-    
-    <AnimatePresence mode="sync">{open && <motion.div
-        initial = {{ opacity: 0.1 , y: 50 , height: 0 }}
-        animate = {{ opacity: 1 , y: 0 , height: "fit-content" }}
-        exit    = {{ opacity: 0.1 , y: -50 , height: 0 }}
-        transition = {{ duration: 0.3 }}
-    >
-    <Box sx={{
-        display: "flex",
-        alignItems: "space-between",
-        justifyContent: "space-between",
-        paddingBottom: has_parameters ? "0.5rem" : "0",
-        borderBottom : "1px solid",
-        borderBottomColor: has_parameters ? palette.divider : "transparent",
-        transition: "all 0.3s",
-    }}>
-        
-        <AutoIconButton 
-            onClick={()=>{
-                const parameters = parametereditor_ref.current?.get_parameters()
-                if(!parameters){
-                    return
-                }
-                editor.auto_set_parameter(cur_node, parameters)
-                enqueueSnackbar("修改参数成功", {
-                    variant: "success",
-                })
-            }}
-            title = "应用参数"
-            icon = {HardDriveDownloadIcon}
-            size = "medium"
-            icon_props = {{
-                sx: {
-                    opacity: !has_parameters ? 0 : 1,
-                }
-            }}
+        <MouselessHint 
+            get_anchor_el={()=>box_ref.current} 
+            ctrl_key={KeyNames.Alt} 
+            keys={SPACE.holding} 
+            placement = "top"
+            with_portal 
+            info = "↑ ↓ ⏎"
         />
-
+        <AnimatePresence mode="sync">{open && <motion.div
+            initial = {{ opacity: 0.1 , y: 50 , height: 0 }}
+            animate = {{ opacity: 1 , y: 0 , height: "fit-content" }}
+            exit    = {{ opacity: 0.1 , y: -50 , height: 0 }}
+            transition = {{ duration: 0.3 }}
+        >
         <Box sx={{
             display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-            flexDirection: "row",
-            gap: "1rem",
+            alignItems: "space-between",
+            justifyContent: "space-between",
+            paddingBottom: has_parameters ? "0.5rem" : "0",
+            borderBottom : "1px solid",
+            borderBottomColor: has_parameters ? palette.divider : "transparent",
+            transition: "all 0.3s",
         }}>
-
-            <Box sx={{
-                display: "flex",
-                flexDirection: "column",
-            }}>
-                <Typography 
-                    component = "div"
-                    sx = {{
-                        fontWeight: 600,
-                        fontSize: "1.05rem",
-                        letterSpacing: "0.02em",
-                    }}
-                ><AnimatePresence mode="wait"><motion.div
-                    initial = {{ opacity: 0 , x: -50  }}
-                    animate = {{ opacity: 1 , x: 0   }}
-                    exit    = {{ opacity: 0 , x: 50 }}
-                    transition = {{ duration: 0.15, ease: "easeInOut" }}
-                    key = {cur_node.idx}
-                    layout = {  true}
-                >{cur_node.concept}</motion.div></AnimatePresence>
-                </Typography>
-
-                <Typography 
-                    component = "div"
-                    sx = {{
-                        fontSize: "0.6rem", 
-                        color: palette.text.secondary,
-                        marginY: "-0.2rem",
-                    }}
-                ><AnimatePresence mode="wait"><motion.div
-                    initial = {{ opacity: 0 , x: -50  }}
-                    animate = {{ opacity: 1 , x: 0   }}
-                    exit    = {{ opacity: 0 , x: 50 }}
-                    transition = {{ duration: 0.15, ease: "easeInOut" }}
-                    key = {cur_node.idx}
-                    // layout = {true}
-                >{cur_node.idx}</motion.div></AnimatePresence></Typography>
-            </Box>
-            <DraggerBox  
-                my_position = {position}
-                dragging_me = {dragging_me} 
-                onDragStart = {e=>{
-                    set_dragging(area_id)
-                    if(box_ref.current){
-                        const rect = box_ref.current.getBoundingClientRect()
-                        set_sizes({[area_id]: {
-                            width : rect.width,
-                            height: rect.height,
-                        }})
+            
+            <AutoIconButton 
+                onClick={()=>{
+                    const parameters = parametereditor_ref.current?.get_parameters()
+                    if(!parameters){
+                        return
+                    }
+                    editor.auto_set_parameter(cur_node, parameters)
+                    enqueueSnackbar("修改参数成功", {
+                        variant: "success",
+                    })
+                }}
+                title = "应用参数"
+                icon = {HardDriveDownloadIcon}
+                size = "medium"
+                icon_props = {{
+                    sx: {
+                        opacity: !has_parameters ? 0 : 1,
                     }
                 }}
             />
+
+            <Box sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "flex-start",
+                flexDirection: "row",
+                gap: "1rem",
+            }}>
+
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                }}>
+                    <Typography 
+                        component = "div"
+                        sx = {{
+                            fontWeight: 600,
+                            fontSize: "1.05rem",
+                            letterSpacing: "0.02em",
+                        }}
+                    ><AnimatePresence mode="wait"><motion.div
+                        initial = {{ opacity: 0 , x: -50  }}
+                        animate = {{ opacity: 1 , x: 0   }}
+                        exit    = {{ opacity: 0 , x: 50 }}
+                        transition = {{ duration: 0.15, ease: "easeInOut" }}
+                        key = {cur_node.idx}
+                        layout = {  true}
+                    >{cur_node.concept}</motion.div></AnimatePresence>
+                    </Typography>
+
+                    <Typography 
+                        component = "div"
+                        sx = {{
+                            fontSize: "0.6rem", 
+                            color: palette.text.secondary,
+                            marginY: "-0.2rem",
+                        }}
+                    ><AnimatePresence mode="wait"><motion.div
+                        initial = {{ opacity: 0 , x: -50  }}
+                        animate = {{ opacity: 1 , x: 0   }}
+                        exit    = {{ opacity: 0 , x: 50 }}
+                        transition = {{ duration: 0.15, ease: "easeInOut" }}
+                        key = {cur_node.idx}
+                        // layout = {true}
+                    >{cur_node.idx}</motion.div></AnimatePresence></Typography>
+                </Box>
+                <DraggerBox  
+                    my_position = {position}
+                    dragging_me = {dragging_me} 
+                    onDragStart = {e=>{
+                        set_dragging(area_id)
+                        if(box_ref.current){
+                            const rect = box_ref.current.getBoundingClientRect()
+                            set_sizes({[area_id]: {
+                                width : rect.width,
+                                height: rect.height,
+                            }})
+                        }
+                    }}
+                />
+            </Box>
         </Box>
-    </Box>
-    </motion.div>}</AnimatePresence>
+        </motion.div>}</AnimatePresence>
 
 
-        
-    <AnimatePresence mode="sync">{(
-        open // 不知道为什么但是这里open && 后面必须立刻接一个motion.div，
-             // 哪怕是套一个React.Fragment都不行。
-        && has_parameters
-    ) && <motion.div
-        key         = { cur_node.idx }
-        initial     = {{ height: 0, opacity: 0 , y: 50 }}
-        animate     = {{ height: "fit-content" , opacity: 1 , y: 0 }}
-        exit        = {{ height: 0 , opacity: 0 , y: -50 }}
-        transition  = {{ duration: 0.3 }}
-        layout     = {true}
-        style={{
-            top     : "0"  , 
-            width   : "100%",
-            opacity: 1,
+            
+        <AnimatePresence mode="sync">{(
+            open // 不知道为什么但是这里open && 后面必须立刻接一个motion.div，
+                // 哪怕是套一个React.Fragment都不行。
+            && has_parameters
+        ) && <motion.div
+            key         = { cur_node.idx }
+            initial     = {{ height: 0, opacity: 0 , y: 50 }}
+            animate     = {{ height: "fit-content" , opacity: 1 , y: 0 }}
+            exit        = {{ height: 0 , opacity: 0 , y: -50 }}
+            transition  = {{ duration: 0.3 }}
+            layout     = {true}
+            style={{
+                top     : "0"  , 
+                width   : "100%",
+                opacity: 1,
 
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-        }}
-    >
-        <Box
-            ref = {mod_scrollbar_nohide}
-            key={cur_node.idx}
-            sx={{
-                overflow: "auto",
-                maxHeight: "calc(min(35rem, 35vh))",
-                paddingRight: "0.5rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
             }}
-        ><DefaultParameterContainer 
-            ref = {parametereditor_ref}
-            node = {cur_node}
-            autoblur = {e=>e.key == KeyNames.z && e.altKey}
-            onSave = {(parameters: ParameterList) => {
-                editor.auto_set_parameter(cur_node, parameters)
-            }}
-            select_paramidx = {navi_paramidx}
-            onAutoBlur = {()=>{
-                const parameters = parametereditor_ref.current?.get_parameters()
-                if(!parameters){
-                    return
-                }
-                editor.auto_set_parameter(cur_node, parameters)
-                enqueueSnackbar("已自动应用参数", {
-                    variant: "success",
-                })
-            }}
-        /></Box>
-    </motion.div>}</AnimatePresence>
+        >
+            <Box
+                ref = {mod_scrollbar_nohide}
+                key={cur_node.idx}
+                sx={{
+                    overflow: "auto",
+                    maxHeight: "calc(min(35rem, 35vh))",
+                    paddingRight: "0.5rem",
+                }}
+            ><DefaultParameterContainer 
+                ref = {parametereditor_ref}
+                node = {cur_node}
+                autoblur = {e=>e.key == KeyNames.z && e.altKey}
+                onSave = {(parameters: ParameterList) => {
+                    editor.auto_set_parameter(cur_node, parameters)
+                }}
+                select_paramidx = {navi_paramidx}
+                onAutoBlur = {()=>{
+                    const parameters = parametereditor_ref.current?.get_parameters()
+                    if(!parameters){
+                        return
+                    }
+                    editor.auto_set_parameter(cur_node, parameters)
+                    enqueueSnackbar("已自动应用参数", {
+                        variant: "success",
+                    })
+                }}
+            /></Box>
+        </motion.div>}</AnimatePresence>
     
     </Paper>
 })

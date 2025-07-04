@@ -44,6 +44,10 @@ import {
     useEditor,
 } from "../hooks"
 
+import {
+    MouselessHint
+} from "../msls_hint"
+
 export {
     FoldedButtonGroup , 
 }
@@ -134,7 +138,12 @@ const FoldedButtonGroup = React.memo(({
 
     return <ClickAwayListener onClickAway={()=>{set_menu_open(false)}}>
     <Box>
-
+        <MouselessHint 
+            get_anchor_el={()=> anchor_ref.current} 
+            ctrl_key={KeyNames.Alt} 
+            keys={HOLDING} 
+            info = "↑ ↓ ⏎" 
+        />
         <Box 
             ref = {(el)=>{
                 if(!el || el === anchor_ref.current){
