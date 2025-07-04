@@ -66,13 +66,13 @@ const SPACE: SpaceDefinition = {
 const DefaultSidebar = React.memo(({
     extras = [],
 }: {
-    extras?: (() => React.ReactNode)[]
+    extras?: ( React.ComponentType<{}> )[]
 })=>{
     const editor = useEditor()
     const root = editor.get_root()
     const [cur_space, cur_node] = useSpaceNavigatorState(SPACE.name)
 
-    const button_cnt = React.useMemo(()=>(extras.length + 3), [extras])
+    const button_cnt = React.useMemo(()=>(extras.length + 4), [extras])
 
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
     const refs = React.useRef<HTMLDivElement[]>([])

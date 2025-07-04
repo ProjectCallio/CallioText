@@ -39,7 +39,7 @@ export {
 
 /** 这个组件提供一个菜单，菜单的每项是新建一个抽象概念。
  */
-function DefaultNewAbstract({
+const DefaultNewAbstract = React.memo(({
     anchor_element,
     open,
     onClose,
@@ -47,9 +47,12 @@ function DefaultNewAbstract({
     anchor_element: any, 
     open: boolean, 
     onClose?: (e: any) => void 
-}) {
+}) => {
 
-    const node = useNode()
+    const node = useNode((prev, next) => (
+        prev.abstract === next.abstract 
+        && prev.idx === next.idx
+    ))
     const editor = useEditor()
 
     // 这个列表罗列所有可选的抽象概念以供选择。
@@ -78,14 +81,14 @@ function DefaultNewAbstract({
         })}
         <MenuItem onClick={e => onClose?.(e)}>算了</MenuItem>
     </Menu>
-}
+})
 
 
 /** 这个组件提供按钮新建抽象。
  * @param props.editor 这个组件所服务的编辑器。
  * @returns 一个渲染了两个 Button 的 
  */
-function DefaultNewAbstractButton() {
+const DefaultNewAbstractButton = React.memo(() => {
     const [ae, set_ae] = React.useState<HTMLElement | undefined>(undefined)
     const boxref = React.useRef<HTMLDivElement | null>(null)
 
@@ -102,8 +105,6 @@ function DefaultNewAbstractButton() {
     const close = () => {
         set_ae(undefined)
     }
-
-    let node = useNode()
 
     return <EditorGlobalInfo.Consumer>{globalinfo => {
         let editor = globalinfo.editor as EditorComponent
@@ -125,4 +126,4 @@ function DefaultNewAbstractButton() {
             />
         </React.Fragment>
     }}</EditorGlobalInfo.Consumer>
-}
+})  

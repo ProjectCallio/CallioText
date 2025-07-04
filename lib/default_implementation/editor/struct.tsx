@@ -110,8 +110,8 @@ function get_default_struct_editor_with_rightbar({
     get_label       ?: () => string , 
     get_numchildren ?: EditorNodeInfoFunction<StructNode, number> , 
     get_widths      ?: EditorNodeInfoFunction<StructNode, number[]> ,
-    rightbar_extra  ?: () => React.ReactNode , 
-    buttons_extra   ?: (()=>React.ReactNode )[] , 
+    rightbar_extra  ?: React.ComponentType<{}> , 
+    buttons_extra   ?: ( React.ComponentType<{}> )[] , 
     surrounder      ?: (props: {children: any}) => any , 
 }): EditorRenderer<StructNode>{
 

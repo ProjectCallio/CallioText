@@ -113,7 +113,9 @@ function useNode<NodeType extends ConceptNode = ConceptNode>(
 }
 
 function useParameters(){
-    const node       = useNode()
+    const node       = useNode((prev, next) => (
+        prev.parameters === next.parameters
+    ))
     const editor     = useEditor()
     const parameters = editor.get_core().get_printer().process_parameters(node)
     return parameters

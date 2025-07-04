@@ -126,11 +126,11 @@ interface DefaultRootParameterEditButtonProps{
  */
 function DefaultRootParameterEditButton(props: DefaultRootParameterEditButtonProps) {
     const [open, set_open] = React.useState(false)
-    const onExit = props.onExit || ((e: any) => {})
+    const onExit = React.useCallback(props.onExit || ((e: any) => {}), [props.onExit])
 
     return <Box sx={{ marginX: "auto" }}>
         <AutoIconButton 
-            onClick={() => set_open(true)} 
+            onClick={React.useCallback(() => set_open(true), [])} 
             title="设置参数" 
             icon={SettingsIcon} 
             size="large" 
@@ -139,10 +139,10 @@ function DefaultRootParameterEditButton(props: DefaultRootParameterEditButtonPro
             root={props.root} 
             editor={props.editor}
             open={open} 
-            onClose={e => { 
+            onClose={React.useCallback((e: any)  => { 
                 onExit(e)
                 set_open(false)
-            }} 
+            }, [onExit])}
         />
     </Box>
 }

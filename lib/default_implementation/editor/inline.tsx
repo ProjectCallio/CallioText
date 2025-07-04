@@ -75,8 +75,8 @@ function get_default_inline_editor({
 }: {
     get_label       ?: () => string , 
     surrounder      ?: (props: {children?: any}) => any , 
-    rightbar_extra  ?: () => React.ReactNode  , 
-    buttons_extra   ?: (()=>React.ReactNode )[] , 
+    rightbar_extra  ?: React.ComponentType<{}> , 
+    buttons_extra   ?: ( React.ComponentType<{}> )[] , 
 }): EditorRenderer<InlineNode>{
     let subcomp = (props: EditorRendererProps<InlineNode>) => {
         const editor      = props.editor

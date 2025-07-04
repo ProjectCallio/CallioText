@@ -21,28 +21,28 @@ export {
     ConceptAreaControlButton,
 }
 
-function ParamAreaControlButton(){
+const ParamAreaControlButton = React.memo(() => {
     const open     = useAreaStore(state => state.open)
     const set_open = useAreaStore(state => state.set_open)
 
     return <AutoIconButton 
-        onClick = {() => set_open("param", !open.param)} 
+        onClick = {React.useCallback(() => set_open("param", !open.param), [open.param])} 
         icon    = {Columns3CogIcon}
         title   = "参数区域"
         size    = "large" 
         activate = {open.param}
     />
-}
+})
 
-function ConceptAreaControlButton(){
+const ConceptAreaControlButton = React.memo(() => {
     const open     = useAreaStore(state => state.open)
     const set_open = useAreaStore(state => state.set_open)
 
     return <AutoIconButton 
-        onClick = {() => set_open("concep", !open.concep)} 
+        onClick = {React.useCallback(() => set_open("concep", !open.concep), [open.concep])} 
         icon    = {PuzzleIcon}
         title   = "概念区域"
         size    = "large" 
         activate = {open.concep}
     />
-}
+})

@@ -69,6 +69,10 @@ const ShowHintControlButton = React.memo(()=>{
     />
 })
 
+
+const HINT_TIME = 400 // 触发提示需要按下的时间
+const SYNC_TIME = 200 // 同步按键时间与事件触发时间的单位。
+
 const MouselessHint = React.memo(({
     get_anchor_el,
     ctrl_key,
@@ -84,47 +88,69 @@ const MouselessHint = React.memo(({
     with_portal?: boolean
     info?: string
 })=>{
-    const anchor_el = React.useRef<HTMLDivElement>(null)
     const show_hint = useHintStore(state=>state.showhint)
 
-    const _holding = useKeyEvents(store=>{
+    // 使用ref来记录按键，防止闭包捕获错误。
+    const holding_time_ref = React.useRef(-1)
+    const holding_ref = React.useRef(false)
+    const holding_version = useKeyEvents(store=>{
         const keys = store.holding_keys
-        return keys.length == 1 && keys[0] === ctrl_key
-    })
-    const _holding_ref = React.useRef(_holding)
-    _holding_ref.current = _holding // 防止闭包捕获错误
+        const flag = keys.length == 1 && keys[0] === ctrl_key
 
+        // 这个记录按键的时间。
+        // 之所以是用按键的时间而不是用事件触发的时间是为了防止不同组件触发钩子的时间不同。
+        if(flag){
+            let press_time = store.press_time[ctrl_key] ?? -1
+            let now_time = Date.now()
+
+            // 舍入到最近`SYNC_TIME`以内，防止以前的按键假触发
+            // 但是只能加`SYNC_TIME`的整数倍数，这是为了让不同组件同步。
+            const N = Math.floor((now_time - press_time) / SYNC_TIME)
+            press_time = press_time + SYNC_TIME * N
+            holding_time_ref.current = press_time
+        }
+        holding_ref.current = flag
+        return flag
+    })
     const [holding, set_holding] = React.useState(false)
+
     React.useEffect(()=>{
         if(!show_hint){
             return
         }
-        if(_holding_ref.current){
-            setTimeout(()=>{
-                // 需要连续按下500ms才能触发
-                if(_holding_ref.current){
-                    set_holding(true)
+        if(holding_ref.current){
+            // 反复监听直到超过500ms。
+            // 这样写是为了让所有组件尽可能同时触发。
+            const interval = setInterval(()=>{
+                if(!holding_ref.current){
+                    set_holding(false)
+                    clearInterval(interval)
+                    return 
                 }
-            }, 500)
+                const now = Date.now()
+                if(now - holding_time_ref.current > HINT_TIME){
+                    set_holding(true)
+                    clearInterval(interval)
+                }
+            }, 20)
         }
         else{
             set_holding(false)
         }
-    }, [_holding, show_hint])
+    }, [holding_version, show_hint, holding])
 
     const palette = useTheme().palette
 
-    React.useEffect(()=>{
-        anchor_el.current = get_anchor_el()
-    }, [get_anchor_el, holding])
-
-
-    return <AnimatePresence mode="wait">{(show_hint && holding) && (
-        <Popper 
+    const popper_comp = React.useMemo(()=>{
+        const anchor_el = get_anchor_el()
+        if(!anchor_el){
+            return null
+        }
+        return <Popper 
             open={true}
-            anchorEl={anchor_el.current}
+            anchorEl={anchor_el}
             placement={placement}
-            disablePortal={!with_portal}
+            disablePortal={with_portal ? undefined : true}
             sx={{
                 zIndex: 10000,
             }}
@@ -150,5 +176,10 @@ const MouselessHint = React.memo(({
                 }}
             />
         </motion.div>
-    </Popper>)}</AnimatePresence>
+        </Popper>
+    }, [placement, with_portal, get_anchor_el, holding_version])
+
+
+    return <AnimatePresence mode="wait">{(holding && show_hint) && popper_comp}</AnimatePresence>
 })
+

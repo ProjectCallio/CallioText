@@ -18,6 +18,10 @@ import {
 } from "@ftyyy/mouseless"
 
 import {
+    useSnackbar,
+} from "notistack"
+
+import {
     EditorComponent,
     slate_is_concept , 
 } from "../../editor"
@@ -44,7 +48,7 @@ export {
 const ActivateKeys = [KeyNames.alt, KeyNames.w]
   
 
-function UniversalExtra({
+const UniversalExtra = React.memo(({
     width = "1rem",
     variation = "standard",
     extra_small = false,
@@ -62,8 +66,11 @@ function UniversalExtra({
         prev_node : ConceptNode & Slate.Node | undefined, 
         prev_value: string , 
     ) => string | undefined
-}) {
-    const node   = useNode()
+}) => {
+    const node   = useNode((prev, next) => (
+        prev.idx == next.idx
+        && prev.parameters === next.parameters
+    ))
     const editor = useEditor()
 
     const [value, set_value] = React.useState("")
@@ -149,7 +156,6 @@ function UniversalExtra({
             ctrl_key={KeyNames.Alt} 
             keys={ActivateKeys} 
             placement = "top"
-            with_portal 
         />
         <TextField
             variant = {variation}
@@ -185,5 +191,6 @@ function UniversalExtra({
             }}
         />
     </Box>
-}
+})
 
+// UniversalExtra.whyDidYouRender = true

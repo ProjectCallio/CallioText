@@ -111,11 +111,11 @@ function get_deafult_group_editor_with_appbar({
     surrounder    = (props) => <>{props.children}</>
 }: {
     get_label       ?: () => string ,  
-    buttons_extra   ?: (()=>React.ReactNode )[] , 
+    buttons_extra   ?: ( React.ComponentType<{}> )[] , 
     surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
     // 渲染器
-    const subcomp = ({
+    const subcomp = React.memo(({
         editor, node, children
     }: EditorRendererProps<Slate.Node & GroupNode>) => {
 
@@ -131,6 +131,19 @@ function get_deafult_group_editor_with_appbar({
             }
             return c.toString()
         }, [theme])
+
+        const buttons_comp = React.useMemo(()=>([
+            <DefaultParameterEditButton key="param"/> , 
+            <DefaultNewAbstractButton   key="newabs"/> , 
+            <DefaultEditAbstractButton  key="editabs"/> , 
+            <DefaultSwicth              key="switch"/> , 
+            <DefaultCloseButton         key="close"/> , 
+            <DefaultSoftDeleteButton    key="softdel"/> , 
+            <NewParagraphButtonUp       key="up"/> , 
+            <NewParagraphButtonDown     key="down"/> , 
+            <CopyButton                 key="copy"/> , 
+            ... buttons_extra.map((B, idx) => <B key={idx}/>)
+        ]), [])
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
@@ -150,19 +163,7 @@ function get_deafult_group_editor_with_appbar({
                         <ButtonGroup 
                             level     = {0}
                             max_level = {0}
-
-                            buttons = {React.useMemo(()=>([
-                                <DefaultParameterEditButton key="param"/> , 
-                                <DefaultNewAbstractButton   key="newabs"/> , 
-                                <DefaultEditAbstractButton  key="editabs"/> , 
-                                <DefaultSwicth              key="switch"/> , 
-                                <NewParagraphButtonUp       key="up"/> , 
-                                <NewParagraphButtonDown     key="down"/> , 
-                                <DefaultCloseButton         key="close"/> , 
-                                <DefaultSoftDeleteButton    key="softdel"/> , 
-                                <CopyButton                 key="copy"/> , 
-                                ... buttons_extra.map((B, idx) => <B key={idx}/>)
-                            ]), [buttons_extra])}
+                            buttons = {buttons_comp}
                         />
                     </AutoStack></Box>
                 </UnselecableBox >
@@ -172,8 +173,8 @@ function get_deafult_group_editor_with_appbar({
             </AutoStack>
         </GroupPaper>
         </NodeInfoProvider>
-    }
-    return subcomp
+    })
+    return subcomp as EditorRenderer<GroupNode>
 }
 
 /** 这个函数返回一个默认的group组件，但是各种选项等都被折叠在右侧的一个小按钮内。用于比较小的group。
@@ -189,12 +190,12 @@ function get_default_group_editor_with_rightbar({
     surrounder      = (props) => <>{props.children}</>
 }: {
     get_label       ?: () => string ,  
-    rightbar_extra  ?: ()=>React.ReactNode , 
-    buttons_extra   ?: (()=>React.ReactNode )[] , 
+    rightbar_extra  ?: React.ComponentType<{}> , 
+    buttons_extra   ?: ( React.ComponentType<{}> )[] , 
     surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
 
-    const subcomp = ({
+    const subcomp = React.memo(({
         editor, node, children
     }: EditorRendererProps<Slate.Node & GroupNode>) => {
         const GetLabel    = get_label
@@ -206,7 +207,20 @@ function get_default_group_editor_with_rightbar({
 
         const normal_title = React.useMemo(()=>
             <StructureTypography variant = "overline"><GetLabel /></StructureTypography>
-        , [GetLabel])
+        , [])
+
+        const buttons_comp = React.useMemo(()=>([
+            <DefaultParameterEditButton key="param"/> , 
+            <DefaultNewAbstractButton   key="newabs"/> , 
+            <DefaultEditAbstractButton  key="editabs"/> , 
+            <DefaultSwicth              key="switch"/> , 
+            <DefaultCloseButton         key="close"/> , 
+            <DefaultSoftDeleteButton    key="softdel"/> , 
+            <NewParagraphButtonUp       key="up"/> , 
+            <NewParagraphButtonDown     key="down"/> , 
+            <CopyButton                 key="copy"/> , 
+            ... buttons_extra.map((B, idx) => <B key={idx}/>)
+        ]), [])
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
@@ -246,23 +260,12 @@ function get_default_group_editor_with_rightbar({
                             icon: ChevronDownIcon , 
                             title: "展开" , 
                         })), [])}
-                        buttons = {React.useMemo(()=>([
-                            <DefaultParameterEditButton key="param"/> , 
-                            <DefaultNewAbstractButton   key="newabs"/> , 
-                            <DefaultEditAbstractButton  key="editabs"/> , 
-                            <DefaultSwicth              key="switch"/> , 
-                            <DefaultCloseButton         key="close"/> , 
-                            <DefaultSoftDeleteButton    key="softdel"/> , 
-                            <NewParagraphButtonUp       key="up"/> , 
-                            <NewParagraphButtonDown     key="down"/> , 
-                            <CopyButton                 key="copy"/> , 
-                            ... buttons_extra.map((B, idx) => <B key={idx}/>)
-                        ]), [buttons_extra])}
+                        buttons = {buttons_comp}
                     /> 
                 </AutoStack></UnselecableBox>
             </SimpleAutoStack>
             </GroupPaper>
         </NodeInfoProvider>
-    }
-    return subcomp
+    })
+    return subcomp as EditorRenderer<GroupNode>
 }
