@@ -11,6 +11,7 @@ import {
     IconButtonProps, 
     useTheme,
     Palette,
+    Box , 
 } from "@mui/material"
 import { darken } from "@mui/material/styles"
 
@@ -20,6 +21,7 @@ export {
     AutoIconButton, 
     MouselessSelect , 
     AutoElement , 
+    useMouselessSelect , 
 }
 
 const MouselessSelect = React.createContext<boolean>(false)
@@ -70,7 +72,7 @@ const AutoIconButton = React.memo(({
     onClick?: IconButtonProps["onClick"]
     size?: "small" | "very-small" | "large" | "medium"
     title?: string
-    icon?: any
+    icon?: React.ComponentType<{}>
     activate?: boolean
     component?: "button" | "span"
     icon_props?: IconButtonProps
@@ -166,7 +168,7 @@ const AutoIconButton = React.memo(({
             }}    
             {...rest} 
         >
-            <Icon />
+            {Icon && <Icon />}
         </IconButton>
     </AutoTooltip>
 })
@@ -178,12 +180,14 @@ const AutoElement = React.memo(({
     ref,
     style , 
     use_textcolor = false, // 不使用primary而是用text.primary
+    no_animate = false,
 }: {
     title?: string,
     children: React.ReactNode,
     ref?: React.Ref<HTMLDivElement>,
     style?: React.CSSProperties
     use_textcolor?: boolean
+    no_animate?: boolean
 }) => {
     const mouseless_select = useMouselessSelect()
     const [hover, set_hover] = React.useState(false)
@@ -193,26 +197,32 @@ const AutoElement = React.memo(({
     const color_style = get_color_style(false, flag, palette, use_textcolor)
 
     return <AutoTooltip title={title} open={flag}>
-        <motion.div 
+        <Box 
+            component = {motion.div}
             ref = {ref}
             onMouseEnter = {() => set_hover(true)}
             onMouseLeave = {() => set_hover(false)}
             animate = {{
-                scale     : flag ? 1.1 : 1,
                 boxShadow : flag ? `0px 4px 8px ${palette.divider}` : "none",
-                rotate    : flag ? [-20, 0] : 0,
+                ...(!no_animate ? {
+                    scale: flag ? 1.1 : 1,
+                    rotate: flag ? [-20, 0] : 0,
+                } : {}),
             }}
             transition = {{
                 type: "spring",
                 stiffness: 300,
                 damping: 20,
             }}
-            style = {{
+            sx = {{
                 ...color_style,
                 ...style,
+                "&:active": { // 鼠标点击
+                    ...get_color_style(false, !flag, palette, use_textcolor),
+                },
             }}
         >
             {children}
-        </motion.div>
+        </Box>
     </AutoTooltip>
 })

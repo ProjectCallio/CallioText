@@ -54,6 +54,10 @@ export {
 } from "./add_button"
 
 export {
+    AbstractManageBox,
+} from "./manage_box"
+
+export {
     get_default_abstract_editor,
 }
 

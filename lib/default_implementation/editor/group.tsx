@@ -42,6 +42,7 @@ import {
 import {     
     DefaultNewAbstractButton , 
     DefaultEditAbstractButton , 
+    AbstractManageBox , 
 } from "./abstract"
 
 import { 
@@ -265,6 +266,9 @@ function get_default_group_editor_with_rightbar({
                 </AutoStack></UnselecableBox>
             </SimpleAutoStack>
             </GroupPaper>
+            <UnselecableBox>
+                <AbstractManageBox />
+            </UnselecableBox>
         </NodeInfoProvider>
     })
     return subcomp as EditorRenderer<GroupNode>

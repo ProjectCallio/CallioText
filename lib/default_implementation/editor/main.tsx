@@ -69,6 +69,10 @@ import {
 } from "./abstract/editor"
 
 import {
+    SPACE as abstract_space,
+} from "./abstract/mouseless"
+
+import {
     IdxConflictSolver , 
 } from "./idxconflict_solver"
 
@@ -161,14 +165,17 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     buttons_get_mouseless_space(),
                     sidebar_space,
                     parameterarea_space , 
+                    abstract_space , 
                 ]}
                 preventing_default = {[
                     [KeyNames.ctrl, KeyNames.s] , 
+                    [KeyNames.ctrl, KeyNames.d] , 
                     [KeyNames.Alt] , 
                     buttons_holding ,
                     sidebar_space.holding,
                     parameterarea_space.holding,
                     conceptarea_holding,
+                    abstract_space.holding,
                 ]}
             >{(onkeydown , onkeyup)=>(<React.Fragment>
                 <Box ref={mod_scrollbar} tabIndex={0} sx={{ 

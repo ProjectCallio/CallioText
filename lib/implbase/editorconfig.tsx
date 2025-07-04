@@ -49,6 +49,9 @@ interface EditorConfig {
 
         /** 结构性文本的字体。 */
         structure: TypographyConfig
+
+        /** 提示性文本的字体。 */
+        info: TypographyConfig
     }
 }
 type PartialEditorConfig = MyPartial<EditorConfig>
@@ -78,6 +81,14 @@ const default_editorconfig: EditorConfig =
             fontFamily: "Century Gothic, SimHei" , 
             fontSize: "1rem" , 
             lineHeight : "1.5rem" , 
+            lineSpacing: "0.00938em" ,    
+            fontWeight: 400 , 
+        } , 
+
+        info: {
+            fontFamily: "DengXian" , 
+            fontSize: "0.8rem" , 
+            lineHeight : "1rem" , 
             lineSpacing: "0.00938em" ,    
             fontWeight: 400 , 
         } , 
