@@ -169,7 +169,7 @@ class EditorCore{
 
     /** 新建一个段落节点。 */
     create_paragraph(text: string = ""): ParagraphNode{
-        let me = this
+        const me = this
         return {
             children: [this.create_text(text)]
         }
@@ -177,9 +177,9 @@ class EditorCore{
 
     /** 新建一个组节点。 */
     create_group(name: string, relation: "separating" | "chaining" = "separating"): GroupNode{
-        let me = this
-        let sec_concept = this.printer.get_second_concept("group" , name)
-        let parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
+        const me = this
+        const sec_concept = this.printer.get_second_concept("group" , name)
+        const parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
 
         return {
             type: "group" , 
@@ -194,9 +194,9 @@ class EditorCore{
 
     /** 新建一个行内节点。 */
     create_inline(name: string, text: string = ""): InlineNode{
-        let me = this
-        let sec_concept = this.printer.get_second_concept("inline" , name)
-        let parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
+        const me = this
+        const sec_concept = this.printer.get_second_concept("inline" , name)
+        const parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
 
         return {
             type: "inline" , 
@@ -210,9 +210,9 @@ class EditorCore{
 
     /** 新建一个支撑节点。 */
     create_support(name: string): SupportNode{
-        let me = this
-        let sec_concept = this.printer.get_second_concept("support" , name)
-        let parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
+        const me = this
+        const sec_concept = this.printer.get_second_concept("support" , name)
+        const parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
 
         return {
             type: "support" , 
@@ -226,16 +226,16 @@ class EditorCore{
 
     /** 新建一个结构节点。 */
     create_structure(name: string, relation: "separating" | "chaining" = "separating"): StructNode{
-        let me = this
-        let sec_concept = this.printer.get_second_concept("structure" , name)
-        let parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
+        const me = this
+        const sec_concept = this.printer.get_second_concept("structure" , name)
+        const parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
 
         return {
             type: "structure" , 
             idx: gene_idx() , 
             concept: name , 
             parameters: parameters , 
-            children: [this.create_group("support-child", "chaining")] , 
+            children: [this.create_group("_auxiliary", "chaining")] , 
             abstract: [] , 
             relation: relation , 
         }
@@ -243,9 +243,9 @@ class EditorCore{
 
     /** 新建一个抽象节点。 */
     create_abstract(name: string): AbstractNode{
-        let me = this
-        let sec_concept = this.printer.get_second_concept("abstract" , name)
-        let parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
+        const me = this
+        const sec_concept = this.printer.get_second_concept("abstract" , name)
+        const parameters = sec_concept == undefined ? {} : {...sec_concept.default_override}
 
         return {
             type: "abstract" , 
@@ -260,6 +260,20 @@ class EditorCore{
     get_meta_param(node: Slate.Element & ConceptNode){
         let concpt = this.printer.get_node_first_concept(node)
         return concpt && concpt.meta_parameters
+    }
+
+    is_auxiliary_node(node: ConceptNode & Slate.Node): boolean{
+        if(node.concept == "root"){
+            return false
+        }
+        const type = node.type
+        const printer = this.get_printer()
+        let sec_ccpt = printer.get_second_concept(type, node.concept)
+
+        if(!sec_ccpt){ // 找不到对应的第一类概念
+            return true
+        }
+        return false
     }
     
 }

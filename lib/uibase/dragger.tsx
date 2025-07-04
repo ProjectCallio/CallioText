@@ -1,4 +1,4 @@
-import { Box , BoxProps } from "@mui/material"
+import { Box , BoxProps, useTheme } from "@mui/material"
 import {
     Grip as GripIcon,
 } from "lucide-react"
@@ -27,21 +27,23 @@ function DraggerBox(props: BoxProps & {
     onDragStart?: (e: React.MouseEvent<HTMLDivElement>) => void
     dragging_me?: boolean
 }){
-    let {
+    const {
         my_position,
         onDragStart,
         dragging_me , 
         ...rest_props
     } = props
 
+    const palette = useTheme().palette
+
 
     return <Box
         {...rest_props}
         sx={{
             cursor: "move",
-            color    : dragging_me ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.7)",
+            color    : dragging_me ? palette.text.primary : palette.text.secondary,
             "&:hover": {
-                color: dragging_me ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.5)"
+                color: palette.text.primary
             },
             transition: "all 0.2s ease-in-out",
         }}

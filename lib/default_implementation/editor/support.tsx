@@ -8,12 +8,18 @@ import {
     Box , 
     Divider , 
     IconButton , 
+    useTheme , 
 }
 from "@mui/material"
 import {
     ChevronDown as ChevronDownIcon , 
 }
 from "lucide-react"
+import  Color  from "color"
+
+import {
+    light_grey
+} from "../../uibase"
 
 import {
     SupportNode , 
@@ -68,15 +74,22 @@ function get_default_spliter_editor({
 }: {
     get_title?: () => string
 }){
-    return (props: EditorRendererProps<SupportNode>) => {
+    return ({editor, node, children}: EditorRendererProps<SupportNode>) => {
         const GetTitle = get_title
-        let editor      = props.editor
-        let node        = props.node
 
+        const palette = useTheme().palette
+        let bgcolor = React.useMemo(() => {
+            let c = Color( palette.primary.main )
+            c = light_grey(c).alpha(0.1)
+            return c.toString()
+        }, [palette])
+    
+    
         return <NodeInfoProvider node={node}>
         <UnselecableBox><ComponentBox>
             <Divider>
                 <Paper variant="outlined" sx = {{
+                    backgroundColor: bgcolor,
                     paddingX: "0.5rem"
                 }}>
                     <AutoStack force_direction="row">
@@ -100,7 +113,7 @@ function get_default_spliter_editor({
                         /> 
                     </AutoStack>
                 </Paper>
-                {props.children /* 对于一个void组件，其children也必须被渲染，否则会报错。*/} 
+                {children /* 对于一个void组件，其children也必须被渲染，否则会报错。*/} 
             </Divider>
         </ComponentBox></UnselecableBox>
         </NodeInfoProvider>

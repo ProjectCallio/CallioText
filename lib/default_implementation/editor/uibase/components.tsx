@@ -12,6 +12,7 @@ import {
     Card , 
     Container , 
     useTheme , 
+    alpha,
 } from "@mui/material"
 
 import type {
@@ -125,18 +126,24 @@ const EditorComponentPaper = React.memo((
     const {children , is_inline, sx, ...other_props} = props
     
     const config = useEditorConfig()
-    const theme  = useTheme()
+    const palette  = useTheme().palette
 
-    let bgcolor = Color( theme.palette.background.paper )
-    bgcolor = bgcolor.rotate(30 * (net_level + 1))
-    bgcolor = light_grey(bgcolor)
+    let bgcolor = React.useMemo(() => {
+        let c = Color( palette.background.paper )
+        c = c.rotate(60 * (net_level + 1))
+        if(palette.mode != "dark"){
+            c = light_grey(c)
+        }
+        return c.toString()
+    }, [net_level, palette])
+    
     return <Box 
         {...other_props} // 去掉自己定义的属性。
         sx = {[
             {
                 paddingY : "0.5rem" , 
                 paddingX : "0.25rem" , 
-                backgroundColor: bgcolor.toString() , 
+                backgroundColor: bgcolor , 
             } , 
             {
                 ...(is_inline
@@ -147,7 +154,7 @@ const EditorComponentPaper = React.memo((
                         marginX     : config.margins.small , 
                     } : { // 块级
                         marginTop   : config.margins.paragraph ,      
-                        color       : "text.primary" ,        
+                        color       : "text.primary" ,     
                     }
                 ) , 
             } , 

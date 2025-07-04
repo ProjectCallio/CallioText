@@ -128,7 +128,7 @@ function get_default_struct_editor_with_rightbar({
         const GetLabel = get_label
 
         const mychildren = React.useMemo(()=>node.children, [node])
-        const mypath = React.useMemo(()=>slate_concept_node2path(editor.get_slate() , node), [editor, node])
+        const mypath = React.useMemo(()=>slate_concept_node2path(editor.get_root() , node), [editor, node])
         if(!mypath){
             throw new UnexpectedParametersError("这这不能")
         }
@@ -161,7 +161,7 @@ function get_default_struct_editor_with_rightbar({
             else if(num_children > mychildren.length){
                 let new_nodes = new Array<Slate.Node>()
                 for(let x = mychildren.length; x < num_children; x++){
-                    new_nodes.push(editorcore.create_group("structure-child" , "chaining"))
+                    new_nodes.push(editorcore.create_group("_auxiliary" , "chaining"))
                 }
 
                 // 在最后一个节点后面添加节点

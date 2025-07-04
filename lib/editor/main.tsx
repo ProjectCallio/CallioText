@@ -241,14 +241,16 @@ class EditorComponent extends React.Component<EditorComponentProps , {
         return find_node_by_path(this.get_root() , path)
     }
     get_cur_concept_node(): (ConceptNode & Slate.Node) | undefined{
-        let slate = this.get_slate()
+        const slate = this.get_slate()
+        const core  = this.get_core()
         let now_path = slate.selection?.anchor?.path
         if(now_path == undefined){
             return undefined
         }
         while(now_path.length > 0 && (()=>{
             let node = this.get_node_by_path(now_path)
-            return node && !is_concetnode(node)
+            // 跳过不是概念，或者没有renderer的节点
+            return node && (!is_concetnode(node) || core.is_auxiliary_node(node))
         })()){
             now_path = now_path.slice(0,now_path.length-1) // 反复向上寻找，直到找到一个概念节点。
         }

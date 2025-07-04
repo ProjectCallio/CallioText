@@ -53,15 +53,30 @@ function NodeInfoProvider({
     node: Slate.Node & ConceptNode, 
     children?: React.ReactNode
 }){
+    const editor = useEditor()
     const store = React.useRef(create_curnode_store(node))
 
-    React.useEffect(()=>{
-        store.current.setState({node: node})
-    }, [node])
+    const is_auxiliary = React.useMemo(()=>{
+        const core = editor.get_core()
+        return core.is_auxiliary_node(node)
+    }, [editor, node])
 
-    return <CurNode_ScopedStore.Provider value={store.current}>{
-        children
-    }</CurNode_ScopedStore.Provider>
+    React.useEffect(()=>{
+        if(!is_auxiliary){
+            store.current.setState({node: node})
+        }
+    }, [node, is_auxiliary])
+
+    const ret = React.useMemo(()=>{
+        if(is_auxiliary){
+            return children
+        }
+        return <CurNode_ScopedStore.Provider value={store.current}>{
+            children
+        }</CurNode_ScopedStore.Provider>
+    }, [store.current, children, is_auxiliary])
+
+    return ret
 }
 
 

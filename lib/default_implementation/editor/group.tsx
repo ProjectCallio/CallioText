@@ -13,6 +13,7 @@ import {
     Divider , 
     PaperProps ,
     useTheme ,
+    alpha,
 } from "@mui/material"
 
 import {
@@ -79,14 +80,16 @@ export { get_deafult_group_editor_with_appbar , get_default_group_editor_with_ri
 /** 为 Group 类型的节点定制的 Paper ，在节点前后相连时会取消前后距离。 */
 const GroupPaper = React.memo((props: PaperProps) => {
     const {sx, ...other_props} = props
+    const palette = useTheme().palette
     const node_relation = useNode<GroupNode>(
         (prev, next) => (prev.relation == next.relation)
     ).relation
     return <ComponentPaper {...other_props} 
         sx = {{
+            boxShadow: `inset 0 0 1.5px ${alpha(palette.divider, 0.3)}`,
             ...(node_relation == "chaining" ? { 
                 marginTop: "0" ,
-                borderTop: "1px solid rgba(30, 30, 30, 0.5)" ,
+                borderTop: `1px solid ${palette.divider}` ,  
             } : {}),
             ...sx,
         }}
@@ -120,7 +123,14 @@ function get_deafult_group_editor_with_appbar({
         const SUR = surrounder
 
         const theme   = useTheme()
-        const bgcolor = React.useMemo(()=>light_grey( Color(theme.palette.primary.light) ), [theme])
+        const bgcolor = React.useMemo(()=>{
+            let c = Color(theme.palette.primary.light)
+            c = c.alpha(0.2)
+            if(theme.palette.mode != "dark"){
+                c = light_grey(c)
+            }
+            return c.toString()
+        }, [theme])
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
@@ -192,22 +202,10 @@ function get_default_group_editor_with_rightbar({
         const Extra = rightbar_extra 
         const SUR = surrounder
 
-        // 根据node子节点数量估计这个组件是长的还是高的。
-        const guess_high = (node.children.reduce((s,x)=>s += (slate_is_concept(x , "group") ? 2 : 1) , 0)) >= 3
+        const palette = useTheme().palette
 
         const normal_title = React.useMemo(()=>
             <StructureTypography variant = "overline"><GetLabel /></StructureTypography>
-        , [GetLabel])
-        const small_title = React.useMemo(()=>
-            <StructureTypography 
-                variant = "overline"
-                sx = {{
-                    position: "absolute" , 
-                    top: "0" , 
-                    right: "0" , 
-                    transform: "translate(0, -20%) scale(0.7)" , 
-                }}
-            ><GetLabel /></StructureTypography>
         , [GetLabel])
 
         return <NodeInfoProvider node={node}>
@@ -229,7 +227,7 @@ function get_default_group_editor_with_rightbar({
                     sx = {{
                         paddingX: "0.25rem" , 
                         paddingY: "0.25rem" , 
-                        border: "1px solid rgba(30,30,30,0.3)" , 
+                        border: `1px solid ${palette.divider}` , 
                     }}
                     gap = "0.25rem"
                 >

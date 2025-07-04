@@ -23,6 +23,8 @@ import {
     Paper , 
     IconButton , 
     Stack , 
+    useTheme,
+    alpha,
 } from "@mui/material"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -160,6 +162,7 @@ const ParameterArea = React.memo(({
     const box_ref = React.useRef<HTMLDivElement>(null)
 
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef>(null)
+    const palette = useTheme().palette
 
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState(SPACE.name)
@@ -203,7 +206,9 @@ const ParameterArea = React.memo(({
 
     const has_parameters = Object.keys(cur_node.parameters).length > 0
 
+
     return <Paper 
+        elevation = {3} 
         sx  = {{
             position: "absolute",
             top     : container.y + position.y,
@@ -213,14 +218,12 @@ const ParameterArea = React.memo(({
             overflow: "hidden" ,
 
             padding: open ? "1.5rem" : "0", 
+            
+            transition: "top 0.1s, left 0.1s, padding 0.3s",
 
-            // opacity: open ? 1 : 0,
-            
-            background: "rgba(255, 255, 255, 0.8)",
-            
-            // 移除 height 过渡，让 framer-motion 处理
-            transition: "top 0.1s, left 0.1s, opacity 0.3s, padding 0.3s",
-                        
+            backgroundColor: alpha( palette.background.paper, 0.8),
+            backdropFilter: "blur(1px)",
+
             ...paper_sx
         }}
         ref = {box_ref} 
@@ -238,7 +241,7 @@ const ParameterArea = React.memo(({
         justifyContent: "space-between",
         paddingBottom: has_parameters ? "0.5rem" : "0",
         borderBottom : "1px solid",
-        borderBottomColor: has_parameters ? "rgba(0, 0, 0, 0.3)" : "transparent",
+        borderBottomColor: has_parameters ? palette.divider : "transparent",
         transition: "all 0.3s",
     }}>
         
@@ -274,7 +277,6 @@ const ParameterArea = React.memo(({
                     component = "div"
                     sx = {{
                         fontWeight: 600,
-                        color: "rgba(0, 0, 0, 0.87)",
                         fontSize: "1.05rem",
                         letterSpacing: "0.02em",
                     }}
@@ -292,7 +294,7 @@ const ParameterArea = React.memo(({
                     component = "div"
                     sx = {{
                         fontSize: "0.6rem", 
-                        color: "rgba(0, 0, 0, 0.5)",
+                        color: palette.text.secondary,
                         marginY: "-0.2rem",
                     }}
                 ><AnimatePresence mode="wait"><motion.div

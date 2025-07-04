@@ -18,6 +18,7 @@ import {
     Box, 
     Switch, 
     IconButtonProps, 
+    useTheme,
 } from "@mui/material"
 
 import {
@@ -227,6 +228,7 @@ const DefaultSwicth = React.memo(() => {
     const editor = useEditor()
     const [checked, set_checked] = React.useState(node.relation == "chaining")
     const switchref = React.useRef<HTMLInputElement | null>(null)
+    const mainref = React.useRef<HTMLButtonElement | null>(null)
 
     React.useEffect(() => {
         if((node.relation == "chaining") != checked){ 
@@ -241,15 +243,45 @@ const DefaultSwicth = React.memo(() => {
         }
         set_checked(checked)
         editor.set_node(node, { relation: checked ? "chaining" : "separating" })
+        mainref.current?.blur?.()
     }, [node, editor])
 
+    const palette = useTheme().palette
 
-    return <AutoElement title = "贴贴">
+
+    return <AutoElement title = "贴贴" >
         <Switch 
+            ref = {mainref}
             size="small"
             checked = {checked} 
             onChange = {switch_check_change} 
             sx = {{
+                color: "inherit",
+
+                "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: palette.primary.main,
+                },
+                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    backgroundColor: palette.primary.main,
+                },
+                "& .MuiSwitch-track": {
+                    backgroundColor: palette.primary.light,
+                },
+                
+                // 自定义 thumb 大小
+                "& .MuiSwitch-thumb": {
+                    width: 17,
+                    height: 16,
+                    color: palette.primary.main,
+                    backgroundColor: palette.primary.light,
+                },
+                
+                // 自定义轨道大小
+                "& .MuiSwitch-switchBase": {
+                    width: 24,
+                    height: 24,
+                },
+  
             }}
             slotProps = {{
                 input: {

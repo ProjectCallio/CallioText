@@ -53,6 +53,7 @@ function decode_position(position: string): [string, number, number]{
 
 /** 这个函数是位置函数的备用方案，当在祖先节点中找不到一个带无鼠标元素的概念节点时，就去兄弟节点中找。 */
 function get_brother_concept(editor: EditorComponent): NodeName | undefined{
+    const core = editor.get_core()
     let selection = editor.get_slate().selection
     if(!selection){ // 如果光标不在编辑器上
         return undefined
@@ -77,6 +78,9 @@ function get_brother_concept(editor: EditorComponent): NodeName | undefined{
         let subnode = children[sub_order]
         if(!slate_is_concept(subnode)){ // 跳过非概念节点。
             continue
+        }
+        if(core.is_auxiliary_node(subnode)){ 
+            continue // 跳过辅助节点
         }
         res_node = subnode // 找到离自己最近的一个兄弟概念节点。
     }

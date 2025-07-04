@@ -14,18 +14,18 @@ const MouselessButton = React.memo(({
     children,
     auto_element = false,
     ref,
-    autoel_style,
+    autoel_props,
 }: {
     is_activated: boolean,
     children: React.ReactNode,
     auto_element?: boolean,
     ref?: React.Ref<HTMLDivElement>,
-    autoel_style?: React.CSSProperties,
+    autoel_props?: Partial<React.ComponentProps<typeof AutoElement>>,
 }) => {
 
     const children_comp = React.useMemo(()=>{
         if(auto_element){
-            return <AutoElement style={autoel_style}>{children}</AutoElement>
+            return <AutoElement {...autoel_props}>{children}</AutoElement>
         }
         return children
     }, [auto_element, children])

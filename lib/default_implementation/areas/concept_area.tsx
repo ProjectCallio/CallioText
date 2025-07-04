@@ -12,6 +12,8 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
+    useTheme,
+    alpha,
 } from "@mui/material"
 
 import {
@@ -90,6 +92,8 @@ const ConceptArea = React.memo(({
     const dragging_me = useAreaStore(state => state.dragging == area_id)
     
     const box_ref = React.useRef<HTMLDivElement>(null)
+
+    const palette = useTheme().palette
 
     // 保存当前选中的概念类型。
     const [cur_mouseless, set_cur_mouseless] = usePersistedState<[number, number]>(
@@ -196,6 +200,60 @@ const ConceptArea = React.memo(({
         }
     }, [cur_type, cur_idx, cur_type_name, sec_concept_list, editor])
 
+    const concept_list_component = React.useMemo(()=>{
+        if((!sec_concept_list) || (!editor)){
+            return <></>
+        }
+        return sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
+            <motion.div
+                key={`${cur_type_name}-${sec_ccpt}`}
+                layoutId={`${cur_type_name}-${sec_ccpt}`}
+                layout
+                initial = {{ opacity: 0, scale: 0.1}}
+                animate = {{ opacity: 1, scale: 1}}
+                exit    = {{ opacity: 0, scale: 0.1}}
+                transition={{ 
+                    duration: 0.3,
+                    ease: "easeOut"
+                }}
+                style={{
+                    overflow: "visible",
+                }}
+            >
+            <MouselessButton
+                key={sec_ccpt}
+                is_activated={(cur_idx == idx) && holding}
+                auto_element
+                autoel_props={{
+                    style: {
+                        borderRadius: "8px",
+                    },
+                    use_textcolor: true,
+                }}
+                 
+            >
+                <Button 
+                    size="small"
+                    component = { "span" }
+                    onClick={() => {
+                        editor.new_concept_node(cur_type_name , sec_ccpt)
+                    }}
+                    sx={{
+                        minWidth: "fit-content",
+                        whiteSpace: "nowrap",
+                        borderRadius: "8px",
+                        border: (cur_idx == idx) ? `1px dashed ${palette.divider}` : "none",
+                        textTransform: "none",
+                        color: "inherit",
+                    }}
+                >
+                    {sec_ccpt}
+                </Button>
+            </MouselessButton>
+            </motion.div>
+        ))
+    }, [sec_concept_list, cur_type_name, cur_idx, holding, editor, palette])
+
     if(!editor || !container || !sec_concept_list){
         return <></>
     }
@@ -207,18 +265,13 @@ const ConceptArea = React.memo(({
             top     : container.y + position.y,
             left    : container.x + position.x,
             width   : "calc(min(20rem, 30vw))",
-            
             zIndex  : zIndex,
-            
             padding: open ? "1rem" : "0", 
-            background: "rgba(255, 255, 255, 0.85)",
-
             transition: "top 0.1s, left 0.1s, padding 0.3s",
-            
-            ...paper_sx,
-
             overflow: "hidden",
-
+            backgroundColor: alpha( palette.background.paper, 0.8),
+            backdropFilter: "blur(1px)",
+            ...paper_sx,
         }}
         ref         = {box_ref} 
     >
@@ -258,11 +311,8 @@ const ConceptArea = React.memo(({
                     flexGrow: 1,
                 }}>
                     <InputLabel sx={{
-                        color: "rgba(0, 0, 0, 0.7)",
                         fontWeight: 500,
-                    }}>
-                        概念类型
-                    </InputLabel>
+                    }}>概念类型</InputLabel>
                     <Select
                         value={cur_type_name}
                         label="概念类型"
@@ -323,49 +373,8 @@ const ConceptArea = React.memo(({
                 flexWrap: "wrap",
                 gap: "0.73rem",
             }}><AnimatePresence mode="popLayout">
-                {sec_concept_list[cur_type_name].map((sec_ccpt, idx) => (
-                    <motion.div
-                        key={`${cur_type_name}-${sec_ccpt}`}
-                        layoutId={`${cur_type_name}-${sec_ccpt}`}
-                        layout
-                        initial = {{ opacity: 0, scale: 0.1}}
-                        animate = {{ opacity: 1, scale: 1}}
-                        exit    = {{ opacity: 0, scale: 0.1}}
-                        transition={{ 
-                            duration: 0.3,
-                            ease: "easeOut"
-                        }}
-                        style={{
-                            overflow: "visible"
-                        }}
-                    >
-                    <MouselessButton
-                        key={sec_ccpt}
-                        is_activated={(cur_idx == idx) && holding}
-                        auto_element
-                        autoel_style={{
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <Button 
-                            size="small"
-                            component = { "span" }
-                            onClick={() => {
-                                editor.new_concept_node(cur_type_name , sec_ccpt)
-                            }}
-                            sx={{
-                                minWidth: "fit-content",
-                                whiteSpace: "nowrap",
-                                borderRadius: "8px",
-                                border: (cur_idx == idx) ? "1px solid rgba(0, 0, 0, 0.4)" : "none",
-                            }}
-                        >
-                            {sec_ccpt}
-                        </Button>
-                    </MouselessButton>
-                    </motion.div>
-                ))}</AnimatePresence>
-            </Box></Box></motion.div>
+                {concept_list_component}
+            </AnimatePresence></Box></Box></motion.div>
         </motion.div>
     )}</AnimatePresence></Paper>
 })

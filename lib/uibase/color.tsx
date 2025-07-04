@@ -14,5 +14,5 @@ function light_grey(color: ReturnType<typeof Color>){
         hsl.hue(), 
         saturation > 8 ? 8 : saturation , 
         lightness > 70 ? lightness * 0.8 : lightness , 
-    ).alpha(alpha > 0.25 ? 0.25 : alpha)
+    ).alpha(alpha > 0.3 ? 0.3 : alpha)
 }

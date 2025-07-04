@@ -14,7 +14,9 @@ import {
     Box , 
     Typography , 
     Divider , 
-    useTheme
+    useTheme,
+    alpha , 
+    darken , 
 } from "@mui/material"
 import {
     ArrowBigRightDash as ArrowBigRightDashIcon, 
@@ -254,10 +256,12 @@ const ParameterItemNumber = React.forwardRef(({
         alignItems: "center",
         justifyContent: "flex-start",
         width: "100%",
+        border: is_focus ? `1px solid ${palette.primary.main}` : "none",
     }}><TextField 
         variant = "standard"
         name = {name}
         value = {val}
+        label = {name}
         onChange = {e=>{
             set_val(Number(e.target.value))
             onUpdate?.(Number(e.target.value))
