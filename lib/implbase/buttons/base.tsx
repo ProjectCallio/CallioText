@@ -122,7 +122,7 @@ const AutoIconButton = React.memo(({
                 },
                 ...color_style,
 
-                transition: "background-color 0.2s ease-in-out, color 0.2s ease-in-out",
+                transition: "color 0.2s ease-in-out, background-color 0.2s ease-in-out, opacity 0.2s ease-in-out",
 
                 "&:active": { // 鼠标点击
                     ...get_color_style(activate, !flag, palette, false),

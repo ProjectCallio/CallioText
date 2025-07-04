@@ -259,6 +259,11 @@ const ParameterArea = React.memo(({
             title = "应用参数"
             icon = {HardDriveDownloadIcon}
             size = "medium"
+            icon_props = {{
+                sx: {
+                    opacity: !has_parameters ? 0 : 1,
+                }
+            }}
         />
 
         <Box sx={{
