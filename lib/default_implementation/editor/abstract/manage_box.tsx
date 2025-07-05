@@ -212,8 +212,12 @@ const AbstractChip = React.memo(React.forwardRef(({
 
 const AbstractManageBox = React.memo(({
     component = "div",
+    style = {},
+    direction = "row",
  }: {
     component?: "div" | "span"
+    style?: React.CSSProperties
+    direction?: "row" | "column"
  }) => {
     const editor = useEditor()
     const node = useNode((prev, next)=> {
@@ -303,7 +307,7 @@ const AbstractManageBox = React.memo(({
             }}
         >
             <AutoStack 
-                direction = "row"
+                direction = {direction}
                 gap = "0.5rem"
                 sx={{
                     width: component == "div" ? "100%" : "fit-content",
@@ -314,9 +318,8 @@ const AbstractManageBox = React.memo(({
 
                     backgroundColor: alpha(palette.primary.light, 0.3),
 
-                    display: "flex",
-                    flexDirection: "row",
                     alignItems: "center",
+                    ...style,
                 }}
                 component = {component}
             >

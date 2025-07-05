@@ -171,6 +171,9 @@ function get_deafult_group_editor_with_appbar({
                 </ComponentEditorBox>
             </AutoStack>
         </GroupPaper>
+        <UnselecableBox>
+            <AbstractManageBox />
+        </UnselecableBox>
         </NodeInfoProvider>
     })
     return subcomp as EditorRenderer<GroupNode>
@@ -222,11 +225,19 @@ function get_default_group_editor_with_rightbar({
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
-            <SimpleAutoStack force_direction="row" gap="0.5rem">
+            <SimpleAutoStack force_direction="row" gap="0.5rem" sx={{
+                alignItems: "flex-start",
+            }}>
 
                 <ComponentEditorBox autogrow key="edit">
                     <SUR>{children}</SUR>
                 </ComponentEditorBox>
+
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: "0.5rem",
+                }}>
 
                 {Extra && <UnselecableBox>
                     <Extra />
@@ -261,6 +272,7 @@ function get_default_group_editor_with_rightbar({
                         buttons = {buttons_comp}
                     /> 
                 </AutoStack></UnselecableBox>
+                </Box>
             </SimpleAutoStack>
             </GroupPaper>
             <UnselecableBox>

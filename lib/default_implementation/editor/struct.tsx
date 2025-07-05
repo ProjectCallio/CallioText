@@ -57,6 +57,7 @@ import {
 
 import { 
     DefaultNewAbstractButton , 
+    AbstractManageBox , 
 } from "./abstract"
 
 import { 
@@ -207,13 +208,13 @@ function get_default_struct_editor_with_rightbar({
                     })}
                     buttons = {[
                         <DefaultParameterEditButton /> , 
-                        <DefaultNewAbstractButton /> , 
+                        <CopyButton /> , 
                         <DefaultSwicth /> , 
                         <DefaultCloseButton /> , 
                         <DefaultSoftDeleteButton /> , 
                         <NewParagraphButtonUp /> , 
                         <NewParagraphButtonDown /> , 
-                        <CopyButton /> , 
+                        <DefaultNewAbstractButton /> , 
                         ... buttons_extra.map(B => <B/>)
                     ]}
                     level = {0}
@@ -221,6 +222,9 @@ function get_default_struct_editor_with_rightbar({
                 /> 
             </AutoStack></UnselecableBox>
         </AutoStack></StructPaper>
+        <UnselecableBox>
+            <AbstractManageBox />
+        </UnselecableBox>
         </NodeInfoProvider>
     }
 }
