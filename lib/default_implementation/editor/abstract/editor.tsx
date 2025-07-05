@@ -82,6 +82,7 @@ export {
     useAbstractEditorStore
 }
 
+// TODO 也许该有编号冲突检查？
 // TODO 目前不支持嵌套abstract editor
 // 一个可能的想法是每个editor单独有一个abstract editor area。
 const useAbstractEditorStore = create<{
