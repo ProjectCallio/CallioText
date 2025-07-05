@@ -13,6 +13,7 @@ import {
     IconButton , 
     Typography , 
     Paper , 
+    useTheme,
 } from "@mui/material"
 import {
     ChevronDown as ChevronDownIcon , 
@@ -44,9 +45,13 @@ import {
     NodeInfoProvider , 
     useParameters , 
     AutoIconButton , 
+    useEditorConfig,
 } from "../../implbase"
 
-import { DefaultEditAbstractButton, DefaultNewAbstractButton } from "./abstract"
+import { 
+    DefaultNewAbstractButton , 
+    AbstractManageBox , 
+} from "./abstract"
 import { AutoStackedPopper , SimpleAutoStack , AutoStack , AutoTooltip  } from "../../uibase"
 import { 
     EditorComponentPaper as ComponentPaper , 
@@ -86,7 +91,16 @@ function get_default_inline_editor({
         const SUR   = surrounder
         const GetLabel = get_label
 
-        return <NodeInfoProvider node={node}>
+        const config = useEditorConfig()
+        const palette = useTheme().palette
+
+        return <NodeInfoProvider node={node}><Box
+            sx={{
+                display: "inline-flex",
+                flexDirection: "row",
+                alignItems: "center",
+            }}
+        >
         <ComponentPaper is_inline><AutoStack force_direction="row">
             <ComponentEditorBox>
                 <SUR>{props.children}</SUR>
@@ -110,7 +124,6 @@ function get_default_inline_editor({
                             <DefaultCloseButton /> , 
                             <DefaultSoftDeleteButton /> , 
                             <DefaultNewAbstractButton /> , 
-                            <DefaultEditAbstractButton /> , 
                             ... buttons_extra.map(B => <B/>)
                         ]}
                         level = {0}
@@ -126,7 +139,13 @@ function get_default_inline_editor({
             </UnselecableBox>
         </AutoStack>
         </ComponentPaper>
-        </NodeInfoProvider>
+        <UnselecableBox sx={{
+            marginLeft: `-${config.margins.small}`,
+            height: "2.5rem" , 
+        }}>
+            <AbstractManageBox component="span"/>
+        </UnselecableBox>
+        </Box></NodeInfoProvider>
     }
     return subcomp
 }

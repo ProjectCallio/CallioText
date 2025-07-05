@@ -46,10 +46,6 @@ import {
 } from "../../../implbase"
 
 export {
-    DefaultEditAbstractButton,
-} from "./edit_button"
-
-export {
     DefaultNewAbstractButton,
 } from "./add_button"
 
@@ -73,10 +69,6 @@ function get_default_abstract_editor({
     get_label?: EditorNodeInfoFunction<AbstractNode, string>,
 }) {
     return (props: EditorRendererProps<Slate.Node & AbstractNode>) => {
-        let editor = React.useContext(EditorGlobalInfo).editor as EditorComponent
-        let node = props.node
-        let parameters = editor.get_core().get_printer().process_parameters(node)
-        let label = get_label(node, parameters)
 
         return <Box sx={{
             height: "100%",

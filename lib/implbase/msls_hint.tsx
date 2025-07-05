@@ -82,7 +82,7 @@ const MouselessHint = React.memo(({
     info  , 
 }: {
     get_anchor_el: () => HTMLDivElement | null
-    ctrl_key: KeyName
+    ctrl_key: KeyName | KeyName[]
     keys: KeyName[]
     placement?: PopperProps["placement"]
     with_portal?: boolean
@@ -95,12 +95,12 @@ const MouselessHint = React.memo(({
     const holding_ref = React.useRef(false)
     const holding_version = useKeyEvents(store=>{
         const keys = store.holding_keys
-        const flag = keys.length == 1 && keys[0] === ctrl_key
+        const flag = keys.length == 1 && ctrl_key.includes(keys[0])
 
         // 这个记录按键的时间。
         // 之所以是用按键的时间而不是用事件触发的时间是为了防止不同组件触发钩子的时间不同。
         if(flag){
-            let press_time = store.press_time[ctrl_key] ?? -1
+            let press_time = store.press_time[keys[0]] ?? -1
             let now_time = Date.now()
 
             // 舍入到最近`SYNC_TIME`以内，防止以前的按键假触发

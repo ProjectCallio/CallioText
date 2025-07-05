@@ -38,6 +38,7 @@ import {
     useMouselessSelect, 
     AutoIconButton, 
     useEditorConfig,
+    MouselessHint,
 } from "../../../implbase"
 
 import {
@@ -119,6 +120,7 @@ const AbstractChip = React.memo(React.forwardRef(({
         }else{
             state.open_editor(fat_node, abs_node.idx)
         }
+        onClick?.()
     }, [fat_node, abs_node, is_open])
 
     React.useImperativeHandle(ref, ()=>({
@@ -208,7 +210,11 @@ const AbstractChip = React.memo(React.forwardRef(({
     </Box>
 })) 
 
-const AbstractManageBox = React.memo(({ }: {}) => {
+const AbstractManageBox = React.memo(({
+    component = "div",
+ }: {
+    component?: "div" | "span"
+ }) => {
     const editor = useEditor()
     const node = useNode((prev, next)=> {
         return prev.idx == next.idx && prev.abstract === next.abstract
@@ -219,6 +225,7 @@ const AbstractManageBox = React.memo(({ }: {}) => {
 
     const [add_handler, remove_handler] = useKeyEventsHandlerRegister()
     const chip_refs = React.useRef<AbstractChipRef[]>([])
+    const box_ref = React.useRef<HTMLDivElement>(null)
 
     const select_idx = useSpaceNavigatorRawState(React.useCallback(state=>{
         const {space, node: position} = state
@@ -269,9 +276,24 @@ const AbstractManageBox = React.memo(({ }: {}) => {
         }
     }, [node.idx, node.abstract])
 
+    const Component = React.useMemo(()=>{
+        if(component == "div"){
+            return motion.div
+        }
+        return motion.span
+    }, [component])
+
     return <React.Fragment>
+    <MouselessHint
+        get_anchor_el = {() => box_ref.current as any}
+        ctrl_key  = {KeyNames.alt}
+        keys      = {SPACE.holding}
+        placement = "top-start"
+        info = "← → ⏎ /"
+    />
     <AnimatePresence>{(abstract_num > 0) && (
-        <motion.div
+        <Component
+            ref = {box_ref}
             initial   ={{ height: 0, opacity: 0 }}
             animate   ={{ height: "auto", opacity: 1, }}
             exit      ={{ height: 0, opacity: 0, }}
@@ -284,17 +306,23 @@ const AbstractManageBox = React.memo(({ }: {}) => {
                 direction = "row"
                 gap = "0.5rem"
                 sx={{
-                    width: "100%",
+                    width: component == "div" ? "100%" : "fit-content",
+                    height: component == "div" ? "auto" : "100%",
 
                     paddingY: "0.25rem",
                     paddingX: "0.5rem",
 
                     backgroundColor: alpha(palette.primary.light, 0.3),
+
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
                 }}
+                component = {component}
             >
                 <AnimatePresence mode="popLayout">{
                 node.abstract.map((abs_node: AbstractNode, idx: number) => {
-                    return <motion.div
+                    return <Component
                         key={abs_node.idx}
                         initial={{scale: 0, opacity: 0}}
                         animate={{scale: 1, opacity: 1}}
@@ -311,10 +339,10 @@ const AbstractManageBox = React.memo(({ }: {}) => {
                                 chip_refs.current[idx] = el
                             }}
                         />
-                    </MouselessSelect.Provider></motion.div>
+                    </MouselessSelect.Provider></Component>
                 })}</AnimatePresence>
             </AutoStack>
-        </motion.div>
+        </Component>
     )}</AnimatePresence>
     </React.Fragment>
 })

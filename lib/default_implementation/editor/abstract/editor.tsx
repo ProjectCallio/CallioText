@@ -78,7 +78,6 @@ import {
 } from "../../../editor"
 
 export {
-    DefaultAbstractEditor ,
     AbstractEditorArea , 
     useAbstractEditorStore
 }
@@ -213,13 +212,18 @@ const AbstractEditorArea = React.memo(({}:{})=>{
     React.useEffect(()=>{
         if(open){
             set_selection()
+        }
+    }, [open])
+
+    React.useEffect(()=>{
+        if(open){
             setTimeout(()=>{
                 const subeditor = son_editor_ref.current
                 if(!subeditor) return
                 SlateReact.ReactEditor.focus(subeditor.get_slate())
             }, 0)
         }
-    }, [open])
+    }, [open, son_node])
 
     React.useEffect(()=>{
         const my_handle_save = ()=>{
@@ -324,15 +328,17 @@ const AbstractEditorArea = React.memo(({}:{})=>{
                 <Box sx={{ display: "flex", gap: 0.5 }}>
                     <MouselessHint 
                         get_anchor_el = {() => savebutton_ref.current as any}
-                        ctrl_key = {KeyNames.ctrl}
-                        keys = {[KeyNames.s]}
+                        ctrl_key = {[KeyNames.ctrl, KeyNames.alt]}
+                        keys = {[KeyNames.alt, KeyNames.s]}
                         with_portal 
+                        placement = "left"
                     />
                     <MouselessHint 
                         get_anchor_el = {() => closebutton_ref.current as any}
-                        ctrl_key = {KeyNames.ctrl}
-                        keys = {[KeyNames.s]}
+                        ctrl_key = {[KeyNames.ctrl, KeyNames.alt]}
+                        keys = {[KeyNames.alt, KeyNames.d]}
                         with_portal 
+                        placement = "right"
                     />
 
                     <AutoIconButton 
@@ -406,101 +412,3 @@ const AbstractEditorArea = React.memo(({}:{})=>{
     </motion.div>)}</AnimatePresence>
 })
 
-const  DefaultAbstractEditor = (props: { 
-    father: ConceptNode, sonidx: number, open: boolean, onClose?: (e: any) => void 
-})=>{
-    return <></>
-}
-
-/** 这个组件提供默认的Abstract编辑页面。 
- * 这个组件会提供一个完整的文档编辑器，因为每个抽象节点都可以视为一个新文档。
-*/
-// function DefaultAbstractEditor(props: { 
-//     father: ConceptNode, sonidx: number, open: boolean, onClose?: (e: any) => void 
-// }) {
-
-//     const subeditor_ref = React.useRef<DefaultEditorComponent | null>(null)
-//     const [enter_selection, set_enter_selection] = React.useState<Slate.Location | undefined | null>(undefined)
-
-//     const get_editor = () => {
-//         if (!(subeditor_ref && subeditor_ref.current && subeditor_ref.current.get_editor()))
-//             return undefined
-//         return subeditor_ref.current.get_editor()
-//     }
-
-//     let son = props.father.abstract[props.sonidx]
-//     if (!son) {
-//         return null
-//     }
-//     let [son_children, son_but_children] = (() => {
-//         let { children, ...son_but_children } = son
-//         return [children, son_but_children]
-//     })()
-
-//     return <EditorGlobalInfo.Consumer>{globalinfo => {
-//         let father_editor = globalinfo.editor as EditorComponent
-//         return <Drawer
-//             anchor={"left"}
-//             open={props.open}
-//             onClose={props.onClose}
-//             ModalProps={{ keepMounted: true }}
-//             PaperProps={{ sx: { width: "60%" } }}
-//             SlideProps={{
-//                 onEnter: () => {
-//                     let subeditor = get_editor()
-//                     if (!subeditor) {
-//                         return
-//                     }
-
-//                     set_enter_selection(father_editor.get_slate().selection)
-
-//                     setTimeout(() => { // 稍微延迟一点，然后focus在新编辑器上。延迟一点是为了等抽屉弹出来。
-//                         SlateReact.ReactEditor.focus(subeditor.get_slate())
-//                     }, 1000)
-//                 },
-//                 onExited: () => {
-//                     let subeditor = get_editor()
-//                     if (!subeditor) {
-//                         return
-//                     }
-
-//                     // 更新抽象。
-//                     let root = subeditor.get_root()
-//                     let father = props.father
-//                     let father_abstract_list = father.abstract
-//                     let new_abstract_list = produce(father_abstract_list, alis => {
-//                         alis[props.sonidx].children = root.children
-//                     })
-//                     father_editor.set_node(father, { abstract: new_abstract_list })
-
-//                     // 还原父编辑器的焦点。
-//                     SlateReact.ReactEditor.focus(father_editor.get_slate())
-//                     if (enter_selection && (
-//                         (enter_selection as any)["anchor"] && (enter_selection as any)["anchor"]["path"]
-//                     )) {
-//                         Slate.Transforms.select(father_editor.get_slate(), enter_selection) // 设置为保存的selection。
-//                     }
-//                 },
-//             }}
-//         >
-//             <ForceContain.Provider value={true}>
-//                 <DefaultEditorComponent
-//                     ref={subeditor_ref}
-//                     editorcore={father_editor.get_editorcore()}
-//                     init_rootchildren={son_children}
-//                     init_rootproperty={son_but_children}
-
-//                     sidebar_extras={[() => { // 添加一个额外的退出按钮，方便在编辑抽象时退出。
-//                         return <IconButton onClick={e => {
-//                             props.onClose?.(e)
-//                             e.preventDefault()
-//                         }}>
-//                             <ArrowRightAltIcon />
-//                         </IconButton>
-//                     }]}
-
-//                 />
-//             </ForceContain.Provider>
-//         </Drawer>
-//     }}</EditorGlobalInfo.Consumer>
-// }

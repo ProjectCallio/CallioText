@@ -131,18 +131,22 @@ const AutoStack = React.memo(({
  * @param force_direction 强制设置一个当前方向。
  * @param children 子元素。由 React 自动提供。
  */
-function SimpleAutoStack(props: {
+function SimpleAutoStack({
+    force_direction,
+    children,
+    ...other_props
+}: {
     force_direction?: DirectionValues
     children?: any
-}){
+} & StackProps){
     let subcomponent = (nowdir: DirectionValues) => {
-        return <Direction.Provider value={nowdir}><Stack direction={nowdir}>{
-            props.children
+        return <Direction.Provider value={nowdir}><Stack direction={nowdir} {...other_props}>{
+            children
         }</Stack></Direction.Provider>
     }
     
-    if(props.force_direction != undefined){
-        return subcomponent(props.force_direction)
+    if(force_direction != undefined){
+        return subcomponent(force_direction)
     }
     return <Direction.Consumer>{nowdir => subcomponent(nowdir)}</Direction.Consumer> 
 }

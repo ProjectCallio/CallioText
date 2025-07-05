@@ -52,11 +52,11 @@ import {
     NodeInfoProvider , 
     useParameters , 
     AutoIconButton , 
+    useEditorConfig,
 } from "../../implbase"
 
 import { 
     DefaultNewAbstractButton , 
-    DefaultEditAbstractButton ,  
 } from "./abstract"
 
 import { 
@@ -114,11 +114,12 @@ function get_default_struct_editor_with_rightbar({
     buttons_extra   ?: ( React.ComponentType<{}> )[] , 
     surrounder      ?: (props: {children: any}) => any , 
 }): EditorRenderer<StructNode>{
-
+    
     return (props: EditorRendererProps<StructNode>) => {
         const editor      = props.editor
         const node        = props.node
         const editorcore  = editor.get_core()
+        const config      = useEditorConfig()
         const parameters  = React.useMemo(()=>(
             editorcore.get_printer().process_parameters(node)
         ), [editor, node])
@@ -175,7 +176,7 @@ function get_default_struct_editor_with_rightbar({
             
             <Grid container columns={widthsum} sx={{width: "100%"}}>
                 {widths.map((width,idx)=>{   
-                    let child = (props.children as any)?.[idx]
+                    const child = (props.children as any)?.[idx]
                     if(!child){
                         return <></>
                     }
@@ -207,7 +208,6 @@ function get_default_struct_editor_with_rightbar({
                     buttons = {[
                         <DefaultParameterEditButton /> , 
                         <DefaultNewAbstractButton /> , 
-                        <DefaultEditAbstractButton /> , 
                         <DefaultSwicth /> , 
                         <DefaultCloseButton /> , 
                         <DefaultSoftDeleteButton /> , 

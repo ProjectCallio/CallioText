@@ -48,7 +48,8 @@ import {
     useNode , 
     NodeInfoProvider, 
     useParameters, 
-    AutoIconButton , 
+    AutoIconButton, 
+    useEditorConfig, 
 } from "../../implbase"
 import { 
     EditorComponentPaper as ComponentPaper , 
@@ -59,7 +60,6 @@ import {
 
 import {
     DefaultNewAbstractButton , 
-    DefaultEditAbstractButton , 
 } from "./abstract"
 
 
@@ -78,11 +78,13 @@ function get_default_spliter_editor({
         const GetTitle = get_title
 
         const palette = useTheme().palette
-        let bgcolor = React.useMemo(() => {
+        const bgcolor = React.useMemo(() => {
             let c = Color( palette.primary.main )
             c = light_grey(c).alpha(0.1)
             return c.toString()
         }, [palette])
+
+        const config = useEditorConfig()
     
     
         return <NodeInfoProvider node={node}>
@@ -93,7 +95,9 @@ function get_default_spliter_editor({
                     paddingX: "0.5rem"
                 }}>
                     <AutoStack force_direction="row">
-                        <StructureTypography><GetTitle /></StructureTypography>
+                        <StructureTypography sx={{
+                            fontFamily: config.fonts.body.fontFamily
+                        }}><GetTitle /></StructureTypography>
                         <FoldedButtonGroup 
                             level = {0}
                             max_level = {0}
@@ -105,7 +109,6 @@ function get_default_spliter_editor({
                             buttons = {[
                                 <DefaultParameterEditButton /> , 
                                 <DefaultNewAbstractButton /> , 
-                                <DefaultEditAbstractButton /> , 
                                 <DefaultCloseButton /> , 
                                 <NewParagraphButtonUp /> , 
                                 <NewParagraphButtonDown /> , 
@@ -134,17 +137,18 @@ function get_default_display_editor({
     is_empty        ?: EditorNodeInfoFunction<SupportNode , boolean> , 
     render_element  ?: ()=>any , 
 }){
-    return (props: EditorRendererProps<SupportNode>) => {
-        let editor      = props.editor
-        let node        = props.node
-        let parameters  = editor.get_core().get_printer().process_parameters(node)
-        let empty       = is_empty(node, parameters)
+    return ({editor, node, children}: EditorRendererProps<SupportNode>) => {
+        const parameters  = React.useMemo(()=>(
+            editor.get_core().get_printer().process_parameters(node)
+        ), [editor, node])
+
+        const empty       = is_empty(node, parameters)
 
         const GetLabel = get_label
-        let R = render_element
+        const R = render_element
 
         return <NodeInfoProvider node={node}>
-        <ComponentPaper is_inline>{props.children}<UnselecableBox>
+        <ComponentPaper is_inline>{children}<UnselecableBox>
             <AutoStack force_direction = "row">
                 <Box sx={{
                     marginX: "0.25rem"
@@ -165,7 +169,6 @@ function get_default_display_editor({
                         buttons = {[
                             <DefaultParameterEditButton /> , 
                             <DefaultNewAbstractButton /> , 
-                            <DefaultEditAbstractButton /> , 
                             <DefaultCloseButton /> , 
                             <NewParagraphButtonUp /> , 
                             <NewParagraphButtonDown /> , 

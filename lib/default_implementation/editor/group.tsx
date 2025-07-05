@@ -41,7 +41,6 @@ import {
 
 import {     
     DefaultNewAbstractButton , 
-    DefaultEditAbstractButton , 
     AbstractManageBox , 
 } from "./abstract"
 
@@ -135,14 +134,13 @@ function get_deafult_group_editor_with_appbar({
 
         const buttons_comp = React.useMemo(()=>([
             <DefaultParameterEditButton key="param"/> , 
-            <DefaultNewAbstractButton   key="newabs"/> , 
-            <DefaultEditAbstractButton  key="editabs"/> , 
             <DefaultSwicth              key="switch"/> , 
+            <CopyButton                 key="copy"/> , 
             <DefaultCloseButton         key="close"/> , 
             <DefaultSoftDeleteButton    key="softdel"/> , 
             <NewParagraphButtonUp       key="up"/> , 
             <NewParagraphButtonDown     key="down"/> , 
-            <CopyButton                 key="copy"/> , 
+            <DefaultNewAbstractButton   key="newabs"/> , 
             ... buttons_extra.map((B, idx) => <B key={idx}/>)
         ]), [])
 
@@ -212,20 +210,19 @@ function get_default_group_editor_with_rightbar({
 
         const buttons_comp = React.useMemo(()=>([
             <DefaultParameterEditButton key="param"/> , 
-            <DefaultNewAbstractButton   key="newabs"/> , 
-            <DefaultEditAbstractButton  key="editabs"/> , 
             <DefaultSwicth              key="switch"/> , 
+            <CopyButton                 key="copy"/> , 
             <DefaultCloseButton         key="close"/> , 
             <DefaultSoftDeleteButton    key="softdel"/> , 
             <NewParagraphButtonUp       key="up"/> , 
             <NewParagraphButtonDown     key="down"/> , 
-            <CopyButton                 key="copy"/> , 
+            <DefaultNewAbstractButton   key="newabs"/> , 
             ... buttons_extra.map((B, idx) => <B key={idx}/>)
         ]), [])
 
         return <NodeInfoProvider node={node}>
             <GroupPaper>
-            <SimpleAutoStack force_direction="row">
+            <SimpleAutoStack force_direction="row" gap="0.5rem">
 
                 <ComponentEditorBox autogrow key="edit">
                     <SUR>{children}</SUR>

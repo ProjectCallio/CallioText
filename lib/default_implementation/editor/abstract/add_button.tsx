@@ -15,9 +15,12 @@ import {
     Drawer,
     IconButton,
     ThemeOptions,
+    Popper , 
+    useTheme,
 } from "@mui/material"
 import {
     FilePlus2 as FilePlus2Icon,
+    X as XIcon,
 } from "lucide-react"
 
 import {
@@ -30,16 +33,17 @@ import {
     useNode,
     useEditor,
     AutoIconButton,
+    ButtonGroup , 
 } from "../../../implbase"
 
 export {
-    DefaultNewAbstract,
+    NewAbstractMenu , 
     DefaultNewAbstractButton,
 }
 
 /** 这个组件提供一个菜单，菜单的每项是新建一个抽象概念。
  */
-const DefaultNewAbstract = React.memo(({
+const NewAbstractMenu = React.memo(({
     anchor_element,
     open,
     onClose,
@@ -48,38 +52,60 @@ const DefaultNewAbstract = React.memo(({
     open: boolean, 
     onClose?: (e: any) => void 
 }) => {
-
+    const palette = useTheme().palette
     const node = useNode((prev, next) => (
         prev.abstract === next.abstract 
-        && prev.idx === next.idx
+        && prev.idx == next.idx
     ))
     const editor = useEditor()
 
     // 这个列表罗列所有可选的抽象概念以供选择。
-    const abstract_concepts = editor.get_editorcore().get_sec_concept_list("abstract")
+    const abstract_concepts = React.useMemo(()=>{
+        return editor.get_editorcore().get_sec_concept_list("abstract")
+    }, [editor])
 
-    function get_new_abstract_func(idx: number) {
+    const handle_click = React.useCallback((idx?: number) => {
         return (e: any) => {
             onClose?.(e)
 
-            if (idx == undefined || abstract_concepts[idx] == undefined)
+            if (idx == undefined || !abstract_concepts[idx])
                 return
-
-            let new_node_abstract = [...node.abstract, editor.get_editorcore().create_abstract(abstract_concepts[idx])]
-
+            const new_node_abstract = [
+                ...node.abstract, 
+                editor.get_editorcore().create_abstract(abstract_concepts[idx])
+            ]
             editor.set_node(node, { abstract: new_node_abstract })
         }
-    }
+    }, [node, editor])
 
     return <Menu
         anchorEl={anchor_element}
         open={open}
         onClose={onClose}
+        anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+        }}
+        slotProps={{
+            paper: {
+                sx: {
+                    border: `1px solid ${palette.divider}`,
+                    color: palette.primary.dark,
+                }
+            }
+        }}
     >
         {abstract_concepts.map((name, idx) => {
-            return <MenuItem onClick={get_new_abstract_func(idx)} key={name}>{name}</ MenuItem>
+            return <MenuItem onClick={handle_click(idx)} key={name}>{name}</ MenuItem>
         })}
-        <MenuItem onClick={e => onClose?.(e)}>算了</MenuItem>
+        <MenuItem onClick={e => onClose?.(e)} sx={{
+            paddingX: "0",
+            justifyContent: "center",
+            alignItems: "center",
+        }}><XIcon style={{
+            width: "1.2rem",
+            height: "1.2rem",
+        }}/></MenuItem>
     </Menu>
 })
 
@@ -119,7 +145,7 @@ const DefaultNewAbstractButton = React.memo(() => {
                     size="medium"
                 />
             </Box>
-            <DefaultNewAbstract
+            <NewAbstractMenu
                 anchor_element={ae}
                 open={ae != undefined}
                 onClose={() => close()}

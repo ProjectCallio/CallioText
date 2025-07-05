@@ -50,7 +50,7 @@ export {
 }
 
 
-
+// XXX 应该有一个store来管理level，而不是让每个组件分别管理...
 const ButtonGroup = React.memo(({
     buttons, 
 

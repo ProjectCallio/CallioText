@@ -129,8 +129,9 @@ const AutoIconButton = React.memo(({
                 "&:active": { // 鼠标点击
                     ...get_color_style(activate, !flag, palette, false),
                 },
-                "&.Mui-focusVisible": { // 键盘聚焦（无障碍）
-                    backgroundColor: "transparent !important",
+                "&.Mui-focusVisible": { // tab聚焦（无障碍）
+                    ...color_style,
+                    border: `1px solid ${palette.divider}`,
                 },
 
                 ...(size == "small" ? {

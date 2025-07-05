@@ -17,6 +17,7 @@ import {
     KeyNames , 
     useSpaceNavigatorState, 
     useAllHoldingKeys,
+    useKeyEventsHandlerRegister,
 } from "@ftyyy/mouseless"
 
 import {
@@ -101,6 +102,25 @@ function Test(){
         </Box>
     </React.Fragment>
 }
+
+const HandleSave = React.memo(({
+    onSave,
+}: {
+    onSave: ()=>void
+})=>{
+    const [add_handler, del_handler] = useKeyEventsHandlerRegister()
+
+    React.useEffect(()=>{
+        const handler = ()=>{
+            onSave()
+        }
+        add_handler([KeyNames.ctrl], KeyNames.s, "down" , handler)
+        return ()=>{
+            del_handler([KeyNames.ctrl], KeyNames.s, "down" , handler)
+        }
+    }, [onSave])
+    return <></>
+})
 
 type DefaultEditorComponentprops = EditorComponentProps & {
     config?: PartialEditorConfig
@@ -189,6 +209,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                     left: "1%",
                 }}>
                 {/* <Test /> */}
+                <HandleSave onSave={me.onSave}/>
                 <EditorComponentEditingBox>
                     <EditorComponent
                         ref 		        = {(editor: EditorComponent)=>{
@@ -228,7 +249,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         left: paper_right, 
                         width: toolbar_width,
                     }}>{(()=>{
-                        let editor = me.get_editor()
+                        const editor = me.get_editor()
 
                         if(!editor){
                             return <></>

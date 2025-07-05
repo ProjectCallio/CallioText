@@ -50,7 +50,7 @@ const ActivateKeys = [KeyNames.alt, KeyNames.w]
 
 const UniversalExtra = React.memo(({
     width = "1rem",
-    variation = "standard",
+    variation = "outlined",
     extra_small = false,
     onActivate   = ()=>{},
     onDeactivate = ()=>{},
@@ -149,6 +149,8 @@ const UniversalExtra = React.memo(({
             height: "100%",
             display: "flex",
             flexDirection: "column",
+            alignContent: "center" , 
+            justifyContent: "center" , 
         }}
     >
         <MouselessHint 
