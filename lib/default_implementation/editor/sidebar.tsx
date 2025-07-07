@@ -68,8 +68,6 @@ const DefaultSidebar = React.memo(({
 }: {
     extras?: ( React.ComponentType<{}> )[]
 })=>{
-    const editor = useEditor()
-    const root = editor.get_root()
     const [cur_space, cur_node] = useSpaceNavigatorState(SPACE.name)
 
     const button_cnt = React.useMemo(()=>(extras.length + 4), [extras])
@@ -127,7 +125,7 @@ const DefaultSidebar = React.memo(({
             is_activated={cur_activated == 0}
             ref = {(el: HTMLDivElement)=>{refs.current[0] = el}}
         >
-            <DefaultRootParameterEditButton root={root} editor={editor}/>
+            <DefaultRootParameterEditButton />
         </MouselessButton>
 
         <MouselessButton 

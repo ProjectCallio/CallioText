@@ -74,19 +74,19 @@ export type {
 function with_apply_callbacks(
     editor: SlateReact.ReactEditor  & { __next_apply_callbacks?: (() => void)[] }
 ){
-    const originalApply = editor.apply
+    const original_apply = editor.apply
 
     editor.__next_apply_callbacks = []
   
     editor.apply = (op) => {
-        originalApply(op)
+        original_apply(op)
         if(!editor.__next_apply_callbacks?.length){
             return
         }
 
         while (editor.__next_apply_callbacks!.length > 0) {
-            const cb = editor.__next_apply_callbacks!.shift()
-            if (cb) cb()
+            const callback_fn = editor.__next_apply_callbacks!.shift()
+            callback_fn?.()
         }
     }
   

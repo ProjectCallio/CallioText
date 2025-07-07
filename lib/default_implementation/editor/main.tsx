@@ -248,18 +248,13 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         height: "99%", 
                         left: paper_right, 
                         width: toolbar_width,
-                    }}>{(()=>{
-                        const editor = me.get_editor()
-
-                        if(!editor){
-                            return <></>
-                        }
-                        return <AutoStack force_direction="column">
+                    }}>
+                        <AutoStack force_direction="column">
                             <DefaultSidebar 
                                 extras = {me.props.sidebar_extras}
                             />
                         </AutoStack>
-                    })()}</Box>
+                    </Box>
 
                     <Areas /> 
                 </EditorGlobalInfo.Provider>}

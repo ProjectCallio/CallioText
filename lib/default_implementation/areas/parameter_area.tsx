@@ -371,7 +371,13 @@ const ParameterArea = React.memo(({
             ><DefaultParameterContainer 
                 ref = {parametereditor_ref}
                 node = {cur_node}
-                autoblur = {e=>e.key == KeyNames.z && e.altKey}
+                autoblur = {e=>(
+                    (e.key == KeyNames.z && e.altKey) 
+                    || (e.key == KeyNames.s && e.ctrlKey && (()=>{
+                        e.preventDefault()
+                        return true
+                    })())
+                )}
                 onSave = {(parameters: ParameterList) => {
                     editor.auto_set_parameter(cur_node, parameters)
                 }}
