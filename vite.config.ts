@@ -24,7 +24,8 @@ export default defineConfig({
         })),
         dts({
             include: ["lib"],
-            exclude: ["**/*.test.ts", "**/*.test.tsx"]
+            outDir: "dist/types",
+            tsconfigPath: "./tsconfig.app.json",
         }),
         // cssInjectedByJsPlugin(),
     ],
