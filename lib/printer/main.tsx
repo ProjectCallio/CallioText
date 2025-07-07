@@ -41,7 +41,7 @@ export type {
     FirstClassConceptDict , 
     SecondClassConceptDict , 
     RendererDict , 
-    DefaultRendererhDict , 
+    DefaultRendererDict , 
 }
 
 export {
@@ -74,7 +74,7 @@ type SecondClassConceptDict = ConceptDict<SecondClassConcept>
 type RendererDict = ConceptDict<PrinterRenderer>
 
 /** 未找到概念时的渲染方案 */
-interface DefaultRendererhDict{
+interface DefaultRendererDict{
     "group"     : PrinterRenderer , 
     "inline"    : PrinterRenderer , 
     "structure" : PrinterRenderer , 
@@ -106,13 +106,13 @@ class Printer{
     first_class_concepts: FirstClassConceptDict
     second_class_concepts: SecondClassConceptDict
     renderers: RendererDict 
-    default_renderers: DefaultRendererhDict 
+    default_renderers: DefaultRendererDict 
 
     constructor(
         first_class_concepts    : FirstClassConceptList , 
         second_class_concepts   : SecondClassConceptList , 
         renderers               : RendererDict , 
-        default_renderers       : DefaultRendererhDict , 
+        default_renderers       : DefaultRendererDict , 
     ){
         /** 这是一个方便初始化字典的临时变量。 */
         const make_emptydict = ()=>{return {
