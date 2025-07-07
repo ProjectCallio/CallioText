@@ -16,11 +16,6 @@ import {
     IconButton,
     ThemeOptions,
 } from "@mui/material"
-import {
-    AddBox as AddBoxIcon,
-    FilterNone as FilterNoneIcon,
-    ArrowRightAlt as ArrowRightAltIcon
-} from "@mui/icons-material"
 
 import { AutoTooltip, ForceContain, AutoStackedPopper } from "../../../uibase"
 import {

@@ -1,9 +1,5 @@
 import React from "react"
 import * as Slate from "slate"
-import {
-    ConceptNode,
-    Node
-} from "../../../core"
 
 import {
     KeyNames ,
@@ -13,6 +9,12 @@ import {
     KeyName , 
     NO_ACTION , 
 } from "@ftyyy/mouseless"
+
+import {
+    ConceptNode,
+    Node
+} from "../../../core"
+
 
 import { 
     EditorComponent , 
