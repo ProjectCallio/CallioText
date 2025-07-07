@@ -1,6 +1,7 @@
 import React from "react"
-import whyDidYouRender from "@welldone-software/why-did-you-render"
+import "./styles"
 
+import whyDidYouRender from "@welldone-software/why-did-you-render"
 if (import.meta.env.DEV) {
     whyDidYouRender(React, {
         trackAllPureComponents: false,
@@ -8,6 +9,7 @@ if (import.meta.env.DEV) {
         logOnDifferentValues: true
     })
 }
+
 
 export * from "./core"
 export * from "./uibase/exceptions"

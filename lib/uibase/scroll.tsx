@@ -8,7 +8,6 @@ import {
     Box , 
     BoxProps , 
 } from "@mui/material"
-import "overlayscrollbars/overlayscrollbars.css"
 import { OverlayScrollbars } from "overlayscrollbars"
 
 

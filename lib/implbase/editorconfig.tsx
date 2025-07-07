@@ -4,8 +4,6 @@ import type {
     TypographyConfig , 
 } from "../uibase"
 
-import "../uibase/fonts.css"
-
 import {
     merge_object , 
 } from "../utils"

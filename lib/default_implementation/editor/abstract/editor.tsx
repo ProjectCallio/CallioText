@@ -330,14 +330,14 @@ const AbstractEditorArea = React.memo(({}:{})=>{
                     <MouselessHint 
                         get_anchor_el = {() => savebutton_ref.current as any}
                         ctrl_key = {[KeyNames.ctrl, KeyNames.alt]}
-                        keys = {[KeyNames.alt, KeyNames.s]}
+                        keys = {[KeyNames.ctrl, KeyNames.s]}
                         with_portal 
                         placement = "left"
                     />
                     <MouselessHint 
                         get_anchor_el = {() => closebutton_ref.current as any}
                         ctrl_key = {[KeyNames.ctrl, KeyNames.alt]}
-                        keys = {[KeyNames.alt, KeyNames.d]}
+                        keys = {[KeyNames.ctrl, KeyNames.d]}
                         with_portal 
                         placement = "right"
                     />

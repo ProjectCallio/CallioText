@@ -1,7 +1,10 @@
 {
   "name": "@project-callio/calliotext",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],
@@ -12,7 +15,8 @@
     ".": {
       "import": "./dist/calliotext.es.js",
       "require": "./dist/calliotext.umd.js"
-    }
+    },
+    "./calliotext.css": "./dist/styles/calliotext.css"
   },
   "scripts": {
     "dev": "vite",
@@ -20,15 +24,19 @@
     "build-dev": "tsc && vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:dev": "cd test && npm run dev",
-    "test:build": "cd test && npm run build",
-    "test:published": "cd test && npm run published"
+    "test:dev": "cd test && npm run test:dev",
+    "test:build": "cd test && npm run test:build",
+    "test:published": "cd test && npm run test:published"
+  },
+  "peerDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@mui/material": "^7.0.2",
+    "@ftyyy/mouseless": "^0.0.9"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@ftyyy/mouseless": "^0.0.9",
-    "@mui/material": "^7.0.2",
     "color": "^5.0.0",
     "framer-motion": "^12.12.1",
     "highlight.js": "^11.11.1",
@@ -38,14 +46,16 @@
     "lucide-react": "^0.522.0",
     "notistack": "^3.0.2",
     "overlayscrollbars": "^2.11.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "slate": "^0.112.0",
     "slate-history": "^0.113.1",
     "slate-react": "^0.112.1",
     "zustand": "^5.0.4"
   },
   "devDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@ftyyy/mouseless": "^0.0.9",
+    "@mui/material": "^7.0.2",
     "@babel/preset-react": "^7.27.1",
     "@eslint/js": "^9.22.0",
     "@types/jquery": "^3.5.32",
