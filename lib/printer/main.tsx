@@ -99,6 +99,8 @@ function should_inline(printer: Printer, node: Node){
     return first_concept.meta_parameters.force_inline
 }
 
+
+
 /**
  * 印刷器类。
  */
