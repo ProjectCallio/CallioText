@@ -110,7 +110,7 @@ function get_deafult_group_editor_with_appbar({
     buttons_extra = [] , 
     surrounder    = (props) => <>{props.children}</>
 }: {
-    get_label       ?: () => string ,  
+    get_label       ?: React.ComponentType<{}> ,  
     buttons_extra   ?: ( React.ComponentType<{}> )[] , 
     surrounder      ?: (props: {children: any}) => any ,
 }): EditorRenderer<GroupNode>{
@@ -191,7 +191,7 @@ function get_default_group_editor_with_rightbar({
     buttons_extra   = [] , 
     surrounder      = (props) => <>{props.children}</>
 }: {
-    get_label       ?: () => string ,  
+    get_label       ?: React.ComponentType<{}> ,  
     rightbar_extra  ?: React.ComponentType<{}> , 
     buttons_extra   ?: ( React.ComponentType<{}> )[] , 
     surrounder      ?: (props: {children: any}) => any ,

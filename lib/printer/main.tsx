@@ -460,7 +460,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
     }
     
     scroll_to(path: number[]){ // XXX 似乎有些时候不会滚动到正确的位置...
-        let component = this.get_ref(path)
+        const component = this.get_ref(path)
         if(!component){
             return 
         }
@@ -490,7 +490,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
     update(){
         this.path_refs = {}
         this.idx2path  = {}
-        let [env , all_contexts , all_parameters, all_caches] = this.preprocess()
+        const [env , all_contexts , all_parameters, all_caches] = this.preprocess()
         this.update_cache = {
             env             : env, 
             all_contexts    : all_contexts, 
@@ -499,7 +499,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
         }
         this.onUpdateCache(all_caches)
     }
-    
+
     /** 这个函数渲染一个子节点。 */
     subrender(props: {
         node            : Node , 
@@ -564,17 +564,17 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
     }
 
     render(){
-        let me = this
-        let R = me.subrender.bind(this)
+        const me = this
+        const R = me.subrender.bind(this)
         
         me.update() // XXX 在这里调用似乎很傻逼（但应该是对的）
-        let {env, all_contexts, all_parameters, all_caches} = me.update_cache
+        const {env, all_contexts, all_parameters, all_caches} = me.update_cache
         if(!(env && all_contexts && all_parameters && all_caches)){
             return <></>
         }
 
         // 通过React注入器提供给用户定义的渲染器的全局信息。
-        let globalinfo: PrinterGlobalInfoType = {
+        const globalinfo: PrinterGlobalInfoType = {
             printer           : me.props.printer , 
             root              : me.props.root , 
             printer_component : me ,

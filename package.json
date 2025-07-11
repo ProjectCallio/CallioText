@@ -1,6 +1,6 @@
 {
     "name": "@project-callio/calliotext",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "type": "module",
     "publishConfig": {
         "access": "public"
@@ -20,11 +20,11 @@
         "./calliotext.css": "./dist/styles/calliotext.css"
     },
     "scripts": {
-        "dev": "vite",
         "build": "tsc -b && vite build",
         "build-dev": "tsc && vite build --mode development",
         "lint": "eslint .",
         "preview": "vite preview",
+        "dev": "cd test && npm run test:dev",
         "test:dev": "cd test && npm run test:dev",
         "test:build": "cd test && npm run test:build",
         "test:published": "cd test && npm run test:published"

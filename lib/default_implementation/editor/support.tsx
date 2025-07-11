@@ -143,7 +143,7 @@ function get_default_display_editor({
     is_empty        = (n,p)=>!(p.url) , 
     render_element  = ()=><img src={useParameters().url as string}/>, 
 } : {
-    get_label       ?: ()=>string , 
+    get_label       ?: React.ComponentType<{}> , 
     is_empty        ?: EditorNodeInfoFunction<SupportNode , boolean> , 
     render_element  ?: ()=>any , 
 }){

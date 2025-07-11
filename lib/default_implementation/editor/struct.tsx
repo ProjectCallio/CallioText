@@ -108,7 +108,7 @@ function get_default_struct_editor_with_rightbar({
     buttons_extra   = [] , 
     surrounder      = (props) => <>{props.children}</> , 
 } : {
-    get_label       ?: () => string , 
+    get_label       ?: React.ComponentType<{}> , 
     get_numchildren ?: EditorNodeInfoFunction<StructNode, number> , 
     get_widths      ?: EditorNodeInfoFunction<StructNode, number[]> ,
     rightbar_extra  ?: React.ComponentType<{}> , 

@@ -78,9 +78,7 @@ interface PrinterRenderFunctionProps<NodeType extends Node = Node> {
 }
 
 /** 渲染器的渲染函数。 */
-type PrinterRenderFunction<NodeType extends Node = Node> = (
-    (props: PrinterRenderFunctionProps<NodeType>) => React.ReactElement<PrinterRenderFunctionProps<NodeType>>
-)
+type PrinterRenderFunction<NodeType extends Node = Node> = React.ComponentType<PrinterRenderFunctionProps<NodeType>>
 
 /** 总之是渲染器。 */
 class PrinterRenderer<NodeType extends Node = Node>{
