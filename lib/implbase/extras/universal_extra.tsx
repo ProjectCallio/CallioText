@@ -49,6 +49,7 @@ const ActivateKeys = [KeyNames.alt, KeyNames.w]
   
 
 const UniversalExtra = React.memo(({
+    label = "param",
     width = "1rem",
     variation = "outlined",
     extra_small = false,
@@ -56,6 +57,7 @@ const UniversalExtra = React.memo(({
     onDeactivate = ()=>{},
     onNodeChange = ()=>undefined,
 }: {
+    label?: string
     width?: string
     variation?: "standard" | "outlined" | "filled"
     extra_small?: boolean
@@ -167,7 +169,7 @@ const UniversalExtra = React.memo(({
                 set_value(e.target.value)
             }}
             size = "small"
-            label = "suffix"
+            label = {label}
             fullWidth
 
             onBlur    = {handle_blur}

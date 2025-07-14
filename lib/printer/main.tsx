@@ -445,7 +445,7 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
         return this.path_refs[path_str]?.current
     }
 
-    get_ref_from_idx(idx: number){
+    get_ref_from_idx(idx: string){
         if(this.idx2path[idx] == undefined){
             return undefined
         }
