@@ -54,13 +54,13 @@ interface DefaultParameterContainerRef{
  */
 const DefaultParameterContainer = React.memo(React.forwardRef(({
     node, 
-    onSave, 
+    onUpdate, 
     select_paramidx, 
     autoblur , 
     onAutoBlur , 
 }: {
     node     : Slate.Node & ConceptNode
-    onSave  ?: (parameters: ParameterList)=>void
+    onUpdate  ?: (parameters: ParameterList)=>void
     
     /** 由mouseless选中的参数项。 */
     select_paramidx?: number
@@ -153,6 +153,9 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
                     }
                     return new_param
                 })
+                setTimeout(()=>{
+                    onUpdate?.(parameters)
+                }, 0)
             }}
             autoblur = {autoblur}
             onAutoBlur = {onAutoBlur}
@@ -161,7 +164,7 @@ const DefaultParameterContainer = React.memo(React.forwardRef(({
     </Box>
 }), (prev_props, next_props)=>{
     return prev_props.node.idx == next_props.node.idx 
-        && prev_props.onSave === next_props.onSave
+        && prev_props.onUpdate === next_props.onUpdate
         && prev_props.autoblur === next_props.autoblur
         && prev_props.onAutoBlur === next_props.onAutoBlur
         && prev_props.select_paramidx == next_props.select_paramidx

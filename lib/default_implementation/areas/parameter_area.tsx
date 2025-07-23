@@ -28,7 +28,7 @@ import {
 } from "@mui/material"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    HardDriveDownload as HardDriveDownloadIcon,
+    SaveIcon ,
 } from "lucide-react"
 import { useSnackbar } from "notistack"
 
@@ -165,6 +165,9 @@ const ParameterArea = React.memo(({
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef>(null)
     const palette = useTheme().palette
 
+    // 保存状态
+    const [has_unsaved_changes, set_has_unsaved_changes] = React.useState(false)
+
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState(SPACE.name)
     const [add_handler, del_handler] = useKeyEventsHandlerRegister()
@@ -253,26 +256,45 @@ const ParameterArea = React.memo(({
             transition: "all 0.3s",
         }}>
             
-            <AutoIconButton 
-                onClick={()=>{
-                    const parameters = parametereditor_ref.current?.get_parameters()
-                    if(!parameters){
-                        return
-                    }
-                    editor.auto_set_parameter(cur_node, parameters)
-                    enqueueSnackbar("修改参数成功", {
-                        variant: "success",
-                    })
-                }}
-                title = "应用参数"
-                icon = {HardDriveDownloadIcon}
-                size = "medium"
-                icon_props = {{
-                    sx: {
-                        opacity: !has_parameters ? 0 : 1,
-                    }
-                }}
-            />
+            <Box sx={{ position: "relative", display: "inline-block" }}>
+                <AutoIconButton 
+                    onClick={()=>{
+                        const parameters = parametereditor_ref.current?.get_parameters()
+                        if(!parameters){
+                            return
+                        }
+                        editor.auto_set_parameter(cur_node, parameters)
+                        set_has_unsaved_changes(false)
+                        enqueueSnackbar("修改参数成功", {
+                            variant: "success",
+                        })
+                    }}
+                    title = "应用参数修改"
+                    icon = {SaveIcon}
+                    size = "medium"
+                    icon_props = {{
+                        sx: {
+                            opacity : !has_parameters ? 0 : 1,
+                        } , 
+                        disabled: !has_unsaved_changes,
+                    }}
+                />
+                {has_unsaved_changes && has_parameters && (
+                    <Box 
+                        sx={{
+                            position: "absolute",
+                            top: "2px",
+                            right: "2px",
+                            width: "8px",
+                            height: "8px",
+                            backgroundColor: palette.error.main,
+                            borderRadius: "50%",
+                            border: `1px solid ${palette.background.paper}`,
+                            zIndex: 1,
+                        }}
+                    />
+                )}
+            </Box>
 
             <Box sx={{
                 display: "flex",
@@ -378,8 +400,8 @@ const ParameterArea = React.memo(({
                         return true
                     })())
                 )}
-                onSave = {(parameters: ParameterList) => {
-                    editor.auto_set_parameter(cur_node, parameters)
+                onUpdate = {(parameters: ParameterList) => {
+                    set_has_unsaved_changes(true)
                 }}
                 select_paramidx = {navi_paramidx}
                 onAutoBlur = {()=>{
@@ -391,6 +413,7 @@ const ParameterArea = React.memo(({
                     enqueueSnackbar("已自动应用参数", {
                         variant: "success",
                     })
+                    set_has_unsaved_changes(false)
                 }}
             /></Box>
         </motion.div>}</AnimatePresence>

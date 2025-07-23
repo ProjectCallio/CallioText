@@ -16,8 +16,8 @@ import {
     Typography , 
 } from "@mui/material"
 import {
-    HardDriveDownload as HardDriveDownloadIcon , 
-    Settings as SettingsIcon, 
+    ArrowRightFromLineIcon , 
+    SettingsIcon, 
 } from "lucide-react"
 import {
     useSnackbar,
@@ -140,7 +140,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         }}>
             <AutoIconButton 
                 title = "关闭并应用"
-                icon = {HardDriveDownloadIcon}
+                icon = {ArrowRightFromLineIcon}
                 size = "large"
                 onClick = {onClose}
                 icon_props = {{
