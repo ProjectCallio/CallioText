@@ -12,6 +12,7 @@ import {
 } from "../../../printer"
 import { 
 	Node , 
+    is_groupnode , 
 } from "../../../core"
 
 import {
@@ -25,9 +26,13 @@ class OrderContexter<NT = Node> extends ContexterBase<NT , number , {[order_key:
     /** 标明排序的对象。 */
     order_key: string
 
-    constructor(order_key: string){
+    /** 如果设为true，则对于每组不连续的对象单独标号。 */
+    separate_groups: boolean
+
+    constructor(order_key: string, separate_groups: boolean = false){
         super("__order" , {})
         this.order_key = order_key
+        this.separate_groups = separate_groups
     }
 
     enter(
@@ -39,6 +44,11 @@ class OrderContexter<NT = Node> extends ContexterBase<NT , number , {[order_key:
     ){
         let e = this.get_env(env)
         e[this.order_key] = e[this.order_key] || 0 // 初始化这一项的排序
+        if(this.separate_groups){
+            if(is_groupnode(node as any) && (node as any).relation == "separating"){
+                e[this.order_key] = 0
+            }
+        }
         e[this.order_key] ++
         this.set_context(context , e[this.order_key])
     }

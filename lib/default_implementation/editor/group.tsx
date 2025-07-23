@@ -245,7 +245,6 @@ function get_default_group_editor_with_rightbar({
 
                 <UnselecableBox sx={{
                     position: "relative" , 
-                    zIndex: 1,
                 }}><AutoStack // 第二层autostack，把标签名和按钮组纵向排列
                     force_direction = {"column"}
                     sx = {{

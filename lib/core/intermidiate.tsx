@@ -199,7 +199,7 @@ function is_abstractnode(node: Node): node is AbstractNode{
 }
 
 /** 判断一个节点是不是组节点。 */
-function is_structnode(node: Node): node is AbstractNode{
+function is_structnode(node: Node): node is StructNode{
 	return (node as any)["type"] == "structure"
 }
 
