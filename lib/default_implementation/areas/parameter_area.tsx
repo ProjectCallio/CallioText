@@ -167,6 +167,10 @@ const ParameterArea = React.memo(({
 
     // 保存状态
     const [has_unsaved_changes, set_has_unsaved_changes] = React.useState(false)
+    React.useEffect(()=>{
+        // 每次切换节点时，清空保存状态
+        set_has_unsaved_changes(false)
+    }, [cur_node?.idx])
 
     // 无鼠标状态
     const [navi_space, navi_position] = useSpaceNavigatorState(SPACE.name)

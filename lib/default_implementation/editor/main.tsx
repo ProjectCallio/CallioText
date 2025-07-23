@@ -9,6 +9,7 @@ import * as SlateReact from "slate-react"
 import {
     Typography , 
     Box , 
+    Divider , 
 } from "@mui/material"
 
 
@@ -127,6 +128,7 @@ type DefaultEditorComponentprops = EditorComponentProps & {
     onSave?: ()=>void // 保存时操作。
 
     sidebar_extras?: (() => React.ReactNode)[]
+    end_element?: React.ReactNode
 }
 
 /** 
@@ -163,6 +165,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
     render() {
         const me            = this
+        const end_element   = this.props.end_element
     
         const paper_widths  = {xs: "88%" , md: "91%" , xl: "93%"} // 纸张的宽度，
         const paper_right   = {xs: "89%" , md: "92%" , xl: "94%"} // 纸张的宽度，
@@ -235,6 +238,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                         onKeyUp             = {onkeyup}
                     />
                 </EditorComponentEditingBox>
+                {end_element}
                 </Box>
 
                 {/* 为其他组件提供editor上下文。 */}

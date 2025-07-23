@@ -30,6 +30,7 @@ import {
     slate_concept_father , 
     slate_idx_to_node , 
     useCurEditor , 
+    EditorCore , 
 } from "../../editor"
 
 export {
@@ -51,6 +52,34 @@ function decode_position(position: string): [string, number, number]{
     return JSON.parse(position) as [string, number, number]
 }
 
+/** 这个函数从父亲节点的所有子节点中，找到自己前面离自己最近的一个概念节点。 */
+function _get_brother_from_father(
+    editorcore: EditorCore,
+    children: (Slate.Node)[], 
+    self_idx: number
+): (Slate.Node & ConceptNode) | undefined{
+    let res_node: (Slate.Node & ConceptNode) | undefined = undefined
+    for(let _subidx in children){ // 枚举父节点的子节点。
+        let sub_order = parseInt(_subidx)
+        if(self_idx >= 0 && sub_order >= self_idx){ // 不要管后面的节点。
+            break
+        }
+        let subnode = children[sub_order]
+        if(!slate_is_concept(subnode)){ // 跳过非概念节点。
+            if((subnode as any).children){
+                // 允许在非概念节点的children中递归寻找。
+                res_node = _get_brother_from_father(editorcore, (subnode as any).children, -1)
+            }
+            continue
+        }
+        if(editorcore.is_auxiliary_node(subnode)){ 
+            continue // 跳过辅助节点
+        }
+        res_node = subnode // 找到离自己最近的一个兄弟概念节点。
+    }
+    return res_node
+}
+
 /** 这个函数是位置函数的备用方案，当在祖先节点中找不到一个带无鼠标元素的概念节点时，就去兄弟节点中找。 */
 function get_brother_concept(editor: EditorComponent): NodeName | undefined{
     const core = editor.get_core()
@@ -69,21 +98,7 @@ function get_brother_concept(editor: EditorComponent): NodeName | undefined{
         return undefined // 如果父节点没有子节点，那么就返回undefined。
     }
 
-    let res_node: (Slate.Node & ConceptNode) | undefined = undefined
-    for(let _subidx in children){ // 枚举父节点的子节点。
-        let sub_order = parseInt(_subidx)
-        if(sub_order >= my_order_in_father){ // 不要管后面的节点。
-            break
-        }
-        let subnode = children[sub_order]
-        if(!slate_is_concept(subnode)){ // 跳过非概念节点。
-            continue
-        }
-        if(core.is_auxiliary_node(subnode)){ 
-            continue // 跳过辅助节点
-        }
-        res_node = subnode // 找到离自己最近的一个兄弟概念节点。
-    }
+    const res_node = _get_brother_from_father(core, children, my_order_in_father)
     if(!res_node){
         return undefined
     }

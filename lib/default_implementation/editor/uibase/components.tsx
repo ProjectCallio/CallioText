@@ -82,6 +82,7 @@ const EditorStructureTypography = React.memo((props: TypographyProps) => {
                 marginY: "auto" , // 垂直居中
                 height: config.fonts.structure.lineHeight , 
                 whiteSpace: "nowrap" , 
+                textTransform: "none" , 
             },
             ...(Array.isArray(props.sx) ? props.sx : [props.sx]) , 
         ]}
@@ -111,7 +112,7 @@ const EditorComponentEditingBox = React.memo((props: BoxProps & {autogrow?: bool
 })
 
 
-let EditorComponentPaperNestLevel = React.createContext<number>(1)
+const EditorComponentPaperNestLevel = React.createContext<number>(1)
 
 /** 这个组件定义一个用来渲染特殊节点的纸张。 
  * @param props.is_inline 这个组件是否是行内组件。
@@ -126,7 +127,7 @@ const EditorComponentPaper = React.memo((
     const config = useEditorConfig()
     const palette  = useTheme().palette
 
-    let bgcolor = React.useMemo(() => {
+    const bgcolor = React.useMemo(() => {
         let c = Color( palette.background.paper )
         c = c.rotate(60 * (net_level + 1))
         if(palette.mode != "dark"){
