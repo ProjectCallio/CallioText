@@ -129,7 +129,7 @@ const EditorComponentPaper = React.memo((
 
     const bgcolor = React.useMemo(() => {
         let c = Color( palette.background.paper )
-        c = c.rotate(60 * (net_level + 1))
+        c = c.rotate(39 * (net_level + 1))
         if(palette.mode != "dark"){
             c = light_grey(c)
         }

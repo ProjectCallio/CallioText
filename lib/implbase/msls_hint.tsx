@@ -47,7 +47,7 @@ const useHintStore = create(persist<{
     set_showhint: (show: boolean)=>void,
 }>(set=>{
     return {
-        showhint: false,
+        showhint: true,
         set_showhint: (show: boolean)=>{
             set({showhint: show})
         }

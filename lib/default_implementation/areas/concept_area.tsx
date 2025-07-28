@@ -245,7 +245,7 @@ const ConceptArea = React.memo(({
                         borderRadius: "8px",
                         border: (cur_idx == idx) ? `1px dashed ${palette.divider}` : "none",
                         textTransform: "none",
-                        color: "inherit",
+                        color: palette.text.primary,
                     }}
                 >
                     {sec_ccpt}

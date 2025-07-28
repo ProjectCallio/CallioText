@@ -67,7 +67,7 @@ const useAreaStore = create<AreaStore>()(persist((set)=>({
         ...positions
     }})),
 
-    open: {param: false, concep: false},
+    open: {param: true, concep: true},
     set_open: (name, open) => set(state => ({ open: {
         ...state.open,
         [name]: open

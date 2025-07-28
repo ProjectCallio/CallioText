@@ -112,7 +112,6 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
                 component = "div"
                 sx = {{
                     fontWeight: 600,
-                    color: "rgba(0, 0, 0, 0.87)",
                     fontSize: "1.05rem",
                     letterSpacing: "0.02em",
                 }}
@@ -122,7 +121,6 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
                 component = "div"
                 sx = {{
                     fontSize: "0.6rem", 
-                    color: "rgba(0, 0, 0, 0.5)",
                 }}
             >{node.idx}</Typography>
         </Box>
