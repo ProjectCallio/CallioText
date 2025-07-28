@@ -213,7 +213,9 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 }}>
                 {/* <Test /> */}
                 <HandleSave onSave={me.onSave}/>
-                <EditorComponentEditingBox>
+                <EditorComponentEditingBox
+                    className = "calliotext-editor"
+                >
                     <EditorComponent
                         ref 		        = {(editor: EditorComponent)=>{
                             me.editor_ref.current = editor
@@ -246,13 +248,17 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
                     <AbstractEditorArea />
 
-                    <Box key="area-2" sx = {{
-                        position: "absolute", 
-                        top: "1%" , 
-                        height: "99%", 
-                        left: paper_right, 
-                        width: toolbar_width,
-                    }}>
+                    <Box 
+                        key="area-2" 
+                        sx = {{
+                            position: "absolute", 
+                            top: "1%" , 
+                            height: "99%", 
+                            left: paper_right, 
+                            width: toolbar_width,
+                        }}
+                        className = "calliotext-sidebar"
+                    >
                         <AutoStack force_direction="column">
                             <DefaultSidebar 
                                 extras = {me.props.sidebar_extras}

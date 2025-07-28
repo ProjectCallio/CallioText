@@ -15,12 +15,14 @@ const MouselessButton = React.memo(({
     auto_element = false,
     ref,
     autoel_props,
+    className,
 }: {
     is_activated: boolean,
     children: React.ReactNode,
     auto_element?: boolean,
     ref?: React.Ref<HTMLDivElement>,
     autoel_props?: Partial<React.ComponentProps<typeof AutoElement>>,
+    className?: string,
 }) => {
 
     const children_comp = React.useMemo(()=>{
@@ -31,7 +33,7 @@ const MouselessButton = React.memo(({
     }, [auto_element, children])
 
     return <MouselessSelect.Provider value={is_activated}>
-        <Box ref = {ref}>
+        <Box ref = {ref} className = {className}>
             {children_comp}
         </Box>
     </MouselessSelect.Provider>

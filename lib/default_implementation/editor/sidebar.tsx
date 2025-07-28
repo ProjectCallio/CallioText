@@ -124,6 +124,7 @@ const DefaultSidebar = React.memo(({
         <MouselessButton 
             is_activated={cur_activated == 0}
             ref = {(el: HTMLDivElement)=>{refs.current[0] = el}}
+            className = "calliotext-sidebarbuttons-rootedit"
         >
             <DefaultRootParameterEditButton />
         </MouselessButton>
@@ -131,6 +132,7 @@ const DefaultSidebar = React.memo(({
         <MouselessButton 
             is_activated={cur_activated == 1}
             ref = {(el: HTMLDivElement)=>{refs.current[1] = el}}
+            className = "calliotext-sidebarbuttons-paramarea"
         >
             <ParamAreaControlButton/>
         </MouselessButton>
@@ -138,12 +140,14 @@ const DefaultSidebar = React.memo(({
         <MouselessButton 
             is_activated={cur_activated == 2}
             ref = {(el: HTMLDivElement)=>{refs.current[2] = el}}
+            className = "calliotext-sidebarbuttons-conceptarea"
         >
             <ConceptAreaControlButton/>
         </MouselessButton>
         <MouselessButton 
             is_activated={cur_activated == 3}
-            ref = {(el: HTMLDivElement)=>{refs.current[3] = el}}
+            ref = {(el: HTMLDivElement)=>{refs.current[3] = el}}    
+            className = "calliotext-sidebarbuttons-showhint"
         >
             <ShowHintControlButton/>
         </MouselessButton>
