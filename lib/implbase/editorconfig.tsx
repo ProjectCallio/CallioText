@@ -68,7 +68,7 @@ const default_editorconfig: EditorConfig =
     } , 
     fonts: {
         body: {
-            fontFamily: "sarasa-mono" , 
+            fontFamily: "DengXian" , 
             fontSize: "1rem" , 
             lineHeight : "1.5rem" , 
             lineSpacing: "0.00938em" ,    
