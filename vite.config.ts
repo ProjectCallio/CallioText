@@ -57,11 +57,11 @@ export default defineConfig({
         },
         // 确保字体文件被复制到输出目录
         copyPublicDir: false,
-        assetsDir: 'assets',
-        // 确保字体文件被包含在构建中
-        assetsInlineLimit: 0  // 不内联任何资源文件
+        assetsDir: "assets",
+        assetsInlineLimit: 0 
     },
-    assetsInclude: ['**/*.ttf'],
+    // assetsInclude: ['**/*.ttf'],
+    
     // resolve: {
     //     alias: {
     //         "@ftyyy/mouseless": path.resolve(__dirname, "./mouseless_lib")
