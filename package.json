@@ -1,6 +1,6 @@
 {
     "name": "@project-callio/calliotext",
-    "version": "0.0.12",
+    "version": "0.0.19",
     "type": "module",
     "publishConfig": {
         "access": "public"

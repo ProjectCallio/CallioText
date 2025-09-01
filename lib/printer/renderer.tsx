@@ -83,6 +83,9 @@ type PrinterRenderFunction<NodeType extends Node = Node> = React.ComponentType<P
 /** 总之是渲染器。 */
 class PrinterRenderer<NodeType extends Node = Node>{
 
+    /** 用于提前准备异步数据的初始化操作 */
+    init?: () => Promise<void>
+
     /** 进入时操作。 */
 	enter: PrinterEnterFunction<NodeType>
 
@@ -104,11 +107,13 @@ class PrinterRenderer<NodeType extends Node = Node>{
      * @param funcs.renderer 渲染函数。
      */
     constructor(funcs:{
+        init?: () => Promise<void>,
         enter?: PrinterEnterFunction<NodeType>, 
         exit ?: PrinterExitFunction<NodeType>, 
         renderer: PrinterRenderFunction<NodeType> ,
         renderer_as_property?: NodeType extends AbstractNode ? PrinterRenderFunction<NodeType> : never , 
     }){
+        this.init       = funcs.init || (()=>Promise.resolve())
         this.enter      = funcs.enter || (()=>{})
         this.exit       = funcs.exit  || (()=>[{}, true])
         this.renderer   = funcs.renderer

@@ -109,6 +109,7 @@ class Printer{
     second_class_concepts: SecondClassConceptDict
     renderers: RendererDict 
     default_renderers: DefaultRendererDict 
+    inited: boolean
 
     constructor(
         first_class_concepts    : FirstClassConceptList , 
@@ -138,7 +139,9 @@ class Printer{
 
         this.renderers          = renderers
         this.default_renderers  = default_renderers
+        this.inited             = false
     }
+
     add_renderer(type: AllConceptTypes, name: string, renderer: PrinterRenderer){
         this.renderers[type][name] = renderer
     }
@@ -276,6 +279,24 @@ class Printer{
         return final_parameters
     }
 
+    /** 这个函数用于提前准备异步数据的初始化操作。 */
+    async preprocess_init(){
+        if(this.inited){
+            return
+        }
+        for(const type of ["group", "inline", "structure", "support", "abstract"] as AllConceptTypes[]){
+            let rdict = this.renderers[type]
+            for(const name of Object.keys(rdict)){
+                let renderer = rdict[name]
+                if(renderer?.init){
+                    await renderer.init()
+                }
+            }
+        }
+        this.inited = true
+    }
+
+
     /**这个函数在印刷之前生成环境和上下文。 */
     preprocess({
         root, 
@@ -354,7 +375,7 @@ class Printer{
             return [nowenv , flag]
         }
 
-        let env = init_env || {} // 如果指定了初始环境，就使用初始环境。
+        let env             = init_env ? JSON.parse(JSON.stringify(init_env)) : {} // 如果指定了初始环境，就使用初始环境。
         let all_contexts    = {}
         let all_caches      = {}
         let all_parameters  = {}
@@ -401,7 +422,9 @@ interface PrinterComponentUpdateCache {
 /** 这个类定义印刷器的组件。印刷器组件和印刷器（核心）是分开的，组件只负责绘制，而不储存任何信息，印刷器只负责储存信息，而不负责
  * 绘制。在使用时，将印刷器和节点树一起传入印刷器组件来印刷文章。
  */
-class PrinterComponent extends React.Component<PrinterComponentProps>{
+class PrinterComponent extends React.Component<PrinterComponentProps, {
+    initialized: boolean
+}>{
 
     idx2path: {[idx: string]: number[]}
     path_refs: {
@@ -425,6 +448,18 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
             all_parameters  : undefined, 
             all_caches      : undefined, 
         }
+
+        this.state = {
+            initialized: false
+        }
+    }
+
+    async componentDidMount(){
+        if(this.state.initialized){
+            return
+        }
+        await this.props.printer.preprocess_init()
+        this.setState({initialized: true})
     }
 
     get_printer(){
@@ -516,10 +551,6 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
         let my_parameters   = all_parameters[my_path] // 获取参数列表。
 
         if(my_parameters == undefined){
-            console.log(my_path)
-            console.log(path)
-            console.log(node)
-            // TODO 这里好像有问题
             throw new UnexpectedParametersError(`all_parameters should contain ${my_path} but it doesn't.`)
         }
         if(my_context == undefined){
@@ -566,7 +597,10 @@ class PrinterComponent extends React.Component<PrinterComponentProps>{
     render(){
         const me = this
         const R = me.subrender.bind(this)
-        
+        if(!me.state.initialized){
+            return <></>
+        }
+
         me.update() // XXX 在这里调用似乎很傻逼（但应该是对的）
         const {env, all_contexts, all_parameters, all_caches} = me.update_cache
         if(!(env && all_contexts && all_parameters && all_caches)){
