@@ -256,6 +256,7 @@ const DefaultSwicth = React.memo(() => {
             checked = {checked} 
             onChange = {switch_check_change}
             onInput = {e => {
+                // 防止input事件被mouseless检测到之后刷新按键状态
                 e.stopPropagation()
                 return false
             }}

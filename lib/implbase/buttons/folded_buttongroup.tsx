@@ -74,7 +74,7 @@ const FoldedButtonGroup = React.memo(({
     const node = useNode((prev, next) => (prev.idx == next.idx))
     const direction  = React.useContext(Direction)
 
-    const [menu_open, set_menu_open] = React.useState(false) // 手动打开
+    const [menu_open, set_menu_open] = React.useState(false) // 鼠标点击打开
     const [mouseless_open, set_mouseless_open] = React.useState(false) // 键盘操作打开
     const theme = useTheme()
     const palette = theme.palette
@@ -109,7 +109,7 @@ const FoldedButtonGroup = React.memo(({
 
     React.useEffect(()=>{
         const handler = ()=>{
-            if(mouseless_open && !menu_open){ // 按下按钮的时候持久化打开状态
+            if(mouseless_open && !menu_open){ // 按下按钮的时候，切换成仿佛是鼠标点开的
                 set_menu_open(true)
                 set_mouseless_open(false)
             }

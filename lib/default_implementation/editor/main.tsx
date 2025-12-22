@@ -113,7 +113,6 @@ const HandleSave = React.memo(({
 
     React.useEffect(()=>{
         const handler = ()=>{
-            console.log("save handler trigger")
             onSave()
         }
         add_handler([KeyNames.ctrl], KeyNames.s, "down" , handler)
@@ -124,20 +123,20 @@ const HandleSave = React.memo(({
     return <></>
 })
 
-function DebugKey({}:{}){
-    const holding_keys = useAllHoldingKeys()
-    return <Box sx={{
-        position: "fixed",
-        top: "1rem",
-        left: "1rem",
-        width: "15rem",
-        height: "5rem",
-        backgroundColor: "red",
-        zIndex: 1000,
-    }}>
-        <Typography>holding_keys: {holding_keys.join(", ")}</Typography>
-    </Box>
-}
+// function DebugKey({}:{}){
+//     const holding_keys = useAllHoldingKeys()
+//     return <Box sx={{
+//         position: "fixed",
+//         top: "1rem",
+//         left: "1rem",
+//         width: "15rem",
+//         height: "5rem",
+//         backgroundColor: "red",
+//         zIndex: 1000,
+//     }}>
+//         <Typography>holding_keys: {holding_keys.join(", ")}</Typography>
+//     </Box>
+// }
 
 type DefaultEditorComponentprops = EditorComponentProps & {
     config?: PartialEditorConfig
@@ -229,7 +228,6 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
                 }}>
                 {/* <Test /> */}
                 <HandleSave onSave={me.onSave}/>
-                <DebugKey />
                 <EditorComponentEditingBox
                     className = "calliotext-editor"
                 >
