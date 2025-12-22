@@ -134,14 +134,14 @@ function get_default_struct_editor_with_rightbar({
         if(!mypath){
             throw new UnexpectedParametersError("这这不能")
         }
-        let num_children = React.useMemo(()=>{
+        const num_children = React.useMemo(()=>{
             let val = get_numchildren(node, parameters)
             val = val < 0 ? mychildren.length : val
             return val
         }, [get_numchildren, node, parameters, mychildren.length])
 
         // 获得并规范元素的相对长度。
-        let [widths, widthsum] = React.useMemo(()=>{
+        const [widths, widthsum] = React.useMemo(()=>{
             let val = get_widths(node, parameters)
             val = val.slice(0,num_children)   // 确保widths元素不少
             while(val.length < num_children){ // 确保widths元素不多

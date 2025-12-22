@@ -8,6 +8,7 @@ import React, {useEffect, useState} from "react"
 import * as Slate from "slate"
 import * as SlateReact from "slate-react"
 
+import { KeyNames } from "@ftyyy/mouseless"
 import { 
     Button , 
     Drawer , 
@@ -22,7 +23,6 @@ import {
 import {
     useSnackbar,
 } from "notistack"
-
 
 import { ConceptNode } from "../../../../core"
 
@@ -60,7 +60,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
     open: boolean 
 
     /** 抽屉应该关闭时的回调。 */
-    onClose?: (e:any)=>void
+    onClose?: (e?: any)=>void
 })=>{
     const editor = useEditor()
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef | null>(null)
@@ -128,6 +128,15 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
         <DefaultParameterContainer 
             node     = {node} 
             ref      = {parametereditor_ref}
+            autoblur = {e=>(
+                (e.key == KeyNames.s && e.ctrlKey && (()=>{
+                    e.preventDefault()
+                    return true
+                })())
+            )}
+            onAutoBlur = {()=>{
+                onClose?.()
+            }}
         />
         <Box sx={{
             display: "flex",

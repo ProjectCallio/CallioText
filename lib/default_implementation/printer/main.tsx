@@ -78,18 +78,16 @@ class DefaultPrinterComponent extends React.Component<DefaultPrinterProps>{
     }
 
     render(){
-        let me = this
 
-        let config = make_printerconfig(this.props.config)
-        
+        const config = make_printerconfig(this.props.config)        
 
         return <PrinterConfigContext.Provider value = {config}>
             <PrinterBackgroundPaper>
                 <PrinterComponent 
-                    ref     = {me.handle_ref_printercomponent}
-                    printer = {me.props.printer}
-                    root    = {me.props.root}
-                    onUpdateCache = {me.props.onUpdateCache}
+                    ref     = {this.handle_ref_printercomponent}
+                    printer = {this.props.printer}
+                    root    = {this.props.root}
+                    onUpdateCache = {this.props.onUpdateCache}
                 />
             </PrinterBackgroundPaper>
         </PrinterConfigContext.Provider>

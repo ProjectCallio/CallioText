@@ -176,7 +176,11 @@ const UniversalExtra = React.memo(({
             onFocus   = {handle_focus}
 
             onKeyDown = {(e)=>{
-                if(e.key == "w" && e.altKey && !e.repeat){ // XXX 草...
+                if(e.key == "w" && e.altKey && !e.repeat){ 
+                    set_activated(false)
+                }
+                if(e.key == "s" && e.ctrlKey && !e.repeat){ 
+                    e.preventDefault()
                     set_activated(false)
                 }
             }}

@@ -70,7 +70,7 @@ const ShowHintControlButton = React.memo(()=>{
 })
 
 
-const HINT_TIME = 400 // 触发提示需要按下的时间
+const HINT_TIME = 200 // 触发提示需要按下的时间
 const SYNC_TIME = 200 // 同步按键时间与事件触发时间的单位。
 
 const MouselessHint = React.memo(({
@@ -165,8 +165,8 @@ const MouselessHint = React.memo(({
             <Chip 
                 size = "small"
                 label={
-                    keys.map(key => key.toLowerCase()).join("+") + 
-                    (info ? `+( ${info} )` : "")
+                    keys.map(key => key.toLowerCase()).join(" + ") + 
+                    (info ? ` + ( ${info} )` : "")
                 } 
                 sx={{
                     backgroundColor: alpha(palette.grey[600], 0.8),

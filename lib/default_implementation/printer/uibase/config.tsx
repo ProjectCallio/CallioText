@@ -105,7 +105,7 @@ const default_printerconfig: PrinterConfig =  {
 const PrinterConfigContext = React.createContext<PrinterConfig>(default_printerconfig)
 
 function make_printerconfig(config: PartialPrinterConfig = {}){
-    let actual_config = merge_object(default_printerconfig, config)
+    const actual_config = merge_object(default_printerconfig, config)
     return actual_config
 }
 

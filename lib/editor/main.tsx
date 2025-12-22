@@ -373,6 +373,10 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                 onChange     = {value => {
                     me.onUpdate(value)
                     me.onFocusChange( me )
+                    const is_typing = slate.operations.some(op => op.type === "insert_text" || op.type === "remove_text")
+                    if(is_typing){
+                        window.dispatchEvent(new Event("input", { bubbles: true }))
+                    }
                 }}
             >
                 <SlateReact.Editable
@@ -387,6 +391,7 @@ class EditorComponent extends React.Component<EditorComponentProps , {
                     onBlur        = {e=>me.onFocusChange(me)}
                     onFocus       = {e=>me.onFocusChange(me)}
                     onSelect      = {e=>me.onFocusChange(me)}
+                    
 
                     onCopy = {(e)=>{
                         handle_copy(me, e, true, false)

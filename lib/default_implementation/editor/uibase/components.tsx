@@ -188,7 +188,7 @@ const EditorBackgroundPaper = React.memo((props: PaperProps) => {
         {...props}
         sx = {[
             {
-                border: "1px solid " , 
+                borderRight: "1px solid" , 
                 width: "100%" , 
                 height: "100%" , 
                 overflow: "hidden" , 

@@ -236,7 +236,7 @@ const DefaultSwicth = React.memo(() => {
         }
     }, [node])
 
-    const switch_check_change = React.useCallback(() => {
+    const switch_check_change = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const checked = switchref.current?.checked
         if(checked == undefined || !editor){
             return
@@ -254,7 +254,11 @@ const DefaultSwicth = React.memo(() => {
             ref = {mainref}
             size="small"
             checked = {checked} 
-            onChange = {switch_check_change} 
+            onChange = {switch_check_change}
+            onInput = {e => {
+                e.stopPropagation()
+                return false
+            }}
             sx = {{
                 color: "inherit",
 
@@ -285,7 +289,7 @@ const DefaultSwicth = React.memo(() => {
             }}
             slotProps = {{
                 input: {
-                    ref: switchref , 
+                    ref: switchref ,                     
                 }
             }}
         />

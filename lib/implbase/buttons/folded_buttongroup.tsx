@@ -111,6 +111,7 @@ const FoldedButtonGroup = React.memo(({
         const handler = ()=>{
             if(mouseless_open && !menu_open){ // 按下按钮的时候持久化打开状态
                 set_menu_open(true)
+                set_mouseless_open(false)
             }
         }
         add_handler(HOLDING, KeyNames.Enter, false, handler)
@@ -166,7 +167,6 @@ const FoldedButtonGroup = React.memo(({
             />
         </Box>
         <AnimatePresence>{(menu_open || mouseless_open) && (
-            // 不知道为什么，现在这个popper一打开，内容就会凭空变宽
             <Popper
                 open     = {menu_open || mouseless_open} // open在前面设置了。
                 anchorEl = {anchor_ref.current}

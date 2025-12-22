@@ -47,7 +47,7 @@ interface ParameterItemComponentRef{
 }
 
 const ParameterItemSelect = React.forwardRef(({
-    name , 
+    name ,  
     init_val , 
     choices , 
     onUpdate, 
@@ -192,6 +192,11 @@ const ParameterItemString = React.forwardRef(({
         onChange = {e=>{
             set_val(e.target.value)
             onUpdate?.(e.target.value)
+        }}
+        onKeyDown = {e=>{
+            if(e.key == "s" && e.ctrlKey && !e.repeat){ 
+                
+            }
         }}
         sx = {{
             marginLeft: "5%" , 
