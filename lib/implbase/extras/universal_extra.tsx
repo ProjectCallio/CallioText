@@ -48,11 +48,23 @@ export {
 const ActivateKeys = [KeyNames.alt, KeyNames.w]
   
 
+/**
+ * 这个组件提供一个通用的行内嵌入参数编辑器。
+ * 
+ * @param params.label 参数标签
+ * @param params.width 参数宽度
+ * @param params.variation 参数变体
+ * @param params.extra_small  是否为小尺寸
+ * @param params.onActivate   进入焦点的回调
+ * @param params.onDeactivate 离开焦点的回调
+ * @param params.onNodeChange 节点内容变化的回调，可以返回一个新的值用于更新参数内容。
+ */
 const UniversalExtra = React.memo(({
     label = "param",
     width = "1rem",
     variation = "outlined",
     extra_small = false,
+    accept_image = false,
     onActivate   = ()=>{},
     onDeactivate = ()=>{},
     onNodeChange = ()=>undefined,
@@ -61,6 +73,7 @@ const UniversalExtra = React.memo(({
     width?: string
     variation?: "standard" | "outlined" | "filled"
     extra_small?: boolean
+    accept_image?: boolean
     onActivate  ?: (value: string, editor: EditorComponent, node: ConceptNode & Slate.Node) => void
     onDeactivate?: (value: string, editor: EditorComponent, node: ConceptNode & Slate.Node) => void
     onNodeChange?: (
@@ -196,6 +209,35 @@ const UniversalExtra = React.memo(({
                         borderRadius: "0",
                     }
                 }
+            }}
+
+            onPaste = {(e: React.ClipboardEvent<HTMLDivElement>)=>{
+                console.log("paste", accept_image)
+                if (!accept_image) {
+                    return // 如果不接受图片，就使用默认的粘贴行为。
+                }
+                const items = e.clipboardData?.items
+                if (!items) return
+        
+                for (const item of items) {
+                    if (item.type.startsWith("image/")) {
+                        e.preventDefault() // 阻止默认粘贴行为
+                        
+                        const file = item.getAsFile()
+                        if (!file) continue
+        
+                        const reader = new FileReader()
+                        reader.onload = (event) => {
+                            const base64 = event.target?.result as string
+                            if (base64) {
+                                set_value(base64)
+                            }
+                        }
+                        reader.readAsDataURL(file)
+                        
+                        break // 只处理第一张图片
+                    }
+                }        
             }}
         />
     </Box>

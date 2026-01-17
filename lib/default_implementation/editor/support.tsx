@@ -141,9 +141,11 @@ function get_default_spliter_editor({
 function get_default_display_editor({
     get_label       = () => useParameters().label, 
     is_empty        = (n,p)=>!(p.url) , 
+    rightbar_extra  = undefined,
     render_element  = ()=><img src={useParameters().url as string}/>, 
 } : {
     get_label       ?: React.ComponentType<{}> , 
+    rightbar_extra  ?: React.ComponentType<{}> , 
     is_empty        ?: EditorNodeInfoFunction<SupportNode , boolean> , 
     render_element  ?: ()=>any , 
 }){
@@ -154,6 +156,7 @@ function get_default_display_editor({
         const parameters  = React.useMemo(()=>(
             editor.get_core().get_printer().process_parameters(node)
         ), [editor, node])
+        const Extra = rightbar_extra 
 
         const empty       = is_empty(node, parameters)
 
@@ -183,6 +186,8 @@ function get_default_display_editor({
                     <StructureTypography sx={{marginY: "0.2rem", marginX: "auto"}}>
                         <GetLabel />
                     </StructureTypography>
+                    
+                    {Extra && <Extra />}
                     
                     <FoldedButtonGroup 
                         button_comp = {with_partial_props(AutoIconButton, {
