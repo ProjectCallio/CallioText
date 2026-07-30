@@ -53,12 +53,10 @@ npm install @project-callio/calliotext
 | --------- | ------- |
 | `lib/` | Library source |
 | `test/unit/` | Unit tests (vitest) |
-| `test/demo/` | A complete example application using the library (not under version control) |
 | `docs/` | Documentation site (GitHub Pages deploys from this directory) |
 
 ```bash
 npm test            # run the unit tests
-npm run dev         # start the example application (using lib/ source)
 npm run build       # build the library (dist/)
 npm run docs:api    # regenerate the TypeDoc reference (docs/reference/)
 ```

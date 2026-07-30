@@ -49,12 +49,10 @@ npm install @project-callio/calliotext
 | ---- | ---- |
 | `lib/` | 库的源码 |
 | `test/unit/` | 单元测试（vitest） |
-| `test/demo/` | 使用本库的完整示例应用（不入版本控制） |
 | `docs/` | 文档站点（GitHub Pages 从此目录部署） |
 
 ```bash
 npm test            # 运行单元测试
-npm run dev         # 启动示例应用（使用 lib/ 源码）
 npm run build       # 构建库（dist/）
 npm run docs:api    # 重新生成 TypeDoc 参考（docs/reference/）
 ```
