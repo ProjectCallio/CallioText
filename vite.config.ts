@@ -37,14 +37,17 @@ export default defineConfig({
         },
         rollupOptions: {
             // 确保外部化处理那些你不想打包进库的依赖
-            external: ["react", "react-dom", "@mui/material", "@ftyyy/mouseless"],
+            external: ["react", "react-dom", "@mui/material", "@ftyyy/mouseless", "slate", "slate-history", "slate-react"],
             output: {
                 // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
                 globals: {
-                    react             : "React"     ,
-                    "react-dom"       : "ReactDOM"  ,
-                    "@mui/material"   : "MaterialUI",
-                    "@ftyyy/mouseless": "Mouseless" ,
+                    react             : "React"       ,
+                    "react-dom"       : "ReactDOM"    ,
+                    "@mui/material"   : "MaterialUI"  ,
+                    "@ftyyy/mouseless": "Mouseless"   ,
+                    slate             : "Slate"       ,
+                    "slate-history"   : "SlateHistory",
+                    "slate-react"     : "SlateReact"  ,
                 },
                 // 确保资源文件的正确输出
                 assetFileNames: (info) => {

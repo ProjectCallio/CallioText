@@ -212,7 +212,7 @@ const UniversalExtra = React.memo(({
             }}
 
             onPaste = {(e: React.ClipboardEvent<HTMLDivElement>)=>{
-                console.log("paste", accept_image)
+                // console.log("paste", accept_image)
                 if (!accept_image) {
                     return // 如果不接受图片，就使用默认的粘贴行为。
                 }

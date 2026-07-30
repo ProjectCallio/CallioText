@@ -69,11 +69,7 @@ class FirstClassConcept{
         this.type = type
         this.name = name
         this.meta_parameters = meta_parameters || {}
-        this.parameter_prototype = parameter_prototype || {
-            force_inline: undefined , 
-            force_block: undefined , 
-            force_void: undefined , 
-        }
+        this.parameter_prototype = parameter_prototype || {}
     }
 }
 

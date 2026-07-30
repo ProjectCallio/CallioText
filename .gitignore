@@ -1,5 +1,5 @@
-notes.md 
-test
+notes.md
+test/demo
 old_test
 
 # Logs
@@ -26,3 +26,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+dev/

@@ -24,30 +24,32 @@
         "build-dev": "tsc && vite build --mode development",
         "lint": "eslint .",
         "preview": "vite preview",
-        "dev": "cd test && npm run test:dev",
-        "test:dev": "cd test && npm run test:dev",
-        "test:build": "cd test && npm run test:build",
-        "test:published": "cd test && npm run test:published"
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "dev": "cd test/demo && npm run test:dev",
+        "demo:dev": "cd test/demo && npm run test:dev",
+        "demo:build": "cd test/demo && npm run test:build",
+        "demo:published": "cd test/demo && npm run test:published"
     },
     "peerDependencies": {
         "@ftyyy/mouseless": "^0.0.9",
-        "@mui/material": "^7.0.2"
+        "@mui/material": "^7.0.2",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "slate": "^0.112.0",
+        "slate-history": "^0.113.1",
+        "slate-react": "^0.112.1"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
         "color": "^5.0.0",
         "framer-motion": "^12.12.1",
-        "highlight.js": "^11.11.1",
         "immer": "^10.1.1",
-        "jquery": "^3.7.1",
         "lodash": "^4.17.21",
         "lucide-react": "^0.522.0",
         "notistack": "^3.0.2",
         "overlayscrollbars": "^2.11.1",
-        "slate": "^0.112.0",
-        "slate-history": "^0.113.1",
-        "slate-react": "^0.112.1",
         "zustand": "^5.0.4"
     },
     "devDependencies": {
@@ -55,7 +57,6 @@
         "@eslint/js": "^9.22.0",
         "@ftyyy/mouseless": "^0.0.9",
         "@mui/material": "^7.0.2",
-        "@types/jquery": "^3.5.32",
         "@types/lodash": "^4.17.18",
         "@types/node": "^22.15.2",
         "@types/react": "^19.0.0",
@@ -68,9 +69,13 @@
         "globals": "^16.0.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "slate": "^0.112.0",
+        "slate-history": "^0.113.1",
+        "slate-react": "^0.112.1",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.26.1",
         "vite": "^6.3.1",
-        "vite-plugin-dts": "^4.5.4"
+        "vite-plugin-dts": "^4.5.4",
+        "vitest": "^4.1.10"
     }
 }

@@ -77,8 +77,8 @@ function universal_concept(node: any, path: number[]): [boolean , string]{
     }
 
     // 检查idx是否存在
-    if(typeof(node["idx"]) != "number"){ 
-        return [false , make_msg(path,`the type of property "idx" should be number, but it is ${typeof(node["idx"])}.`)]
+    if(typeof(node["idx"]) != "string"){
+        return [false , make_msg(path,`the type of property "idx" should be string, but it is ${typeof(node["idx"])}.`)]
     }
 
     // 检查concept是否存在
