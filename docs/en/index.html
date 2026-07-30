@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction &amp; Quick Start · CallioText</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<p class="lang-note">中文版文档请见<a href="../zh/index.html">这里</a>。</p>
+<h1>CallioText</h1>
+<p class="lead">
+CallioText is a library for building structured document editors, built on React, Slate and MUI.
+This page introduces what it is and why it is worth using, then gives the installation steps and a
+minimal example that runs as-is.
+</p>
+
+<h2>What is it?</h2>
+<p>
+In Word, if you want every theorem in a paper to share a consistent style and carry consecutive numbers,
+you have to maintain all of that by hand: the styling is applied manually, the numbers are typed manually,
+and inserting a new theorem in the middle means renumbering everything after it.
+LaTeX solved this problem long ago: a theorem is written as
+<code>\begin{theorem}...\end{theorem}</code>, you merely declare that this is a theorem,
+and the style system takes care of appearance and numbering.
+</p>
+<p>
+But LaTeX was born for print. It assumes a document's destiny is a stack of paper: numbering finishes its
+duty on the last page, and a reference, once inked, can never move again. Documents today mostly live on
+the web, where numbers could carry on across pages by themselves and a reference could unfold the cited
+passage right under the cursor. None of that is LaTeX's to give. Its input, moreover, is code: as a
+document grows long, backslashes and braces thicken through the source until it is a chore to read and a
+chore to change.
+</p>
+<p>
+CallioText is that kind of editor: it separates structure from appearance the way LaTeX does, edits as
+easily as Word, and outputs as freely as the web.
+</p>
+<h2>How it works</h2>
+<p>Writing with CallioText involves a division of labor:</p>
+<ul>
+    <li>A set of concepts is loaded in advance, such as theorem, proof, quotation, section divider. Each concept declares which parameters it has and how it is rendered.</li>
+    <li>Authors organize their documents with these concepts. Inserting a theorem or writing a proof feels like using a LaTeX environment, except that everything happens through a graphical interface.</li>
+    <li>Finally, the printer (the part of the library responsible for typeset output) renders the document into a clean, finished result.</li>
+</ul>
+<p>
+Each of the three stages owns its own ground: concept definitions decide which semantics a document may
+use, writing manipulates only semantics, and typesetting is executed uniformly by rendering rules.
+To change the styling, changing the concept definitions is enough, without touching a word of the
+document; to add a new kind of document component, one can even create it inside the running program,
+no code required. This model is the foundation of the whole library, and tutorial chapter 1 unfolds it
+in full.
+</p>
+
+<h2>What it gives you</h2>
+<p>Out of that division of labor come these capabilities:</p>
+<ul>
+    <li>The editing interface and the typeset output are independent. The same document has one appearance while being edited (with buttons and auxiliary information) and another in the output (clean, ready to read). Both sides are fully customizable.</li>
+    <li>Concepts come in two levels. The first level is defined by the engine; the second level can be created while the program is running, without writing any code. In other words, authors can invent new document components themselves. The tutorial explains this design in detail.</li>
+    <li>Automatic numbering and cross references. Theorem numbers, figure numbers, and references like "see Theorem 3" are maintained by the library; numbers rearrange themselves after insertions and deletions.</li>
+    <li>Full keyboard operation. Your hands never need to leave the keyboard while writing.</li>
+    <li>Every layer can be replaced, from the ready-made default interface down to how each individual node kind is rendered.</li>
+</ul>
+<p>
+Each of these capabilities has its chapter in the tutorial: the editing/printing separation is built by
+hand in chapters 3 and 4, the concept system in chapter 5, numbering and cross references in chapter 6,
+keyboard operation and deeper customization in chapter 7. By the end of the tutorial, every item above is
+something you built, not just something you heard about.
+</p>
+
+<h2>Installation</h2>
+<p>CallioText is published on npm:</p>
+<pre><code class="language-bash">npm install @project-callio/calliotext</code></pre>
+
+<h2>Quick start</h2>
+<p>
+Below is a minimal runnable example. The names that appear here are each explained in the tutorial;
+this example only shows how much code it takes to get an editor running.
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    Printer, EditorCore,
+    DefaultEditorComponent,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+import "@project-callio/calliotext/calliotext.css"
+
+// No concepts have been defined yet, so these are all empty.
+const no_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+// The printer renders documents into typeset output.
+const printer = new Printer([], [], no_renderers, {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+})
+
+// The editor core manages everything the editor needs to know.
+const core = new EditorCore({
+    renderers: no_renderers,
+    default_renderers: get_default_editors(),
+    printer,
+})
+
+export default function App(){
+    return &lt;div style={{height: "100vh", position: "relative"}}&gt;
+        &lt;DefaultEditorComponent editorcore={core} /&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>This code does three things:</p>
+<ol>
+    <li>It creates a printer (<code>Printer</code>), the part that turns documents into typeset output. Since no concepts exist yet, it receives empty lists and the plainest possible renderers.</li>
+    <li>It creates an editor core (<code>EditorCore</code>), which holds the editor's configuration and is connected to the printer so it can look up concept definitions.</li>
+    <li>It mounts the default editor component (<code>DefaultEditorComponent</code>) on the page.</li>
+</ol>
+<p>
+Open the page and you will see a sheet of paper you can type on. We did not specify any document content,
+so the editor created an empty document by itself.
+</p>
+<p>
+An editor without concepts is not much different from a plain text box, though. CallioText starts to show
+its value once you define concepts. Start with tutorial chapter 1:
+<a href="tutorial/01-model.html">Core Ideas: Concepts &amp; the Tree</a>.
+</p>
+
+<h2>Documentation map</h2>
+<p>
+The documentation has three parts. The tutorial is the main line, progressing chapter by chapter from
+zero; the API docs assume you have read the tutorial and are organized by module for daily lookup; the
+TypeDoc reference covers every single export, and details the other two skip can be found there:
+</p>
+<table>
+    <tr><th>Section</th><th>Content</th></tr>
+    <tr><td><a href="tutorial/01-model.html">Tutorial</a></td><td>Build a structured editor with theorem numbering and cross references, step by step from zero.</td></tr>
+    <tr><td><a href="api/overview.html">API Docs</a></td><td>The public API organized by module: signatures, purpose and notes.</td></tr>
+    <tr><td><a href="../reference/index.html">Full Reference</a></td><td>Item-by-item reference generated from source comments by TypeDoc (the comments are in Chinese).</td></tr>
+</table>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../assets/docs.js" data-lang="en" data-root="../" data-page="index.html"></script>
+</body>
+</html>

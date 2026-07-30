@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Overview · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>API Overview</h1>
+<p class="lead">
+Everything CallioText exports comes from the single entry point <code>@project-callio/calliotext</code>,
+and there are over a hundred exports. This page sorts them into five groups by module, describing each
+group's responsibility and boundaries. For item-level detail, use the
+<a href="../../reference/index.html">TypeDoc reference</a> alongside.
+</p>
+
+<h2>Module layers</h2>
+<p>The source is organized in layers, more fundamental toward the bottom:</p>
+<div class="layers">
+    <div class="layer">
+        <div class="layer-name">default_implementation</div>
+        <div class="layer-desc">Ready-to-use defaults: DefaultEditorComponent, DefaultPrinterComponent, the get_default_ factories, the contexter family, printing typography widgets</div>
+    </div>
+    <div class="layer-row">
+        <div class="layer">
+            <div class="layer-name">editor</div>
+            <div class="layer-desc">Editing core: EditorCore, EditorComponent, the plugin system, tree operations</div>
+        </div>
+        <div class="layer">
+            <div class="layer-name">printer</div>
+            <div class="layer-desc">Printing core: Printer, PrinterComponent, PrinterRenderer, Env and Context</div>
+        </div>
+    </div>
+    <div class="layer">
+        <div class="layer-name">implbase + uibase</div>
+        <div class="layer-desc">React infrastructure: hooks, the style configuration system, button kits, general UI utilities, error classes</div>
+    </div>
+    <div class="layer">
+        <div class="layer-name">core</div>
+        <div class="layer-desc">Concept model and the document tree: FirstClassConcept, SecondClassConcept, the seven node kinds, validate, type guards</div>
+    </div>
+</div>
+<p>
+Reading from the bottom up: the lowest layer, <code>core</code>, is pure data. It holds the classes for
+first- and second-class concepts, the type definitions of the seven node kinds, and the tree validation
+functions. It has no React dependency and no notion of an interface, so any environment can import it,
+validating a document on a server for instance.
+</p>
+<p>
+One layer up sit <code>implbase</code> and <code>uibase</code>, a body of React infrastructure: hooks for
+reading the current node and its parameters, the style configuration system, button components with
+keyboard navigation support, and the error classes used throughout the library. They do not form an editor
+by themselves, but both layers above are built on them.
+</p>
+<p>
+Above that, <code>editor</code> and <code>printer</code> stand side by side as the cores of the editing
+side and the output side. Side by side means mutually independent: the editor does not know how the
+document will eventually be typeset, the printer does not know how it was edited, and the two share only
+the document tree that core defines. The compiler front-end and back-end analogy from tutorial chapter 1
+describes exactly this structure. editor owns the Slate wrapper, the tree operations and the plugin
+system; printer owns two-phase rendering and the renderer protocol.
+</p>
+<p>
+The top layer, <code>default_implementation</code>, assembles everything below into ready-to-use products:
+the complete editor and printer components, the renderer factory functions, the contexter family. This is
+the layer the tutorial works with throughout.
+</p>
+<p>
+Day-to-day use tends to follow the same order, top down: start with the components and factories of
+default_implementation; when a concept's appearance needs customizing, use the factories' customization
+points together with the implbase hooks; drop down to editor when modifying documents programmatically or
+writing plugins; deal with printer's preprocessing machinery when numbering and cross references come in;
+and core is present all along, since concepts and node types run through everything. The table below is a
+quick lookup of each layer's responsibilities:
+</p>
+<table>
+    <tr><th>Layer</th><th>Responsibility</th><th>Typical use</th></tr>
+    <tr>
+        <td><a href="core.html">core</a></td>
+        <td>The pure data layer: concept classes, node type definitions, tree validation. No React dependency.</td>
+        <td>Defining concepts, persistence, typing</td>
+    </tr>
+    <tr>
+        <td><a href="editor.html">editor</a></td>
+        <td>The editing side: the Slate wrapper, renderer registration and dispatch, tree operations, the plugin system, editor state hooks.</td>
+        <td>Custom plugins, custom buttons, programmatic document edits</td>
+    </tr>
+    <tr>
+        <td><a href="printer.html">printer</a></td>
+        <td>The output side: two-phase rendering (preprocessing plus rendering), the renderer protocol, the types of the preprocessing products.</td>
+        <td>Custom printer renderers, reference features</td>
+    </tr>
+    <tr>
+        <td><a href="default.html">default_implementation</a></td>
+        <td>The defaults: complete editor and printer components, the renderer factory functions, the contexter family.</td>
+        <td>Where most applications start</td>
+    </tr>
+    <tr>
+        <td><a href="default.html#implbase">implbase / uibase</a></td>
+        <td>Infrastructure: hooks like <code>useNode</code> and <code>useParameters</code>, the style configuration system, small UI components, error classes.</td>
+        <td>Inside custom renderers</td>
+    </tr>
+</table>
+
+<h2>The typical assembly</h2>
+<p>The structure the tutorial builds in chapters 3 through 5, condensed:</p>
+<pre><code class="language-tsx">import {
+    // core: define concepts
+    FirstClassConcept, SecondClassConcept,
+    // printer: printing core
+    Printer,
+    // editor: editing core
+    EditorCore,
+    // default_implementation: components and factories
+    DefaultEditorComponent, DefaultPrinterComponent,
+    get_default_editors, get_default_group_renderer,
+} from "@project-callio/calliotext"
+
+const printer = new Printer(first_concepts, second_concepts,
+                            printer_renderers, printer_defaults)
+const core    = new EditorCore({renderers, default_renderers: get_default_editors(), printer})
+
+&lt;DefaultEditorComponent editorcore={core} /&gt;
+&lt;DefaultPrinterComponent printer={printer} root={tree} /&gt;</code></pre>
+<p>
+These few lines condense the wiring between the layers: the concepts defined with core are handed to the
+Printer for keeping; the Printer is handed to the EditorCore so the editing side can query it; finally the
+two default components each take the core object of their own side and start working. Every CallioText
+application has this same skeleton; what varies is the content of the concept lists and the renderers.
+</p>
+
+<h2>Conventions used throughout the library</h2>
+<p>These conventions recur in every module; keeping them in mind makes the following pages easier to read:</p>
+<ul>
+    <li>Renderer dictionaries are indexed by first-class concept name, in the shape
+        <code>{group: {"primary": renderer}, inline: {...}, ...}</code>: node kind first, first-class
+        concept name second. Nodes whose lookup fails use the per-node-kind default renderers.</li>
+    <li>Document nodes reference second-class concepts. A node's <code>concept</code> field stores a
+        second-class concept name; the <code>Printer</code> resolves it to the first-class concept it
+        inherits, which is where renderers and parameter prototypes are found.</li>
+    <li>Parameters have two forms. Trees store the typed <code>ParameterList</code> (shaped
+        <code>{type, val}</code>); rendering code receives the processed
+        <code>ProcessedParameterList</code>, in which second-class overrides are applied, function-typed
+        parameters are evaluated, and the type wrappers are stripped, leaving plain values.</li>
+    <li>Naming style. Functions and methods are snake_case (<code>get_root</code>); classes and components
+        are PascalCase (<code>EditorCore</code>). A few exports keep historical spellings, notably
+        <code>get_deafult_group_editor_with_appbar</code> and the module name <code>intermidiate</code>;
+        copy them as they are.</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="api/overview.html"></script>
+</body>
+</html>

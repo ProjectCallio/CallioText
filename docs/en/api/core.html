@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>core: Concepts &amp; Nodes · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>core: Concepts &amp; Nodes</h1>
+<p class="lead">
+core is the pure data layer: the concept classes, the type definitions of the document tree, and the tree
+validation functions. It has no React dependency and runs in any JavaScript environment, including Node.js
+(validating documents on a server, for example).
+</p>
+
+<h2>Concept classes</h2>
+
+<h3>FirstClassConcept</h3>
+<pre><code class="language-typescript">new FirstClassConcept({
+    type: "group" | "inline" | "structure" | "support" | "abstract",
+    name: string,
+    parameter_prototype?: ParameterList,   // the parameter prototype, defaults to {}
+    meta_parameters?: MetaParameters,      // meta parameters, defaults to {}
+})</code></pre>
+<p>
+A first-class concept declares the mechanism of a category of document content: which parameters it has and
+their types and defaults. The pair <code>(type, name)</code> identifies it uniquely.
+</p>
+<p>
+<code>meta_parameters</code> are a small set of switches affecting editor behavior; unlike ordinary
+parameters they are invisible to authors:
+</p>
+<table>
+    <tr><th>Field</th><th>Meaning</th></tr>
+    <tr><td><code>force_inline?: boolean</code></td><td>Force inline rendering. An inline image, for example: a support node that must sit inside the text flow.</td></tr>
+    <tr><td><code>force_block?: boolean</code></td><td>Force block rendering.</td></tr>
+    <tr><td><code>force_void?: boolean</code></td><td>Force the node to have no children (the editor will not allow typing inside).</td></tr>
+</table>
+
+<h3>SecondClassConcept</h3>
+<pre><code class="language-typescript">new SecondClassConcept({
+    type: AllConceptTypes,
+    first_concept: string,               // name of the inherited first-class concept
+    name: string,                        // the authors' word, stored in nodes' concept field
+    default_override?: ParameterList,    // override defaults (authors can still edit)
+    fixed_override?: FixedParameterList, // pin values (authors cannot edit; functions allowed)
+})</code></pre>
+<p>
+Second-class concepts are the vocabulary authors actually use. In <code>fixed_override</code>, an entry of
+the form <code>{type: "function", val: "p =&gt; ..."}</code> is a function-typed parameter: it is evaluated
+at print time with the processed parameter table as its argument, letting the value follow other parameters
+(see tutorial chapter 7).
+</p>
+
+<h2>Node types</h2>
+<p>The interfaces and child constraints of the seven node kinds (for the narrative introduction, see tutorial chapter 1):</p>
+<table>
+    <tr><th>Type</th><th>Key fields</th><th>Child constraint</th></tr>
+    <tr><td><code>TextNode</code></td><td><code>{text: string}</code></td><td>no children</td></tr>
+    <tr><td><code>ParagraphNode</code></td><td><code>{children}</code>, no type field</td><td>text / inline / support</td></tr>
+    <tr><td><code>InlineNode</code></td><td><code>type: "inline"</code> plus concept fields</td><td>text / inline</td></tr>
+    <tr><td><code>GroupNode</code></td><td><code>type: "group"</code> plus concept fields and <code>relation</code></td><td>non-leaf nodes (no bare text or inline)</td></tr>
+    <tr><td><code>StructNode</code></td><td><code>type: "structure"</code> plus concept fields and <code>relation</code></td><td>groups only</td></tr>
+    <tr><td><code>SupportNode</code></td><td><code>type: "support"</code> plus concept fields</td><td>fixed placeholder <code>[{text: ""}]</code></td></tr>
+    <tr><td><code>AbstractNode</code></td><td><code>type: "abstract"</code> plus concept fields</td><td>same as group; the document root is this type</td></tr>
+</table>
+<p>The concept fields are the four fields every concept node shares:</p>
+<pre><code class="language-typescript">idx: string              // node identifier, unique per document, produced by gene_idx()
+concept: string          // second-class concept name
+parameters: ParameterList
+abstract: AbstractNode[] // abstract nodes attached to this node</code></pre>
+<p>The common unions:</p>
+<pre><code class="language-typescript">type Node               = TextNode | ParagraphNode | ConceptNode
+type ConceptNode        = InlineNode | GroupNode | StructNode | SupportNode | AbstractNode
+type NonLeafNode        = ParagraphNode | NonLeafConceptNode
+type AllConceptTypes    = "group" | "inline" | "structure" | "support" | "abstract"
+type AllNodeTypes       = AllConceptTypes | "paragraph" | "text"</code></pre>
+
+<h2>Parameter types</h2>
+<p>
+Parameter values are not bare values but small typed objects, with three base types shown below. The
+design was explained in tutorial chapter 1: the type annotation is what lets the editor build a fitting
+editing control for each parameter.
+</p>
+<pre><code class="language-typescript">type ParameterValue =
+    | {type: "string",  val: string,  [k: string]: any}
+    | {type: "number",  val: number,  [k: string]: any}
+    | {type: "boolean", val: boolean, [k: string]: any}
+
+interface ParameterList { [key: string]: ParameterValue }</code></pre>
+<p>
+Parameter value objects may carry extra fields. The default parameter editor understands
+<code>choices: [...]</code>: a parameter carrying it renders as a dropdown rather than free input.
+<code>FixedParameterValue</code> additionally allows <code>{type: "function", val: string}</code>.
+</p>
+
+<h2>Type guards and lookup utilities</h2>
+<p>
+When handling a node object of unknown origin (walking a tree, parsing clipboard content), the first step
+is telling which kind of node it is. core provides a guard function for each kind, doubling as TypeScript
+type narrowing; two path-based lookup helpers come along with them:
+</p>
+<table>
+    <tr><th>Function</th><th>Description</th></tr>
+    <tr><td><code>is_concetnode(node)</code></td><td>Whether the node is a concept node. The "concet" in the name is a historical spelling.</td></tr>
+    <tr><td><code>is_inlinenode / is_groupnode / is_supportnode / is_structnode / is_abstractnode</code></td><td>Per-kind guards</td></tr>
+    <tr><td><code>is_paragraphnode / is_textnode</code></td><td>Paragraph and text guards</td></tr>
+    <tr><td><code>get_node_type(node): AllNodeTypes</code></td><td>The node's type string; throws <code>BadNodeError</code> on unrecognizable objects</td></tr>
+    <tr><td><code>find_node_by_path(root, path)</code></td><td>Locate a node by path (an array of child indices)</td></tr>
+    <tr><td><code>find_concept_nodes_by_path(root, path)</code></td><td>Collect the concept nodes passed along a path, excluding the root</td></tr>
+</table>
+
+<h2>Validation</h2>
+<p>There are two validation functions, with the following signatures:</p>
+<pre><code class="language-typescript">validate(tree: any): [boolean, string]
+validate_parameters(parameters: any, gene_msg: (s: string) =&gt; string): [boolean, string]</code></pre>
+<p>
+<code>validate</code> recursively checks whether a tree is a legal document tree: fields present, parameter
+types matching, the child constraints of each node kind holding. It returns a pair: whether the tree is
+legal, and if not, an error message carrying the node path, shaped like <code>node [1,0]: ...</code>.
+Call it before handing external data (uploads, old archives) to the editor; see tutorial chapter 7.
+<code>validate_parameters</code> is the parameter-checking part, exported separately as well.
+</p>
+
+<h2>General utilities (lib/utils)</h2>
+<p>
+A few small utilities belong to no particular module. <code>merge_object</code> deserves a separate
+mention: the "specify only what you change, keep the rest" semantics of style configuration is implemented
+with it:
+</p>
+<table>
+    <tr><th>Function</th><th>Description</th></tr>
+    <tr><td><code>gene_idx(): string</code></td><td>Generate a random node identifier (a numeric string)</td></tr>
+    <tr><td><code>merge_object(a, b)</code></td><td>Recursively merge two objects, b winning at conflicting leaves. The partial-override style configuration is built on it.</td></tr>
+    <tr><td><code>object_foreach(obj, fn)</code></td><td>Map every value of an object into a new object</td></tr>
+</table>
+
+<h2>Error classes</h2>
+<p>
+The library defines three error classes, all extending <code>Error</code> and distinguishable with
+<code>instanceof</code>: <code>UnexpectedParametersError</code> (a function received arguments violating its
+contract), <code>BadNodeError</code> (a node violating its contract), and <code>ImpossibleError</code>
+(a code path that should be unreachable was reached).
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="api/core.html"></script>
+</body>
+</html>

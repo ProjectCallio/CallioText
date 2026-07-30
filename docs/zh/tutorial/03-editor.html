@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3. 跑起来：最小编辑器 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>3. 跑起来：最小编辑器</h1>
+<p class="lead">
+这一章写第一批真正的代码：认识 <code>Printer</code> 和 <code>EditorCore</code> 这两个核心对象，
+理解渲染器是怎样注册的，然后把一个能打字的编辑器放到页面左半边。
+我们一步一步来，每一步之后都能在浏览器里看到点什么。
+</p>
+
+<h2>两个核心对象</h2>
+<p>动手之前，先认识这一章要构造的两个对象：</p>
+<ul>
+    <li><code>Printer</code>（印刷器）：把文档树渲染成排版成品。同时它也是概念定义的持有者，一级概念和二级概念的清单都注册在它这里。</li>
+    <li><code>EditorCore</code>（编辑器核心）：编辑器一侧的入口。它保存编辑侧的配置，负责创建新节点，并向印刷器查询概念定义。</li>
+</ul>
+<p>
+概念定义只保存一份。编辑器和印刷器都需要「命题有哪些参数」这类信息，
+库的设计是由印刷器持有、编辑器查询，避免两份定义不一致。
+因此构造顺序是固定的：先 <code>Printer</code>，再 <code>EditorCore</code>（把 printer 传给它），
+最后把编辑器组件挂到页面上。这也正是我们接下来三步的顺序。
+</p>
+
+<h2>渲染器</h2>
+<p>
+还有一个词需要先说清楚：渲染器（renderer）。渲染器就是决定某类节点如何显示的代码，
+比如「命题在编辑器里显示成一个带标题栏的卡片」这条规则就是一个渲染器。
+渲染器按概念注册，注册表是一个两层的字典：
+</p>
+<pre><code class="language-tsx">{
+    group:     { "primary": 命题的渲染器, "quote": 引用块的渲染器 },
+    inline:    { "strong": 强调的渲染器 },
+    support:   {},
+    structure: {},
+    abstract:  {},
+}</code></pre>
+<p>
+第一层按节点种类分（组、行内、支撑、结构、抽象），第二层按一级概念的名字分。
+没有注册渲染器的节点，会落到一套按节点种类提供的「默认渲染器」上。
+本章我们一个概念都不注册，全部交给默认渲染器，所以下面代码里的注册表都是空的，但形状必须先摆对。
+</p>
+
+<h2>第一步：构造印刷器</h2>
+<p>
+新建 <code>src/core.ts</code>，先只写印刷器这一半。
+需要给它空的概念清单、空的渲染器注册表，以及一套默认渲染器：
+</p>
+<pre><code class="language-tsx">import {
+    Printer,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+
+// 概念清单。现在是空的，第 5 章会往里加真正的概念。
+export const first_concepts = []
+export const second_concepts = []
+
+// 按概念注册的渲染器。一个概念都没有，所以全是空的。
+const printer_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+// 查不到渲染器时使用的默认渲染器，按节点种类各一个。
+const printer_defaults = {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+}
+
+// 印刷器的四个参数：一级概念、二级概念、按概念的渲染器、默认渲染器。
+export const printer = new Printer(
+    first_concepts, second_concepts,
+    printer_renderers, printer_defaults,
+)</code></pre>
+<p>
+默认渲染器里那几个 <code>useless_renderer_</code> 开头的家伙是库提供的「什么样式都不加」的渲染器：
+块级节点渲染成一个普通的块，行内节点渲染成普通的行内内容，文本原样输出。
+段落用的是库的默认段落渲染器，让分段有正常的间距。
+名字里的 useless 说的是「不提供概念级的样式」，兜底这件事它们干得很好。
+</p>
+
+<h2>第二步：构造编辑器核心</h2>
+<p>
+在 <code>core.ts</code> 末尾加上编辑器一侧。编辑器同样有一套按概念注册的渲染器（现在也是空的），
+默认渲染器则不用自己拼，库提供了现成的一整套。加完之后，整个文件长这样：
+</p>
+<pre><code class="language-tsx">import {
+    Printer, EditorCore,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+
+export const first_concepts = []
+export const second_concepts = []
+
+const printer_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+const printer_defaults = {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+}
+
+export const printer = new Printer(
+    first_concepts, second_concepts,
+    printer_renderers, printer_defaults,
+)
+
+// ==== 从这里开始是新增的部分 ====
+
+// 编辑器这边的按概念渲染器，现在也是空的。
+const editor_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+export const editor_core = new EditorCore({
+    renderers: editor_renderers,
+    // get_default_editors() 返回七种节点各自的默认编辑样式，直接用。
+    default_renderers: get_default_editors(),
+    printer,
+})</code></pre>
+<p>
+注意 <code>printer</code> 被传进了 <code>EditorCore</code> 的构造参数，
+这就是「概念定义由印刷器持有、编辑器查询」在代码里的样子。
+</p>
+
+<h2>第三步：把编辑器放到页面上</h2>
+<p>回到 <code>src/App.tsx</code>，把第 2 章左半边的占位注释换成真正的编辑器组件：</p>
+<pre><code class="language-tsx">import React, { useRef } from "react"
+import { DefaultEditorComponent } from "@project-callio/calliotext"
+import { editor_core } from "./core"
+
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+export default function App(){
+    // 先留一个对编辑器组件的引用，下一章会用它把文档取出来。
+    const editor_ref = useRef&lt;DefaultEditorComponent | null&gt;(null)
+
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            &lt;DefaultEditorComponent
+                ref={editor_ref}
+                editorcore={editor_core}
+            /&gt;
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            {/* 第 4 章：这里放印刷器 */}
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+<code>DefaultEditorComponent</code> 是库提供的一整个现成的编辑器界面，
+把编辑器核心通过 <code>editorcore</code> 交给它就能工作。
+</p>
+<div class="tip">
+保存，刷新页面。左半边应该出现一张「纸」和一列竖着的侧边栏。
+点进纸里打几个字，按回车分段，再按 Ctrl+Z 撤销，都应该和普通编辑器一样工作。
+侧边栏是往文档里插入概念节点的按钮区，现在一个概念都没注册，所以几乎是空的，第 5 章它会热闹起来。
+</div>
+<p>
+此时你输入的内容已经在构成一棵文档树：文字存在文本节点里，文本节点装在段落节点里。
+只是这棵树目前只有段落和文字，还没有概念节点。
+</p>
+
+<h2>幕后发生了什么</h2>
+<p>
+第一，编辑器自动创建了一篇空文档。我们没有指定要打开的文档，
+于是它自己构造了一个空的根节点（第 1 章说过，树根是一个抽象节点），里面放了一个空段落。
+想让编辑器打开时载入已有文档，需要在挂载组件时把文档内容传进去，做法在第 7 章。
+</p>
+<p>
+第二，内置的规范化插件开始工作了。第 1 章表格里的子节点约束（比如组里不能直接放文字）
+不是靠约定遵守的：库内置了一批规范化插件，持续监视这棵树，
+一旦出现违反约束的结构（比如粘贴进来一段不合法的内容）就自动修正，无需任何配置。
+添加自定义约束（比如「文档必须以分隔线开头」）的方法在第 7 章。
+</p>
+
+<h2>本章要点</h2>
+<ul>
+    <li>构造顺序固定：先 <code>Printer</code>，再 <code>EditorCore</code>，最后 <code>DefaultEditorComponent</code>。概念定义由印刷器保管，编辑器向它查询。</li>
+    <li>渲染器决定某类节点长什么样。按概念注册的渲染器是两层字典：先按节点种类，再按一级概念名。查不到的用默认渲染器。</li>
+    <li>不指定文档内容时，编辑器自动创建空文档；树的结构约束由内置的规范化插件维护。</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/03-editor.html"></script>
+</body>
+</html>

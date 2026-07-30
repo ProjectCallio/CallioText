@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5. Defining Your Own Concepts · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>5. Defining Your Own Concepts</h1>
+<p class="lead">
+The heart of the tutorial. We define a Theorem concept from scratch and watch it grow an editing
+appearance and a printed appearance step by step; then we derive a Lemma from it, and finish with an
+inline Emphasis and a placeholder Divider. Every step is short, and every step shows a visible change on
+the page.
+</p>
+
+<h2>The route</h2>
+<p>Chapter 1 said a concept needs four things to become usable; this chapter fills them in, in this order:</p>
+<ol>
+    <li>A first-class concept: declares which parameters this content has and their defaults.</li>
+    <li>A second-class concept: the name authors actually use, shown on the sidebar's insert buttons.</li>
+    <li>An editor renderer: how the concept looks in the editor.</li>
+    <li>A printer renderer: how the concept looks in the output.</li>
+</ol>
+<div class="warn-box">
+A trap worth flagging: even if a first-class concept will only ever have one usage, it still needs a
+second-class companion, because authors can only insert second-class concepts. Conversely, renderers are
+registered under first-class concept names, and second-class concepts automatically use the renderers of
+the first-class concept they inherit; you do not (and cannot) register renderers per second-class concept.
+</div>
+
+<h2>Step 1: register the first concept</h2>
+<p>
+Create <code>src/concepts.ts</code>. Define the first-class concept <code>primary</code> (a passage that
+deserves prominent display; theorems and lemmas will derive from it), and give it one second-class
+companion named Theorem:
+</p>
+<pre><code class="language-tsx">import { FirstClassConcept, SecondClassConcept } from "@project-callio/calliotext"
+
+/** primary: a prominently displayed passage. First-class concepts take lowercase English names. */
+export const primary_style = new FirstClassConcept({
+    type: "group",              // a group node (occupies a block)
+    name: "primary",
+    parameter_prototype: {      // parameter prototype: which parameters, which defaults
+        title: {type: "string", val: "Theorem"},  // heading shown at the start
+        close: {type: "string", val: ""},         // closing mark, e.g. an end-of-proof square
+    },
+})
+
+export const first_concepts = [primary_style]
+
+/** "Theorem": the name authors use. Takes primary's defaults as-is. */
+export const second_concepts = [
+    new SecondClassConcept({type: "group", first_concept: "primary", name: "Theorem"}),
+]</code></pre>
+<p>
+Every parameter in the prototype carries a type annotation (<code>type: "string"</code> and so on);
+as chapter 1 explained, that is what lets the editor generate a fitting editing control for each parameter.
+</p>
+<p>
+Then open <code>src/core.ts</code> and swap chapter 3's empty concept lists for the ones just written.
+Only the top of the file changes:
+</p>
+<pre><code class="language-tsx">import {
+    Printer, EditorCore,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+import { first_concepts, second_concepts } from "./concepts"
+
+// Delete the two empty lists defined here before and use the imported ones.
+// The rest of the file stays as in chapter 3.</code></pre>
+<div class="tip">
+Reload and look at the sidebar: a Theorem button has appeared. Click it, and a block is inserted into the
+document; you can type and make paragraphs inside it. The block still looks plain, a generic card, because
+no editor renderer is registered for primary yet, so it falls back to the defaults configured in
+chapter 3. The next step fixes that.
+</div>
+
+<h2>Step 2: the editing appearance</h2>
+<p>
+The editing side needs no interface built from scratch: the library provides factory functions that take a
+few customization points and return a fully functional editor renderer, complete with a title bar, delete
+and copy buttons, and a parameter editing panel. Create <code>src/editors.tsx</code> (note the .tsx
+extension, since the file contains JSX):
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_deafult_group_editor_with_appbar,
+    useParameters,
+} from "@project-callio/calliotext"
+
+export const editor_renderers = {
+    group: {
+        // Editing look for group nodes: a card with a title bar on top.
+        // get_label decides what the title bar says.
+        "primary": get_deafult_group_editor_with_appbar({
+            get_label: () =&gt; useParameters().title,
+        }),
+    },
+    inline: {},
+    support: {},
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p>Two things in these few lines are worth pausing on:</p>
+<ul>
+    <li>
+        <code>useParameters()</code>: a React hook returning the parameter values of the node currently
+        being rendered. It returns processed plain values: you get the string <code>"Theorem"</code>
+        directly, not the <code>{type: "string", val: "Theorem"}</code> stored in the tree. Rendering code
+        works almost exclusively with this form.
+    </li>
+    <li>
+        The function passed as <code>get_label</code> is called as a React component, which is why it may
+        use hooks. The effect shows up in a moment: when the parameter changes, the title bar follows.
+    </li>
+</ul>
+<div class="tip">
+Note the odd spelling in <code>get_deafult_group_editor_with_appbar</code>. That "deafult" is a historical
+spelling in this library; the function is really named that, so copy it as-is. Correcting it only earns
+you an import error.
+</div>
+<p>In <code>core.ts</code>, swap the editor's empty registry for the import. Again only two lines:</p>
+<pre><code class="language-tsx">import { editor_renderers } from "./editors"
+
+// Delete the old empty-object definition of editor_renderers.
+// The EditorCore construction stays untouched; the name it references is the same.</code></pre>
+<div class="tip">
+Reload and insert a Theorem: the card now has a title bar reading "Theorem". Open its parameter editor
+(the button on the title bar) and change title to "Proposition": the title bar updates immediately.
+That is <code>get_label</code> being called as a component: the parameter changes, the label follows.
+</div>
+
+<h2>Step 3: the printed appearance</h2>
+<p>
+The editing side is alive; the printed side is still the no-styling default block. Give it a proper
+printed appearance: heading first, body after. Create <code>src/printers.tsx</code>:
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_default_group_renderer,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+/** Printed look of the theorem block, version one: just a heading line. */
+const primary_printer = get_default_group_renderer({
+    // pre_element: content rendered before the body. We put the heading here.
+    // PrinterStructureBoxText is the library's structural-text component:
+    // text wrapped in it uses a type style distinct from the body, suited to headings and labels.
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        &lt;PrinterStructureBoxText inline&gt;{info.parameters.title}&lt;/PrinterStructureBoxText&gt;
+    ),
+})
+
+export const printer_renderers = {
+    group: {
+        "primary": primary_printer,
+    },
+    inline: {},
+    support: {},
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p>
+<code>get_default_group_renderer</code> is the printing-side factory for group nodes. It already handles
+the typographic details, spacing between blocks and indentation, and you fill in the slots.
+<code>pre_element</code> is one such slot: an element rendered before the body. Slot functions receive an
+<code>info</code> carrying the current node (<code>info.node</code>) and the processed parameters
+(<code>info.parameters</code>); as on the editing side, parameters are plain usable values.
+</p>
+<p>Apply the same swap in <code>core.ts</code>. With all three blanks replaced, its final form is:</p>
+<pre><code class="language-tsx">import {
+    Printer, EditorCore,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+import { first_concepts, second_concepts } from "./concepts"
+import { editor_renderers } from "./editors"
+import { printer_renderers } from "./printers"
+
+const printer_defaults = {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+}
+
+export const printer = new Printer(
+    first_concepts, second_concepts,
+    printer_renderers, printer_defaults,
+)
+
+export const editor_core = new EditorCore({
+    renderers: editor_renderers,
+    default_renderers: get_default_editors(),
+    printer,
+})</code></pre>
+<div class="tip">
+Write something inside a theorem and save. The right half now shows a theorem block with a heading line:
+"Theorem" in the structural type style, the body following. Change the title parameter to "Proposition"
+and save again; the heading on the right changes too.
+</div>
+
+<h2>Step 4: use the second parameter</h2>
+<p>
+The prototype still has an unused parameter, <code>close</code>: the mark shown at the end (the square
+that closes a proof, say). Add an <code>aft_element</code> slot, rendered after the body. The revised
+<code>printers.tsx</code>:
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_default_group_renderer,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+/** Printed look of the theorem block, version two: heading plus optional closing mark. */
+const primary_printer = get_default_group_renderer({
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        &lt;PrinterStructureBoxText inline&gt;{info.parameters.title}&lt;/PrinterStructureBoxText&gt;
+    ),
+    // aft_element: content rendered after the body. An empty close shows nothing.
+    aft_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        info.parameters.close
+            ? &lt;PrinterStructureBoxText inline&gt;{info.parameters.close}&lt;/PrinterStructureBoxText&gt;
+            : undefined
+    ),
+})
+
+export const printer_renderers = {
+    group: {
+        "primary": primary_printer,
+    },
+    inline: {},
+    support: {},
+    structure: {},
+    abstract: {},
+}</code></pre>
+<div class="tip">
+Open the theorem's parameter editor, set close to "∎", save. The mark appears at the end of the block on
+the right. Clear it and save again; the mark disappears. You have now walked a parameter's full path:
+declared in the prototype (step 1), edited in the automatically generated panel, rendered by
+<code>aft_element</code>.
+</div>
+
+<h2>Step 5: derive a Lemma</h2>
+<p>
+Time to see what second-class concepts are worth. Append a Lemma to <code>concepts.ts</code>: it inherits
+<code>primary</code> too, replacing only the default title. The revised <code>concepts.ts</code>:
+</p>
+<pre><code class="language-tsx">import { FirstClassConcept, SecondClassConcept } from "@project-callio/calliotext"
+
+export const primary_style = new FirstClassConcept({
+    type: "group",
+    name: "primary",
+    parameter_prototype: {
+        title: {type: "string", val: "Theorem"},
+        close: {type: "string", val: ""},
+    },
+})
+
+export const first_concepts = [primary_style]
+
+export const second_concepts = [
+    new SecondClassConcept({type: "group", first_concept: "primary", name: "Theorem"}),
+
+    // "Lemma": also primary, with a different default title.
+    new SecondClassConcept({
+        type: "group", first_concept: "primary", name: "Lemma",
+        default_override: {title: {type: "string", val: "Lemma"}},
+    }),
+]</code></pre>
+<div class="tip">
+Reload: the sidebar has a Lemma button. Insert one; its title bar automatically reads "Lemma", and both
+appearances match the theorem's exactly, because it uses the renderers registered under primary.
+Not one line of rendering code, and you have a new document component. That is the point of second-class
+concepts: rendering logic written once, usages derived freely.
+</div>
+<p>
+Meet <code>default_override</code>'s sibling while we are here: <code>fixed_override</code>. The former
+changes defaults, which authors can still edit; the latter pins a parameter so authors cannot. It also
+supports function-typed parameters whose values follow other parameters; chapter 7 shows them.
+</p>
+
+<h2>Step 6: an inline Emphasis and a placeholder Divider</h2>
+<p>
+Finally, examples of the other two node kinds, finishing all three files in one pass.
+<code>concepts.ts</code> gains two first-class and two second-class concepts; its final form:
+</p>
+<pre><code class="language-tsx">import { FirstClassConcept, SecondClassConcept } from "@project-callio/calliotext"
+
+export const primary_style = new FirstClassConcept({
+    type: "group",
+    name: "primary",
+    parameter_prototype: {
+        title: {type: "string", val: "Theorem"},
+        close: {type: "string", val: ""},
+    },
+})
+
+/** strong: inline emphasis. Omitting parameter_prototype means no parameters. */
+export const strong_style = new FirstClassConcept({
+    type: "inline",
+    name: "strong",
+})
+
+/** divider: a horizontal rule. A support node with no content of its own. */
+export const divider_style = new FirstClassConcept({
+    type: "support",
+    name: "divider",
+})
+
+export const first_concepts = [primary_style, strong_style, divider_style]
+
+export const second_concepts = [
+    new SecondClassConcept({type: "group", first_concept: "primary", name: "Theorem"}),
+    new SecondClassConcept({
+        type: "group", first_concept: "primary", name: "Lemma",
+        default_override: {title: {type: "string", val: "Lemma"}},
+    }),
+    new SecondClassConcept({type: "inline",  first_concept: "strong",  name: "Emphasis"}),
+    new SecondClassConcept({type: "support", first_concept: "divider", name: "Divider"}),
+]</code></pre>
+<p><code>editors.tsx</code> gives each new concept an editing look; its final form:</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_deafult_group_editor_with_appbar,
+    get_default_inline_editor,
+    get_default_spliter_editor,
+    useParameters,
+} from "@project-callio/calliotext"
+
+export const editor_renderers = {
+    group: {
+        "primary": get_deafult_group_editor_with_appbar({
+            get_label: () =&gt; useParameters().title,
+        }),
+    },
+    inline: {
+        // The inline editor. surrounder decides what wraps the text while editing;
+        // a bold tag here, so authors can see the emphasis as they write.
+        "strong": get_default_inline_editor({
+            surrounder: (props) =&gt; &lt;strong&gt;{props.children}&lt;/strong&gt;,
+        }),
+    },
+    support: {
+        // The divider's editing look: a captioned horizontal rule.
+        "divider": get_default_spliter_editor({get_title: () =&gt; "Divider"}),
+    },
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p><code>printers.tsx</code> likewise gains two printed looks; its final form:</p>
+<pre><code class="language-tsx">import React from "react"
+import { Divider } from "@mui/material"
+import {
+    get_default_group_renderer,
+    get_default_inline_renderer,
+    auto_renderer,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+const primary_printer = get_default_group_renderer({
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        &lt;PrinterStructureBoxText inline&gt;{info.parameters.title}&lt;/PrinterStructureBoxText&gt;
+    ),
+    aft_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        info.parameters.close
+            ? &lt;PrinterStructureBoxText inline&gt;{info.parameters.close}&lt;/PrinterStructureBoxText&gt;
+            : undefined
+    ),
+})
+
+export const printer_renderers = {
+    group: {
+        "primary": primary_printer,
+    },
+    inline: {
+        // Inline emphasis: wrapped in bold in the output too.
+        // outer means "what wraps the whole node".
+        "strong": get_default_inline_renderer({
+            outer: (props) =&gt; &lt;strong&gt;{props.children}&lt;/strong&gt;,
+        }),
+    },
+    support: {
+        // The divider renders as a horizontal rule. Support nodes have no content,
+        // so auto_renderer, building a renderer from a plain function, is the simplest fit.
+        "divider": auto_renderer({render_function: () =&gt; &lt;Divider /&gt;}),
+    },
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p>
+One rule here must be remembered: <code>props.children</code> is the rendered result of the child nodes,
+and wherever you receive it (both strong's <code>outer</code> and its <code>surrounder</code> do), you
+must output it, or the children's content is lost.
+</p>
+<div class="tip">
+Reload and try all three: select some text and insert an Emphasis, the text gets wrapped in bold; insert
+a Divider, a captioned rule appears in the editor; save, and the right side shows bold text and a clean
+horizontal rule.
+</div>
+
+<h2>Looking back</h2>
+<p>
+This chapter went from a bare editor to a structured editor with four concepts, and the routine was the
+same for every node kind: declare parameters, pick names, choose an editor factory and fill its slots,
+choose a printer factory and fill its slots. Every further concept is the same moves; only the factory
+and the slots differ. The full factory list is on the
+<a href="../api/default.html">default implementation page</a> of the API docs.
+</p>
+<p>
+All the theorems still just say "Theorem" with no numbers, though. The next chapter uses the printer's
+two-phase machinery to add automatic numbering, then cross references.
+</p>
+
+<h2>Chapter summary</h2>
+<ul>
+    <li>Four things make a concept usable: first-class concept (parameters), second-class concept (names and defaults), editor renderer, printer renderer.</li>
+    <li>Authors insert second-class concepts; renderers are registered under first-class names and inherited automatically.</li>
+    <li>Rendering code sees processed plain parameter values; functions like <code>get_label</code> are called as components and follow parameter changes.</li>
+    <li>Receiving <code>props.children</code> obliges you to output it, or child content is lost.</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/05-custom-concept.html"></script>
+</body>
+</html>

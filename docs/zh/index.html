@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>介绍与快速开始 · CallioText</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>CallioText</h1>
+<p class="lead">
+CallioText 是一个用来编写结构化文档的编辑器库，基于 React、Slate 和 MUI 构建。
+这一页介绍它是什么、为什么值得用，并给出安装方法和一个能直接跑起来的最小例子。
+</p>
+
+<h2>它是什么？</h2>
+<p>
+在 Word 里，想让论文中的每个定理都有统一的样式和连续的编号，只能手动维护：
+样式是自己调的，编号是自己写的，中间插入一个新定理，后面的编号就得挨个改。
+LaTeX 解决了这个问题：定理写作 <code>\begin{theorem}...\end{theorem}</code>，
+作者只声明「这是一个定理」，样式和编号由系统统一处理。
+</p>
+<p>
+但 LaTeX 毕竟为打印而生。它假定文章的归宿是一叠纸：编号排到最后一页就完成了使命，
+引用一旦印上纸面就再也不能动。而文章如今大多活在网页上，编号本可以跨越页面自动接续，
+引用本可以在鼠标停留时展开被引的原文，这些都不是 LaTeX 给得了的。
+它的输入又是代码：文章一长，源文件里反斜杠与花括号丛生，臃肿到读也吃力、改也吃力。
+</p>
+<p>
+CallioText 就是这样的一个编辑器：它像 LaTeX 一样把结构和样式分开，
+又像 Word 一样容易编辑，而输出像网页一样自由。
+</p>
+<h2>它是怎么工作的</h2>
+<p>在 CallioText 里，写文章是这样分工的：</p>
+<ul>
+    <li>预先加载一组「概念」，比如定理、证明、引用、章节线。每个概念规定了自己有哪些可以调整的参数，以及长什么样子。</li>
+    <li>写作的人用这些概念来组织文章。插入一个定理、写一段证明，就像在 LaTeX 里使用环境一样，只不过全程是图形界面操作。</li>
+    <li>最后由「印刷器」（库里负责排版输出的部分）把文章渲染成干净漂亮的成品。</li>
+</ul>
+<p>
+三个环节各管一段：概念定义决定文章能使用哪些语义，写作只操作语义，排版由渲染规则统一执行。
+想换样式，改概念的定义就够了，文章本身一个字不用动；想加一种新的文档组件，
+甚至可以在运行的程序里直接创建，不用写代码。这套模型是整个库的地基，教程第 1 章会把它展开讲透。
+</p>
+
+<h2>它能做什么</h2>
+<p>把这套分工落到实处，你得到的是这些能力：</p>
+<ul>
+    <li>编辑界面和排版结果互相独立。同一篇文章，编辑的时候是一种界面（带各种按钮和辅助信息），输出的时候是另一种样子（干净的排版成品），两边都可以自由定制。</li>
+    <li>概念分成两层。第一层由引擎定义，第二层可以在程序运行的时候创建，不需要写任何代码。也就是说，写作的人可以自己发明新的文档组件。教程里会详细解释这套设计。</li>
+    <li>自动编号和交叉引用。定理编号、图表编号，以及「见定理 3」这样的引用，都可以交给库自动维护。插入或删除内容之后，编号会自动重新排好。</li>
+    <li>全键盘操作。写作的时候双手可以完全不离开键盘。</li>
+    <li>每一层都可以替换。你可以直接用现成的默认界面，也可以细到「某一种节点怎么渲染」逐个定制。</li>
+</ul>
+<p>
+这些能力在教程里都有对应的章节：编辑与印刷的分离在第 3、4 章亲手搭出来，
+概念系统在第 5 章，自动编号和交叉引用在第 6 章，键盘操作和深度定制在第 7 章。
+读完教程，上面每一条你都不只是「知道有」，而是「知道怎么来的」。
+</p>
+
+<h2>安装</h2>
+<p>CallioText 以 npm 包的形式发布：</p>
+<pre><code class="language-bash">npm install @project-callio/calliotext</code></pre>
+
+<h2>快速开始</h2>
+<p>
+下面是一个能跑起来的最小例子。这里出现的名字会在教程里逐一解释，
+这个例子只用来展示跑起来一个编辑器需要哪些代码。
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    Printer, EditorCore,
+    DefaultEditorComponent,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+import "@project-callio/calliotext/calliotext.css"
+
+// 我们还没有定义任何概念，所以这里都是空的。
+const no_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+// 印刷器：负责把文档渲染成排版后的成品。
+const printer = new Printer([], [], no_renderers, {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+})
+
+// 编辑器核心：管理编辑器需要知道的所有信息。
+const core = new EditorCore({
+    renderers: no_renderers,
+    default_renderers: get_default_editors(),
+    printer,
+})
+
+export default function App(){
+    return &lt;div style={{height: "100vh", position: "relative"}}&gt;
+        &lt;DefaultEditorComponent editorcore={core} /&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>这段代码做了三件事：</p>
+<ol>
+    <li>创建了一个印刷器（<code>Printer</code>）。它负责把文档变成排版成品。因为还没有定义任何概念，我们传给它的都是空列表和最朴素的渲染方式。</li>
+    <li>创建了一个编辑器核心（<code>EditorCore</code>）。它管理编辑器的配置，并且和印刷器相连，以便查询概念的定义。</li>
+    <li>把默认的编辑器组件（<code>DefaultEditorComponent</code>）显示在页面上。</li>
+</ol>
+<p>
+打开页面，你会看到一张可以直接打字的「纸」。我们没有指定文档内容，所以编辑器自动创建了一篇空文档。
+</p>
+<p>
+不过，一个没有概念的编辑器和普通的文本框差别不大。CallioText 的能力要从定义概念开始展现。
+请从教程第一章开始阅读：<a href="tutorial/01-model.html">核心思想：概念与文档树</a>。
+</p>
+
+<h2>文档导航</h2>
+<p>
+整套文档分成三个部分。教程是主线，从零开始按章推进；API 文档假定你读过教程，按模块组织，供开发时查阅；
+TypeDoc 参考覆盖每一个导出项，前两者没讲到的细节去那里找：
+</p>
+<table>
+    <tr><th>部分</th><th>内容</th></tr>
+    <tr><td><a href="tutorial/01-model.html">教程</a></td><td>手把手从零搭建一个带定理编号、交叉引用的结构化编辑器。</td></tr>
+    <tr><td><a href="api/overview.html">API 文档</a></td><td>按模块整理的公开 API：签名、用途与说明。</td></tr>
+    <tr><td><a href="../reference/index.html">完整参考</a></td><td>由 TypeDoc 从源码注释自动生成的逐项参考（注释为中文）。</td></tr>
+</table>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../assets/docs.js" data-lang="zh" data-root="../" data-page="index.html"></script>
+</body>
+</html>

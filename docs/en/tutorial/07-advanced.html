@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7. Advanced Topics · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>7. Advanced Topics</h1>
+<p class="lead">
+The last chapter covers the remaining pieces between a demo and a usable application: saving and loading
+documents, creating second-class concepts at runtime, writing your own plugins, keyboard operation, and
+styling. The sections are independent; read what you need.
+</p>
+
+<h2>Saving and loading documents</h2>
+<p>
+The document tree is plain data that serializes straight to JSON, with no special objects inside. Saving is
+just taking the tree (with the method already used in chapter 4) and serializing it:
+</p>
+<pre><code class="language-tsx">const editor = editor_ref.current?.get_editor()
+if (editor) {
+    const root = editor.get_root()          // a complete document tree (AbstractNode)
+    localStorage.setItem("doc", JSON.stringify(root))
+}</code></pre>
+<p>
+Loading involves two extra steps. First, data of uncertain origin (user uploads, archives from older
+versions) should be run through the library's <code>validate</code> function before it reaches the editor;
+it recursively checks the tree's structure and reports errors with node paths. Second, the editor component
+receives its initial document as two pieces: the content (<code>children</code>) goes to
+<code>init_rootchildren</code>, and the root's remaining properties (idx, concept, parameters and so on)
+go to <code>init_rootproperty</code>:
+</p>
+<pre><code class="language-tsx">import { validate, AbstractNode } from "@project-callio/calliotext"
+
+const saved = JSON.parse(localStorage.getItem("doc")!)
+
+// Validation: when ok is false, msg explains the problem with a node path.
+const [ok, msg] = validate(saved)
+if (!ok) throw new Error(msg)
+
+const {children, ...property} = saved as AbstractNode
+
+&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    init_rootchildren={children}
+    init_rootproperty={property}
+/&gt;</code></pre>
+<p>
+As chapter 3 noted, omitting these two props makes the editor create an empty document; providing them makes
+it start from yours.
+</p>
+
+<h2>Creating second-class concepts at runtime</h2>
+<p>
+Chapter 1 promised that second-class concepts can be created at runtime without code. Here is that promise
+kept. A second-class concept is fully described by a handful of fields (what it inherits, what it is called,
+which parameters it overrides), so it can live in a JSON file or come from a backend API. Below is the
+definition of a Proposition concept from a real system:
+</p>
+<pre><code class="language-json">{
+    "Proposition": {
+        "first": "primary",
+        "type": "group",
+        "fixed": {
+            "title":  {"val": "p=&gt;p.category.val", "type": "function"},
+            "prefix": {"val": "p=&gt;p.alias.val",    "type": "function"}
+        },
+        "default": {
+            "category": {
+                "val": "Proposition", "type": "string",
+                "choices": ["Theorem", "Lemma", "Corollary", "Claim", "Proposition"]
+            },
+            "alias": {"val": "", "type": "string"}
+        }
+    }
+}</code></pre>
+<p>Two new things in this definition:</p>
+<ul>
+    <li>
+        Function-typed parameters. In <code>fixed</code> (which corresponds to <code>fixed_override</code>
+        in code), the value of <code>title</code> is not a string but a piece of arrow-function code,
+        <code>p =&gt; p.category.val</code>, with type <code>function</code>. At print time it is evaluated
+        with the node's parameter table as <code>p</code>. The effect: title is no longer a fixed value but
+        follows the <code>category</code> parameter automatically.
+    </li>
+    <li>
+        <code>choices</code>. Parameter value objects may carry extra fields, and <code>choices</code> is one
+        the default parameter editor understands: a parameter with it renders as a dropdown instead of a free
+        text input.
+    </li>
+</ul>
+<p>
+Together, this one second-class concept does the work of five: an author inserts a Proposition, flips
+<code>category</code> to Theorem or Lemma in the parameter panel, and the heading follows, with no need for
+five separate concepts.
+</p>
+<p>Turning such JSON into concept objects is ordinary iteration and construction:</p>
+<pre><code class="language-tsx">const ret: SecondClassConcept[] = []
+for (const name in data) {
+    const info = data[name]
+    ret.push(new SecondClassConcept({
+        name,
+        type: info.type,
+        first_concept: info.first,
+        default_override: info.default,
+        fixed_override: info.fixed,
+    }))
+}
+// Pass them to the Printer constructor, or append dynamically
+// with printer.add_second_concept(x).</code></pre>
+
+<h2>Writing your own plugins</h2>
+<p>
+Chapter 3 mentioned that the tree's structural constraints are maintained by built-in normalization plugins.
+When you need constraints of your own (forcing the document to open with a certain node, for instance), you
+write a plugin. Its type is:
+</p>
+<pre><code class="language-typescript">type EditorPlugin =
+    (editor: EditorComponent, slate: ReactEditor) =&gt; ReactEditor</code></pre>
+<p>
+It receives the editor and the underlying Slate editor object and returns the (usually modified) Slate
+editor, the standard pattern in the Slate ecosystem. The most common form wraps
+<code>normalizeNode</code>: Slate calls it after every content change to check and repair structure, and we
+append our own checks inside. The following plugin forces the document to begin with a divider:
+</p>
+<pre><code class="language-tsx">import * as Slate from "slate"
+import { ReactEditor } from "slate-react"
+import {
+    EditorComponent, slate_is_concept, get_normalize_status,
+} from "@project-callio/calliotext"
+
+function force_leading_divider(editor: EditorComponent, slate: ReactEditor): ReactEditor {
+    const normalizeNode = slate.normalizeNode
+
+    slate.normalizeNode = (entry: [Slate.Node, number[]]) =&gt; {
+        const [node, path] = entry
+
+        // Skip checks while the document is loading. The tree passes through
+        // intermediate states during loading, and repairing too eagerly there
+        // can corrupt the document.
+        if (get_normalize_status("initializing")) {
+            normalizeNode(entry)
+            return
+        }
+
+        if (path.length === 0) {   // an empty path means we are checking the root
+            const root = node as Slate.Editor
+            const first = root.children[0]
+            // slate_is_concept checks whether a Slate node is a concept node;
+            // the second argument narrows the kind.
+            if (!first || !slate_is_concept(first, "support")) {
+                // Constraint violated: repair. create_support makes a support node
+                // by second-class concept name; add_nodes inserts it at path [0],
+                // the start of the document.
+                editor.add_nodes(editor.get_core().create_support("Divider"), [0])
+                return   // return after repairing; Slate re-runs normalization to confirm.
+            }
+        }
+        normalizeNode(entry)
+    }
+    return slate
+}</code></pre>
+<p>Mount it through the <code>plugin</code> prop:</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent editorcore={editor_core} plugin={force_leading_divider} /&gt;</code></pre>
+<p>
+Multiple plugins nest in sequence: <code>plugin={(e, s) =&gt; pluginB(e, pluginA(e, s))}</code>.
+The built-in normalization plugins always apply; yours stack on top of them rather than replacing them.
+</p>
+
+<h2>The tree operation API</h2>
+<p>
+The <code>add_nodes</code> used in the plugin above belongs to a family of tree operations the editor
+provides. The ones most used in plugins and custom buttons (the full list is in the
+<a href="../api/editor.html">API docs</a>):
+</p>
+<table>
+    <tr><th>Method</th><th>Purpose</th></tr>
+    <tr><td><code>add_nodes(nodes, path)</code> / <code>add_nodes_here(nodes)</code></td><td>Insert nodes at a path, or at the cursor</td></tr>
+    <tr><td><code>set_node(node, partial)</code></td><td>Modify a node's properties, parameters included</td></tr>
+    <tr><td><code>delete_concept_node(node)</code></td><td>Delete a node</td></tr>
+    <tr><td><code>unwrap_node(node)</code></td><td>Delete a node but keep its children</td></tr>
+    <tr><td><code>move_concept_node(node, path)</code></td><td>Move a node</td></tr>
+    <tr><td><code>wrap_selected_nodes(node, opts)</code></td><td>Wrap the current selection in a new node</td></tr>
+    <tr><td><code>get_core().create_group("Theorem")</code> etc.</td><td>Create nodes by second-class concept name</td></tr>
+</table>
+
+<h2>Keyboard operation</h2>
+<p>
+The default editor ships a complete keyboard operation scheme (built on the <code>@ftyyy/mouseless</code>
+library): Alt-based chords such as Alt+S enter a spatial navigation mode, arrow keys then move between node
+buttons, the sidebar and the concept area, and Enter triggers the selected button. Holding a control key for
+a moment reveals hints next to each button; a <code>ShowHintControlButton</code> component can keep the
+hints permanently visible. All of this comes with <code>DefaultEditorComponent</code>, no configuration
+required.
+</p>
+
+<h2>Styling</h2>
+<p>
+The editor and the printer each accept a style configuration covering fonts, margins and widths. The
+configuration is partial: specify only what you want to change, everything else keeps its default:
+</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    config={{fonts: {body: {fontFamily: "serif"}}}}   // type: PartialEditorConfig
+/&gt;
+
+&lt;DefaultPrinterComponent
+    printer={printer}
+    root={tree}
+    config={{margins: {paragraph: "0.8rem"}}}          // type: PartialPrinterConfig
+/&gt;</code></pre>
+<p>
+Add <code>sidebar_extras</code> (an array of components appended to the sidebar) and <code>onSave</code>,
+and what you have matches the skeleton of the complete example application in the repository's
+<code>test/demo</code>.
+</p>
+<p>
+This concludes the tutorial. From here, the <a href="../api/overview.html">API docs</a> give a systematic
+view of each module, and the <a href="../../reference/index.html">TypeDoc reference</a> covers every item.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/07-advanced.html"></script>
+</body>
+</html>

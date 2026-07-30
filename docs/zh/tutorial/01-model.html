@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1. 核心思想：概念与文档树 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>1. 核心思想：概念与文档树</h1>
+<p class="lead">
+在写代码之前，这一章先把 CallioText 看待文档的方式讲清楚：什么是概念，概念为什么分成两层，
+文档树上有哪几种节点，编辑器和印刷器又各自负责什么。这一章没有代码，
+但后面的每一章都建立在这一章的基础上，值得慢慢读完。
+</p>
+
+<h2>从 LaTeX 说起</h2>
+<p>
+用 Word 写过论文的人都记得那种滋味：定理的样式要统一，编号要连续，而这一切全靠手来维持。
+加粗是自己加的，「定理 3.2」是自己编的；在第三个定理前插入一个新定理，
+后面的编号便全部作废，只能挨个改过去；哪天想统一换掉定理的样式，就只好从头到尾把文章翻一遍。
+</p>
+<p>LaTeX 用户走的是另一条路。在 LaTeX 里，一个定理写作：</p>
+<pre><code class="language-latex">\begin{theorem}
+    ...
+\end{theorem}</code></pre>
+<p>
+作者只说「从这里到这里是一个定理」，字体、编号、间距都交给样式系统去操心；
+想换样式，改一处定义就够了。这背后是一个值得记住的想法：
+</p>
+<blockquote>
+<p>文档的内容与结构，应当和它的外观分开。作者负责声明结构，外观交给渲染规则统一处理。</p>
+</blockquote>
+<p>
+不过 LaTeX 毕竟是互联网时代之前的产物：它的产出是为打印准备的页面，
+它的输入是随着文章一起膨胀的代码。CallioText 做的事情，是把同一个想法带进图形化编辑器：
+交互接近 Word，文档的内部结构像 LaTeX 一样明确，外观由渲染规则决定，
+而输出端是自由的，可以是网页，也可以走向 PDF。
+</p>
+
+<h2>概念</h2>
+<p>
+上面那个 <code>theorem</code>，在 CallioText 里叫做一个概念（concept）。
+概念就是你为文档中某一类成分定义的类型：定理、证明、脚注、引用块、分隔线，都可以是概念。
+每个概念规定两件事：
+</p>
+<ol>
+    <li>这类成分有哪些参数。比如「定理」可以有标题参数（显示为定理、引理还是命题）和编号方式参数。</li>
+    <li>这类成分如何渲染。编辑时的外观和输出成品时的外观是分开定义的两套，互不影响。</li>
+</ol>
+
+<h2>概念分两层</h2>
+<p>
+CallioText 的概念系统有一个关键设计：概念分成两层。
+用 OOP 来类比，一级概念相当于类，二级概念相当于这个类的对象。
+</p>
+<table class="nowrap-first">
+    <tr><th></th><th>一级概念（FirstClassConcept）</th><th>二级概念（SecondClassConcept）</th></tr>
+    <tr><td>谁来定义</td><td>引擎，用代码</td><td>任何人，可以在运行时创建（比如从 JSON 加载）</td></tr>
+    <tr><td>定义了什么</td><td>参数原型（有哪些参数、默认值）、渲染逻辑</td><td>继承某个一级概念，重写部分参数的默认值，或把某些参数固定住</td></tr>
+</table>
+<p>
+举例：一级概念 <code>primary</code> 表示「一段需要突出展示的话」，
+定义了 <code>title</code>、<code>prefix</code>、<code>ordering</code> 三个参数和渲染规则（标题和编号在前，正文在后）。
+二级概念「命题」继承 <code>primary</code>，把标题默认值设为「命题」；
+二级概念「项目」也继承 <code>primary</code>，但标题显示为项目名。
+两个二级概念共享同一份渲染代码，只是参数不同。
+</p>
+<p>这样设计有两个动机：</p>
+<ul>
+    <li>渲染代码只为一级概念写一份，任意多个二级概念共享，维护成本低。</li>
+    <li>二级概念可以在运行时创建。写作者（即使不写代码）可以自己派生新的文档组件：觉得「命题」不够用，可以直接造一个「猜想」。</li>
+</ul>
+<p>
+命名惯例：一级概念用小写英文单词命名，如 <code>primary</code>、<code>strong</code>、<code>quote</code>；
+二级概念用写作者语言里的实际词汇，如「命题」「强调」「引用」。
+</p>
+
+<h2>文档树：七种节点</h2>
+<p>
+一篇文档是一棵树。树上的节点共有七种，其中五种是概念节点（需要指定自己使用的概念），
+两种是纯内容节点：
+</p>
+<table class="nowrap-first">
+    <tr><th>节点</th><th>type</th><th>角色</th><th>允许的子节点</th></tr>
+    <tr><td>文本</td><td><code>text</code></td><td>叶子节点，实际的文字</td><td>无</td></tr>
+    <tr><td>段落</td><td><code>paragraph</code></td><td>一段文字的容器</td><td>文本、行内、支撑</td></tr>
+    <tr><td>行内</td><td><code>inline</code></td><td>行内语义：强调、链接、行内公式</td><td>文本、行内</td></tr>
+    <tr><td>组</td><td><code>group</code></td><td>块级语义：定理、证明、引用块</td><td>段落、组、结构、支撑（不能直接放文本或行内）</td></tr>
+    <tr><td>结构</td><td><code>structure</code></td><td>有固定内部布局的语义，比如一行分多列</td><td>只能是组</td></tr>
+    <tr><td>支撑</td><td><code>support</code></td><td>无内容的占位元素：分隔线、图片</td><td>无（占位空文本）</td></tr>
+    <tr><td>抽象</td><td><code>abstract</code></td><td>附着在节点上的独立子文档：脚注、批注；文档的根也是抽象节点</td><td>与组相同</td></tr>
+</table>
+<p>表格之外，有几条规则值得单独说明：</p>
+<ul>
+    <li>所有文字都必须放在段落里。对照表格可以看到，组、结构、抽象里都不能直接出现文本节点，文字要先装进段落。这条规则保证了树结构的整齐。</li>
+    <li>块级的嵌套是自由的。组里可以再放组：引用块里可以有定理，定理里又可以有列表，层数不限。</li>
+    <li>支撑节点自身没有内容，图片的地址、宽度这类信息放在它的参数里。它既可以独占一块（比如分隔线），也可以嵌在段落里充当行内元素（比如行内图片）。</li>
+    <li>抽象是可以递归的。脚注可以做成一个抽象；而抽象本身也是一个节点，像别的概念节点一样可以携带自己的抽象，因此可以一层一层递归下去。整棵文档树的根也是一个抽象节点，这个设定后面会反复遇到。</li>
+</ul>
+
+<h2>概念节点的字段</h2>
+<p>每个概念节点携带一组固定字段。以组节点为例：</p>
+<pre><code class="language-typescript">interface GroupNode {
+    type: "group"
+    idx: string
+    concept: string
+    parameters: ParameterList
+    children: NonLeafNode[]
+    abstract: AbstractNode[]
+    relation: "chaining" | "separating"
+}</code></pre>
+<ul>
+    <li><code>idx</code>：节点编号，全文唯一，由库自动生成。交叉引用（在一处引用另一处）靠它定位目标。</li>
+    <li><code>concept</code>：节点使用的概念名。注意存的是二级概念的名字，比如「命题」。</li>
+    <li><code>parameters</code>：参数值。每个参数带类型标注，比如 <code>{title: {type: "string", val: "定理"}}</code>。带类型是为了让编辑器为每种参数生成合适的编辑控件：字符串用输入框，布尔用开关。</li>
+    <li><code>abstract</code>：附着在这个节点上的抽象节点列表，比如挂在定理上的批注。</li>
+    <li><code>relation</code>：与前一个兄弟节点的关系，「相连」（chaining）或「分离」（separating）。</li>
+</ul>
+<p>
+<code>relation</code> 需要解释一下。两个相邻的「列表」块，可以是两个独立的列表（分离），
+也可以是同一个列表被中间内容打断后的延续（相连）。渲染和编号都能感知这个区别：
+比如自动编号可以配置成「遇到分离的块重新从 1 开始，相连的块接着编」。
+写作者在编辑器里可以随时切换。
+</p>
+
+<h2>编辑器与印刷器</h2>
+<p>
+处理这棵树的部件有两个：编辑器和印刷器。它们的关系用编译器来比喻最贴切。
+文档树是一种中间表示；编辑器相当于编译器的前端，把高级语言（写作者的图形化输入）编码成中间表示；
+印刷器相当于编译器的后端，把中间表示翻译成目标语言（网页，或者进一步的 PDF 输出）。
+前端和后端只通过中间表示打交道，所以同一棵树可以有完全独立的两副外观。
+</p>
+<ul>
+    <li>编辑器：写作者操作的界面。每个概念在这里注册「编辑渲染器」，通常带标题栏、按钮、参数编辑面板。代码里编辑器一侧的核心类叫 <code>EditorCore</code>。</li>
+    <li>印刷器：把树渲染成最终成品的部件，取「排版付印」之意。每个概念在这里注册「印刷渲染器」，输出干净的、适合阅读的排版。核心类叫 <code>Printer</code>。</li>
+</ul>
+<p>
+印刷器有一个重要特性：正式渲染之前，它会先把整棵树按文档顺序完整遍历一遍（这一步叫预处理）。
+原因很直接：像定理编号这样的信息，单看一个节点是算不出来的，第 5 个定理的编号是 5，
+必须数过前面 4 个才知道。预处理就是把这类全文级的信息先算好，渲染时每个节点直接取用。
+自动编号和交叉引用都建立在这一步上，第 6 章会具体使用它。
+</p>
+
+<h2>本章要点</h2>
+<ul>
+    <li>结构与外观分离：作者声明结构，外观由渲染规则决定。</li>
+    <li>概念分两层，如同类和对象：一级概念由引擎用代码定义，二级概念可以在运行时创建，无需代码。</li>
+    <li>文档是一棵树，节点七种；概念节点携带 idx、concept、parameters、abstract、relation 等字段。</li>
+    <li>编辑器与印刷器像编译器的前端和后端：一个把图形化输入编码成文档树，一个把文档树翻译成排版成品，两者只通过这棵树衔接。</li>
+    <li>印刷器先预处理（全文遍历算编号、收集引用）再渲染。</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/01-model.html"></script>
+</body>
+</html>

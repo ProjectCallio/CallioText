@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4. 印刷器：渲染成品 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>4. 印刷器：渲染成品</h1>
+<p class="lead">
+这一章让右半边上线：先让印刷器渲染一棵手写的树，再把它和编辑器接通，
+做出一个左边写、右边看的完整回路。最后讲一点印刷器的内部原理，为第 6 章的自动编号做铺垫。
+</p>
+
+<h2>第一步：让印刷器先渲染点什么</h2>
+<p>
+印刷器组件需要一棵树才能工作，而编辑器里的树要稍后才接过来。
+不妨先手写一棵最小的树喂给它，顺便复习第 1 章的节点结构。更新 <code>src/App.tsx</code>：
+</p>
+<pre><code class="language-tsx">import React, { useRef } from "react"
+import {
+    DefaultEditorComponent, DefaultPrinterComponent,
+    AbstractNode,
+} from "@project-callio/calliotext"
+import { editor_core, printer } from "./core"
+
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+// 手写一棵最小的树：一个树根，里面一个段落。
+const hello_tree: AbstractNode = {
+    type: "abstract", concept: "root", idx: "root",
+    parameters: {}, abstract: [],
+    children: [{children: [{text: "你好，印刷器。"}]}],
+}
+
+export default function App(){
+    const editor_ref = useRef&lt;DefaultEditorComponent | null&gt;(null)
+
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            &lt;DefaultEditorComponent
+                ref={editor_ref}
+                editorcore={editor_core}
+            /&gt;
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            &lt;DefaultPrinterComponent
+                printer={printer}
+                root={hello_tree}
+            /&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+对照第 1 章看这棵 <code>hello_tree</code>：它是一个抽象节点（<code>type: "abstract"</code>），
+概念名 <code>root</code>，没有参数，没有附着的抽象节点，children 里是一个段落，段落里是一个文本节点。
+<code>DefaultPrinterComponent</code> 只要两样东西：印刷器（<code>printer</code>）和要渲染的树（<code>root</code>）。
+</p>
+<div class="tip">
+刷新页面。右半边应该出现「你好，印刷器。」这行字的排版版本。
+试着改改 <code>hello_tree</code> 里的文字或者多加一个段落对象，右边会跟着变，
+这证明右半边渲染的确实就是这棵树。
+</div>
+
+<h2>第二步：接上编辑器</h2>
+<p>
+现在把手写的树换成编辑器里的真树。第 1 章说过，编辑器内部用的是 Slate 的数据结构
+（为了支持光标、选区、撤销重做），而印刷器要的是普通文档树，
+桥梁是编辑器的 <code>get_root()</code> 方法：把当前编辑内容组装成一棵完整的文档树返回。
+</p>
+<p>
+思路：用一个 state 保存「当前要展示的树」，交给印刷器；用户保存文档时，
+调用 <code>get_root()</code> 取最新的树，更新这个 state。改完的 <code>App.tsx</code>：
+</p>
+<pre><code class="language-tsx">import React, { useRef, useState, useCallback } from "react"
+import {
+    DefaultEditorComponent, DefaultPrinterComponent,
+    AbstractNode,
+} from "@project-callio/calliotext"
+import { editor_core, printer } from "./core"
+
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+// 初始树改回空文档：一个树根，里面一个空段落。
+const empty_tree: AbstractNode = {
+    type: "abstract", concept: "root", idx: "root",
+    parameters: {}, abstract: [],
+    children: [{children: [{text: ""}]}],
+}
+
+export default function App(){
+    const editor_ref = useRef&lt;DefaultEditorComponent | null&gt;(null)
+
+    // 当前要展示的树。
+    const [tree, set_tree] = useState&lt;AbstractNode&gt;(empty_tree)
+
+    // 从编辑器取出最新的树，更新状态。
+    const refresh = useCallback(() =&gt; {
+        // editor_ref.current 是 DefaultEditorComponent，
+        // 调用它的 get_editor() 才拿到内部真正干活的编辑器。
+        const editor = editor_ref.current?.get_editor()
+        if (editor) set_tree(editor.get_root())
+    }, [])
+
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            &lt;DefaultEditorComponent
+                ref={editor_ref}
+                editorcore={editor_core}
+                onSave={refresh}
+            /&gt;
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            &lt;DefaultPrinterComponent
+                printer={printer}
+                root={tree}
+            /&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+新出现的只有两处。<code>onSave={refresh}</code>：用户在编辑器里触发保存动作时
+（界面上的保存按钮，或保存快捷键），<code>DefaultEditorComponent</code> 会调用传进去的函数，
+我们的 <code>refresh</code> 取出最新的树并更新 state。上一章留下的 <code>editor_ref</code> 在这里派上了用场。
+</p>
+<div class="tip">
+刷新页面，在左边打几段字，触发保存。右半边应该出现这几段文字的排版版本。
+再改几个字、再保存，右边跟着更新。左边写、右边看的回路通了。
+现在两边看起来差别不大，因为文档里只有段落和文字，而所有渲染器都还是「什么样式都不加」的默认款；
+第 5 章注册概念之后，两边会同时活起来。
+</div>
+
+<h2>为什么是「保存时刷新」，而不是实时同步？</h2>
+<p>
+你可能注意到了：右边不是打一个字变一下，而是保存时才更新。这是刻意的选择，原因有两个：
+</p>
+<ul>
+    <li>每次击键都会改变树。若每次变化都让印刷器重渲染整篇文档，文档较长时性能撑不住。</li>
+    <li>更重要的是，印刷器渲染前要先对整棵树做预处理（下一节细说）。这是全文级别的工作，不适合每个击键都做一遍。</li>
+</ul>
+<p>
+如果你确实想要实时预览，编辑器还有一个 <code>onUpdate</code> 入口，树每次变化都会调用它。
+把 <code>refresh</code> 挂到那上面就是实时同步了，只是要自己权衡性能。
+</p>
+
+<h2>印刷器分两步工作</h2>
+<p>
+这一节讲一点内部原理，它是第 6 章的基础。
+<code>DefaultPrinterComponent</code> 拿到树之后不是直接渲染，而是分两步：
+</p>
+<ol>
+    <li>预处理（preprocess）。按文档顺序遍历整棵树，沿途累积信息：当前是第几个定理、第几张图、谁引用了谁。遍历结束后，每个节点都得到一份属于自己的结论，比如「你是第 3 个定理」。</li>
+    <li>渲染。再次遍历，这次真正生成页面内容。每个节点的渲染代码可以读到预处理留给它的结论，于是知道该把自己显示成「定理 3」。</li>
+</ol>
+<p>
+分两步的原因在第 1 章提过：定理的编号取决于它前面有多少个定理，单看节点本身得不出，
+必须有人遍历全文数一遍。交叉引用同理，「见定理 3」里的 3 只有数完才知道。
+第 6 章我们会使用这套机制，给自己的概念加上自动编号。
+</p>
+
+<h2>本章要点</h2>
+<ul>
+    <li><code>DefaultPrinterComponent</code> 只需要印刷器和一棵树；树从哪来它不关心，手写的和编辑器里取的都行。</li>
+    <li><code>get_root()</code> 把编辑器当前的内容组装成一棵文档树；配合一个 state 和 <code>onSave</code>，就是保存时刷新的预览回路。</li>
+    <li>印刷器分两步工作：先预处理（遍历全文累积信息），再渲染。自动编号和交叉引用都建立在预处理上。</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/04-printer.html"></script>
+</body>
+</html>

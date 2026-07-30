@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>printer：印刷器 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>printer：印刷器</h1>
+<p class="lead">
+把文档树渲染成排版成品的核心模块：<code>Printer</code>（概念与渲染器的登记处）、
+<code>PrinterComponent</code>（执行两阶段渲染的组件）、<code>PrinterRenderer</code>（渲染器协议），
+以及预处理产物的类型定义。预处理机制的原理见教程第 4 章和第 6 章。
+</p>
+
+<h2>Printer</h2>
+<p>
+Printer 是输出一侧的入口，同时也是全部概念定义的保管者（编辑器通过它查询概念）。
+和 EditorCore 一样，应用启动时构造一次、全程共用。四个构造参数在教程第 3 章出现过：
+</p>
+<pre><code class="language-typescript">new Printer(
+    first_class_concepts: FirstClassConcept[],
+    second_class_concepts: SecondClassConcept[],
+    renderers: RendererDict,            // {group: {一级概念名: PrinterRenderer}, ...}
+    default_renderers: DefaultRendererDict, // 每种节点类型一个默认渲染器
+)</code></pre>
+<p>
+它的方法可以分成四类：动态注册（<code>add_</code> 系列，用于运行时追加概念和渲染器）、
+概念与渲染器的查询（<code>get_</code> 系列）、参数加工（<code>process_parameters</code>），
+以及预处理的入口（<code>preprocess</code>，通常由印刷器组件自动调用，很少手动触发）：
+</p>
+<table>
+    <tr><th>方法</th><th>说明</th></tr>
+    <tr><td><code>add_first_concept(x)</code> / <code>add_second_concept(x)</code> / <code>add_renderer(type, name, renderer)</code></td><td>构造之后动态注册概念和渲染器</td></tr>
+    <tr><td><code>get_first_concept(type, name)</code> / <code>get_second_concept(type, name)</code></td><td>按名字查询概念</td></tr>
+    <tr><td><code>get_node_first_concept(node)</code> / <code>get_node_second_concept(node)</code></td><td>从节点出发解析它的概念</td></tr>
+    <tr><td><code>get_renderer(type, name?)</code> / <code>get_node_renderer(node)</code></td><td>查询渲染器，查不到时返回默认渲染器</td></tr>
+    <tr><td><code>process_parameters(node)</code></td><td>把节点参数加工成处理后的形式：套用二级概念的重写、求值函数型参数、剥掉类型包装</td></tr>
+    <tr><td><code>preprocess({root, init_env?})</code></td><td>对整棵树做预处理，返回四件产物 <code>[环境, 各节点上下文, 各节点参数, 缓存]</code></td></tr>
+    <tr><td><code>preprocess_init()</code></td><td>异步初始化：调用各渲染器的 <code>init</code>（比如预加载数据），返回 Promise</td></tr>
+</table>
+
+<h2>PrinterComponent</h2>
+<p>
+印刷器的 React 组件（类组件），负责执行预处理和渲染。
+通常通过它的包装 <code>DefaultPrinterComponent</code> 使用（见<a href="default.html">默认实现</a>那页）。
+</p>
+<pre><code class="language-typescript">interface PrinterComponentProps {
+    printer: Printer
+    root: AbstractNode
+    init_env?: Env                        // 预处理的初始环境，一般不需要
+    onUpdateCache?: (cache: PrinterCache) =&gt; void  // 每次预处理后把缓存交出来
+}</code></pre>
+<table>
+    <tr><th>实例方法</th><th>说明</th></tr>
+    <tr><td><code>scroll_to(path)</code> / <code>scroll_to_idx(idx)</code></td><td>滚动到指定节点，「点击引用跳转到目标」用它实现</td></tr>
+    <tr><td><code>get_ref(path)</code> / <code>get_ref_from_idx(idx)</code> / <code>bind_ref(path)</code></td><td>取得或绑定节点对应的 DOM 元素</td></tr>
+    <tr><td><code>preprocess(params?)</code> / <code>update()</code></td><td>手动触发预处理、手动刷新</td></tr>
+</table>
+
+<h2>PrinterRenderer：渲染器协议</h2>
+<p>
+印刷渲染器是 <code>PrinterRenderer</code> 类的实例。它把一个渲染器拆成几个阶段函数：
+</p>
+<pre><code class="language-typescript">new PrinterRenderer&lt;NodeType&gt;({
+    init?: () =&gt; Promise&lt;void&gt;,            // 一次性的异步准备工作
+    enter?: PrinterEnterFunction&lt;NodeType&gt;, // 预处理进入节点时调用
+    exit?: PrinterExitFunction&lt;NodeType&gt;,   // 预处理离开节点时调用
+    renderer: PrinterRenderFunction&lt;NodeType&gt;,          // 渲染阶段的 React 组件
+    renderer_as_property?: PrinterRenderFunction&lt;NodeType&gt;, // 仅抽象节点：作为属性渲染时用
+})</code></pre>
+<p>各阶段函数的签名：</p>
+<pre><code class="language-typescript">// 预处理阶段，按文档顺序对每个节点调用。直接原地修改 env 和 context。
+type PrinterEnterFunction&lt;NT&gt; = (
+    node: Readonly&lt;NT&gt;, path: Readonly&lt;number[]&gt;,
+    parameters: Readonly&lt;ProcessedParameterList&gt;,
+    env_draft: Env, context_draft: Context,
+) =&gt; void
+
+// 离开节点时调用。返回二元组：写入缓存的内容，以及是否已处理完成
+//（返回 false 表示需要再跑一轮预处理迭代）。
+type PrinterExitFunction&lt;NT&gt; = (同上述参数) =&gt; [PrinterCacheItem, boolean]
+
+// 渲染阶段：一个普通的 React 组件。
+interface PrinterRenderFunctionProps&lt;NT&gt; {
+    node: NT
+    context: Context                       // 预处理为该节点留下的结论
+    parameters: {[key: string]: any}       // 处理后的参数
+    children?: React.ReactNode             // 子节点的渲染结果，务必输出
+}</code></pre>
+<p>
+直接手写 <code>enter</code> 和 <code>exit</code> 属于底层用法。日常开发用
+<a href="default.html">默认实现的工厂函数</a>配合 contexter：
+工厂会把 contexter 的钩子自动接到这两个位置上（见教程第 6 章）。
+</p>
+
+<h2>预处理产物的类型</h2>
+<p>
+预处理返回的四件产物（环境、各节点上下文、各节点参数、缓存）各有自己的类型名。
+写渲染器和 contexter 时会反复见到它们，值得对照教程第 6 章记一遍：
+</p>
+<table>
+    <tr><th>类型</th><th>说明</th></tr>
+    <tr><td><code>Env</code></td><td><code>{[key]: any}</code>。预处理过程中的全局环境，各 contexter 用自己的 key 在其中各占一块。</td></tr>
+    <tr><td><code>Context</code></td><td><code>{[key]: any}</code>。预处理留给单个节点的结论，渲染阶段该节点可读。</td></tr>
+    <tr><td><code>ProcessedParameterList</code></td><td><code>{[key]: any}</code>。处理后的参数，值是普通值。</td></tr>
+    <tr><td><code>PrinterCache / PrinterCacheItem</code></td><td>按节点 idx 索引的缓存表。<code>exit</code> 的返回值汇集于此，全局可查，引用名等「给别人看的信息」放这里。</td></tr>
+    <tr><td><code>RendererDict</code></td><td><code>{group: {名: PrinterRenderer}, inline: ..., structure: ..., support: ..., abstract: ...}</code></td></tr>
+    <tr><td><code>DefaultRendererDict</code></td><td>七种节点类型各一个默认 <code>PrinterRenderer</code></td></tr>
+</table>
+
+<h2>渲染上下文 hooks</h2>
+<p>
+印刷渲染函数内部可以使用一组 hooks 访问整个印刷现场的信息
+（由 <code>PrinterGlobalInfo</code> 这个 React Context 提供）：
+</p>
+<table>
+    <tr><th>Hook</th><th>说明</th></tr>
+    <tr><td><code>usePrinter()</code> / <code>usePrinterGlobalInfo()</code></td><td>印刷器全局信息</td></tr>
+    <tr><td><code>usePrinterRoot()</code></td><td>正在被渲染的根节点</td></tr>
+    <tr><td><code>usePrinterComponent()</code></td><td><code>PrinterComponent</code> 实例，可调用 <code>scroll_to_idx</code> 等方法</td></tr>
+    <tr><td><code>usePrinterAllEnv() / usePrinterAllContexts() / usePrinterAllParameters() / usePrinterAllCaches()</code></td><td>预处理的全部产物。实现引用显示时最常用的是 caches：按目标 idx 查出引用名。</td></tr>
+</table>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="api/printer.html"></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>printer: The Printer · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>printer: The Printer</h1>
+<p class="lead">
+The core module that renders document trees into typeset output: <code>Printer</code> (the registry of
+concepts and renderers), <code>PrinterComponent</code> (the component executing two-phase rendering),
+<code>PrinterRenderer</code> (the renderer protocol), and the types of the preprocessing products.
+The preprocessing mechanism itself is explained in tutorial chapters 4 and 6.
+</p>
+
+<h2>Printer</h2>
+<p>
+Printer is the entry object of the output side, and also the keeper of all concept definitions (the editor
+queries concepts through it). Like EditorCore, it is constructed once at startup and shared from then on.
+Its four constructor arguments appeared in tutorial chapter 3:
+</p>
+<pre><code class="language-typescript">new Printer(
+    first_class_concepts: FirstClassConcept[],
+    second_class_concepts: SecondClassConcept[],
+    renderers: RendererDict,            // {group: {first-concept name: PrinterRenderer}, ...}
+    default_renderers: DefaultRendererDict, // one default renderer per node kind
+)</code></pre>
+<p>
+Its methods fall into four groups: dynamic registration (the <code>add_</code> family, for appending
+concepts and renderers at runtime), lookup of concepts and renderers (the <code>get_</code> family),
+parameter processing (<code>process_parameters</code>), and the entry point of preprocessing
+(<code>preprocess</code>, normally invoked by the printer component rather than by hand):
+</p>
+<table>
+    <tr><th>Method</th><th>Description</th></tr>
+    <tr><td><code>add_first_concept(x)</code> / <code>add_second_concept(x)</code> / <code>add_renderer(type, name, renderer)</code></td><td>Register concepts and renderers dynamically after construction</td></tr>
+    <tr><td><code>get_first_concept(type, name)</code> / <code>get_second_concept(type, name)</code></td><td>Concept lookup by name</td></tr>
+    <tr><td><code>get_node_first_concept(node)</code> / <code>get_node_second_concept(node)</code></td><td>Resolve a node's concepts starting from the node</td></tr>
+    <tr><td><code>get_renderer(type, name?)</code> / <code>get_node_renderer(node)</code></td><td>Renderer lookup; falls back to the default renderers</td></tr>
+    <tr><td><code>process_parameters(node)</code></td><td>Produce the processed form of a node's parameters: apply second-class overrides, evaluate function-typed parameters, strip the type wrappers</td></tr>
+    <tr><td><code>preprocess({root, init_env?})</code></td><td>Preprocess the whole tree; returns the four products <code>[environment, per-node contexts, per-node parameters, cache]</code></td></tr>
+    <tr><td><code>preprocess_init()</code></td><td>Async initialization: runs each renderer's <code>init</code> (preloading data, for example); returns a Promise</td></tr>
+</table>
+
+<h2>PrinterComponent</h2>
+<p>
+The printer's React component (a class component), responsible for running preprocessing and rendering.
+Normally used through its wrapper <code>DefaultPrinterComponent</code> (see the
+<a href="default.html">defaults page</a>).
+</p>
+<pre><code class="language-typescript">interface PrinterComponentProps {
+    printer: Printer
+    root: AbstractNode
+    init_env?: Env                        // initial environment for preprocessing; rarely needed
+    onUpdateCache?: (cache: PrinterCache) =&gt; void  // hands out the cache after each preprocessing pass
+}</code></pre>
+<table>
+    <tr><th>Instance method</th><th>Description</th></tr>
+    <tr><td><code>scroll_to(path)</code> / <code>scroll_to_idx(idx)</code></td><td>Scroll to a node; click-to-jump for references is built on this</td></tr>
+    <tr><td><code>get_ref(path)</code> / <code>get_ref_from_idx(idx)</code> / <code>bind_ref(path)</code></td><td>Obtain or bind the DOM element corresponding to a node</td></tr>
+    <tr><td><code>preprocess(params?)</code> / <code>update()</code></td><td>Trigger preprocessing or a refresh manually</td></tr>
+</table>
+
+<h2>PrinterRenderer: the renderer protocol</h2>
+<p>A printer renderer is an instance of the <code>PrinterRenderer</code> class, which splits a renderer into phase functions:</p>
+<pre><code class="language-typescript">new PrinterRenderer&lt;NodeType&gt;({
+    init?: () =&gt; Promise&lt;void&gt;,            // one-off asynchronous preparation
+    enter?: PrinterEnterFunction&lt;NodeType&gt;, // called when preprocessing enters the node
+    exit?: PrinterExitFunction&lt;NodeType&gt;,   // called when preprocessing leaves the node
+    renderer: PrinterRenderFunction&lt;NodeType&gt;,          // the render-phase React component
+    renderer_as_property?: PrinterRenderFunction&lt;NodeType&gt;, // abstract nodes only: used when rendered as a property
+})</code></pre>
+<p>The signatures of the phase functions:</p>
+<pre><code class="language-typescript">// Preprocessing phase, called per node in document order.
+// Mutate env and context in place.
+type PrinterEnterFunction&lt;NT&gt; = (
+    node: Readonly&lt;NT&gt;, path: Readonly&lt;number[]&gt;,
+    parameters: Readonly&lt;ProcessedParameterList&gt;,
+    env_draft: Env, context_draft: Context,
+) =&gt; void
+
+// Called when leaving a node. Returns a pair: the content to write into the
+// cache, and whether processing is finished (false requests another
+// preprocessing iteration).
+type PrinterExitFunction&lt;NT&gt; = (same arguments as above) =&gt; [PrinterCacheItem, boolean]
+
+// Render phase: an ordinary React component.
+interface PrinterRenderFunctionProps&lt;NT&gt; {
+    node: NT
+    context: Context                       // the conclusions preprocessing left for this node
+    parameters: {[key: string]: any}       // the processed parameters
+    children?: React.ReactNode             // the rendered children; be sure to output them
+}</code></pre>
+<p>
+Writing <code>enter</code> and <code>exit</code> by hand is the low-level path. Everyday development uses
+the <a href="default.html">factory functions of the default implementation</a> together with contexters;
+the factories wire the contexter hooks into these two positions for you (see tutorial chapter 6).
+</p>
+
+<h2>Types of the preprocessing products</h2>
+<p>
+The four products of preprocessing (the environment, the per-node contexts, the per-node parameters, the
+cache) each have a type name of their own. They come up constantly when writing renderers and contexters,
+so they are worth learning alongside tutorial chapter 6:
+</p>
+<table>
+    <tr><th>Type</th><th>Description</th></tr>
+    <tr><td><code>Env</code></td><td><code>{[key]: any}</code>. The global environment of a preprocessing pass; each contexter occupies its own slot under its own key.</td></tr>
+    <tr><td><code>Context</code></td><td><code>{[key]: any}</code>. The conclusions preprocessing leaves for a single node, readable by that node at render time.</td></tr>
+    <tr><td><code>ProcessedParameterList</code></td><td><code>{[key]: any}</code>. Processed parameters; the values are plain values.</td></tr>
+    <tr><td><code>PrinterCache / PrinterCacheItem</code></td><td>The cache table indexed by node idx. The return values of <code>exit</code> collect here; it is readable from anywhere, which makes it the home of information meant for others, such as reference names.</td></tr>
+    <tr><td><code>RendererDict</code></td><td><code>{group: {name: PrinterRenderer}, inline: ..., structure: ..., support: ..., abstract: ...}</code></td></tr>
+    <tr><td><code>DefaultRendererDict</code></td><td>One default <code>PrinterRenderer</code> per node kind (seven kinds)</td></tr>
+</table>
+
+<h2>Render-context hooks</h2>
+<p>
+Inside printer render functions, a set of hooks gives access to the whole printing scene (provided by the
+<code>PrinterGlobalInfo</code> React context):
+</p>
+<table>
+    <tr><th>Hook</th><th>Description</th></tr>
+    <tr><td><code>usePrinter()</code> / <code>usePrinterGlobalInfo()</code></td><td>The printer's global information</td></tr>
+    <tr><td><code>usePrinterRoot()</code></td><td>The root currently being rendered</td></tr>
+    <tr><td><code>usePrinterComponent()</code></td><td>The <code>PrinterComponent</code> instance, for calling <code>scroll_to_idx</code> and similar methods</td></tr>
+    <tr><td><code>usePrinterAllEnv() / usePrinterAllContexts() / usePrinterAllParameters() / usePrinterAllCaches()</code></td><td>All the preprocessing products. For displaying references, caches is the one used most: look up the reference name by the target idx.</td></tr>
+</table>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="api/printer.html"></script>
+</body>
+</html>

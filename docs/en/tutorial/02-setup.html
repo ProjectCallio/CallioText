@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2. Project Setup · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>2. Project Setup</h1>
+<p class="lead">
+This chapter creates a frontend project, installs CallioText with all of its dependencies, and lays out a
+split-screen page frame that serves as the canvas for the whole tutorial: the editor will live in the left
+half, the printer in the right. It is all routine work; if you are used to setting up React projects, skim
+through it.
+</p>
+
+<h2>Create the project</h2>
+<p>Create a React + TypeScript project with Vite:</p>
+<pre><code class="language-bash">npm create vite@latest my-calliotext-app -- --template react-ts
+cd my-calliotext-app
+npm install</code></pre>
+
+<h2>Install CallioText</h2>
+<pre><code class="language-bash">npm install @project-callio/calliotext</code></pre>
+<p>
+npm installs its peer dependencies alongside (if your package manager does not auto-install peer
+dependencies, install the packages in the table below by hand). Your code will use these libraries
+directly later on, so here is what each one is:
+</p>
+<table>
+    <tr><th>Dependency</th><th>Role</th></tr>
+    <tr><td><code>slate / slate-history / slate-react</code></td><td>Slate is a library for building editors; it handles cursors, selection, input, and undo/redo. CallioText's concept system is built on top of it.</td></tr>
+    <tr><td><code>@mui/material</code> and the two emotion packages</td><td>MUI is the React component library the default interface is built with; emotion is the styling engine MUI depends on.</td></tr>
+    <tr><td><code>@ftyyy/mouseless</code></td><td>Provides keyboard-only navigation support.</td></tr>
+</table>
+
+<h2>Import the stylesheet</h2>
+<p>CallioText ships one stylesheet, imported once at the project entry. In <code>src/main.tsx</code>, add:</p>
+<pre><code class="language-tsx">import "@project-callio/calliotext/calliotext.css"</code></pre>
+
+<h2>Lay out the page frame</h2>
+<p>
+The whole tutorial works on one canvas: editor on the left half of the screen, printer on the right,
+so every change can be checked against both the editing view and the output view.
+Replace the content of <code>src/App.tsx</code> with the following. Both halves are placeholders for now:
+</p>
+<pre><code class="language-tsx">import React from "react"
+
+// Each half takes one side of the screen.
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+export default function App(){
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            {/* chapter 3: the editor goes here */}
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            {/* chapter 4: the printer goes here */}
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+One thing to watch: CallioText's default components fill their parent container using absolute positioning,
+so the parent must have a definite size or the component will have no visible height. The code above pins
+the outermost container to the viewport with <code>position: absolute; inset: 0</code>, and the two halves
+position themselves inside it.
+</p>
+
+<h2>Check that everything is ready</h2>
+<pre><code class="language-bash">npm run dev</code></pre>
+<p>
+Open the address it prints (usually <code>http://localhost:5173</code>). If the page is blank with no errors
+in the terminal or the browser console, the project is ready. In the next chapter the left half gets a
+working editor.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/02-setup.html"></script>
+</body>
+</html>

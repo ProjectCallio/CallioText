@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4. The Printer · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>4. The Printer</h1>
+<p class="lead">
+This chapter brings the right half online: first the printer renders a hand-written tree, then we connect
+it to the editor, closing the loop of writing on the left and reading on the right. At the end comes a bit
+of the printer's inner workings, preparing for chapter 6's automatic numbering.
+</p>
+
+<h2>Step 1: let the printer render something</h2>
+<p>
+The printer component needs a tree to work with, and the editor's tree arrives only in the next step.
+So let's feed it a hand-written minimal tree first, which doubles as a review of chapter 1's node
+structure. Update <code>src/App.tsx</code>:
+</p>
+<pre><code class="language-tsx">import React, { useRef } from "react"
+import {
+    DefaultEditorComponent, DefaultPrinterComponent,
+    AbstractNode,
+} from "@project-callio/calliotext"
+import { editor_core, printer } from "./core"
+
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+// A minimal hand-written tree: one root, one paragraph inside.
+const hello_tree: AbstractNode = {
+    type: "abstract", concept: "root", idx: "root",
+    parameters: {}, abstract: [],
+    children: [{children: [{text: "Hello, printer."}]}],
+}
+
+export default function App(){
+    const editor_ref = useRef&lt;DefaultEditorComponent | null&gt;(null)
+
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            &lt;DefaultEditorComponent
+                ref={editor_ref}
+                editorcore={editor_core}
+            /&gt;
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            &lt;DefaultPrinterComponent
+                printer={printer}
+                root={hello_tree}
+            /&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+Check <code>hello_tree</code> against chapter 1: an abstract node (<code>type: "abstract"</code>) with
+concept <code>root</code>, no parameters, no attached abstract nodes, and one paragraph holding a text
+node in its children. <code>DefaultPrinterComponent</code> asks for exactly two things: the printer
+(<code>printer</code>) and the tree to render (<code>root</code>).
+</p>
+<div class="tip">
+Reload. The right half should show the typeset form of "Hello, printer." Try editing the text inside
+<code>hello_tree</code> or adding a second paragraph object; the right side follows, which proves that
+what the right half renders really is this tree.
+</div>
+
+<h2>Step 2: connect the editor</h2>
+<p>
+Now replace the hand-written tree with the real one from the editor. As chapter 1 mentioned, the editor
+internally uses Slate's data structures (to support cursors, selection and undo/redo), while the printer
+wants a plain document tree. The bridge is the editor's <code>get_root()</code> method: it assembles the
+current editing content into a complete document tree and returns it.
+</p>
+<p>
+The plan: keep a state holding "the tree currently on display", give it to the printer; when the user
+saves, call <code>get_root()</code> for the latest tree and update the state. The revised
+<code>App.tsx</code>:
+</p>
+<pre><code class="language-tsx">import React, { useRef, useState, useCallback } from "react"
+import {
+    DefaultEditorComponent, DefaultPrinterComponent,
+    AbstractNode,
+} from "@project-callio/calliotext"
+import { editor_core, printer } from "./core"
+
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+// The initial tree goes back to an empty document: one root, one empty paragraph.
+const empty_tree: AbstractNode = {
+    type: "abstract", concept: "root", idx: "root",
+    parameters: {}, abstract: [],
+    children: [{children: [{text: ""}]}],
+}
+
+export default function App(){
+    const editor_ref = useRef&lt;DefaultEditorComponent | null&gt;(null)
+
+    // The tree currently on display.
+    const [tree, set_tree] = useState&lt;AbstractNode&gt;(empty_tree)
+
+    // Pull the latest tree out of the editor and update the state.
+    const refresh = useCallback(() =&gt; {
+        // editor_ref.current is the DefaultEditorComponent;
+        // its get_editor() returns the actual working editor inside.
+        const editor = editor_ref.current?.get_editor()
+        if (editor) set_tree(editor.get_root())
+    }, [])
+
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            &lt;DefaultEditorComponent
+                ref={editor_ref}
+                editorcore={editor_core}
+                onSave={refresh}
+            /&gt;
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            &lt;DefaultPrinterComponent
+                printer={printer}
+                root={tree}
+            /&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+Only two things are new. <code>onSave={refresh}</code>: when the user triggers the save action in the
+editor (the save button in the interface, or the save shortcut), <code>DefaultEditorComponent</code>
+calls the function you pass in, and our <code>refresh</code> pulls the latest tree into the state.
+The <code>editor_ref</code> left over from the previous chapter finds its use here.
+</p>
+<div class="tip">
+Reload, type a few paragraphs on the left, trigger a save. The right half should show their typeset form.
+Change a few words, save again; the right side follows. The write-left, read-right loop is closed.
+The two sides still look similar, since the document holds only paragraphs and text and every renderer is
+the no-styling default; both sides come alive in chapter 5.
+</div>
+
+<h2>Why refresh-on-save instead of live sync?</h2>
+<p>The right side updates on save rather than on every keystroke. This is deliberate, for two reasons:</p>
+<ul>
+    <li>Every keystroke changes the tree. Re-rendering the entire document in the printer on every change will not hold up as documents grow.</li>
+    <li>More importantly, the printer preprocesses the whole tree before rendering (next section). That is document-wide work, not something to repeat per keystroke.</li>
+</ul>
+<p>
+If you do want live preview, the editor also offers an <code>onUpdate</code> callback that fires on every
+tree change. Hook <code>refresh</code> up to it and you have live sync, at a performance cost you should
+weigh yourself.
+</p>
+
+<h2>The printer works in two phases</h2>
+<p>
+A bit of internals here; chapter 6 depends on it. When <code>DefaultPrinterComponent</code> receives a
+tree, it does not render directly. It works in two phases:
+</p>
+<ol>
+    <li>Preprocessing. It walks the entire tree in document order, accumulating information along the way: which theorem this is, which figure, who references whom. When the walk finishes, every node has received a set of conclusions about itself, such as "you are the third theorem".</li>
+    <li>Rendering. It walks again, this time producing the page content. Each node's rendering code can read the conclusions preprocessing left for it, and so knows to display itself as "Theorem 3".</li>
+</ol>
+<p>
+The reason for the two phases came up in chapter 1: a theorem's number depends on how many theorems
+precede it, which no single node can know by itself; someone has to walk the document and count. Cross
+references are the same: the 3 in "see Theorem 3" exists only after counting. Chapter 6 uses this
+machinery to give our own concepts automatic numbers.
+</p>
+
+<h2>Chapter summary</h2>
+<ul>
+    <li><code>DefaultPrinterComponent</code> needs only a printer and a tree; where the tree comes from is not its concern. Hand-written or pulled from the editor both work.</li>
+    <li><code>get_root()</code> assembles the current editing content into a document tree; with a state and <code>onSave</code>, that makes the refresh-on-save preview loop.</li>
+    <li>The printer works in two phases: preprocessing (a full walk accumulating information), then rendering. Numbering and cross references build on preprocessing.</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/04-printer.html"></script>
+</body>
+</html>

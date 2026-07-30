@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>默认实现与 UI 基础 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>默认实现与 UI 基础</h1>
+<p class="lead">
+这一页覆盖两块：<code>default_implementation</code>（开箱即用的组件和工厂函数，教程里用的都来自这里）
+和 <code>implbase / uibase</code>（写自定义渲染器时会用到的基础设施）。
+</p>
+
+<h2>两个顶层组件</h2>
+
+<h3>DefaultEditorComponent</h3>
+<p>完整的默认编辑器界面。它接受 <code>EditorComponentProps</code> 的全部 props（见 <a href="editor.html">editor 那页</a>），另外追加：</p>
+<pre><code class="language-typescript">{
+    config?: PartialEditorConfig            // 样式配置（字体、边距、宽度），部分覆盖式
+    onSave?: () =&gt; void                     // 用户触发保存动作时回调
+    sidebar_extras?: (() =&gt; React.ReactNode)[]  // 向侧边栏追加自定义按钮
+    end_element?: React.ReactNode           // 附加在文档末尾的元素
+}</code></pre>
+<p>
+它包含纸张、侧边栏、参数与概念的浮动编辑区、抽象节点的编辑弹层、键盘导航，
+消息提示也内置了（内部自带 notistack 的 SnackbarProvider）。
+通过 ref 调用 <code>get_editor()</code> 可以拿到内部真正的 <code>EditorComponent</code>，
+进而使用 <code>get_root()</code> 等方法。
+</p>
+
+<h3>DefaultPrinterComponent</h3>
+<pre><code class="language-typescript">{
+    printer: Printer
+    root: AbstractNode
+    config?: PartialPrinterConfig
+    onUpdateCache?: (cache: PrinterCache) =&gt; void
+    onDidMount?: (printer_comp: PrinterComponent, me: DefaultPrinterComponent) =&gt; void
+}</code></pre>
+<p>
+完整的默认印刷界面。<code>onUpdateCache</code> 在每次预处理后把缓存交给你（交叉引用会用到，见教程第 6 章）；
+<code>onDidMount</code> 提供内部 <code>PrinterComponent</code> 的引用，需要调用
+<code>scroll_to_idx</code> 之类的方法时从这里拿。
+</p>
+
+<h2>编辑渲染器工厂</h2>
+<p>
+这组函数为各类节点生成带完整交互的编辑外观。公共的定制点有：
+<code>get_label</code>（标签，会被当作组件调用，内部可以用 hooks）、
+<code>surrounder</code>（内容的包裹方式）、<code>buttons_extra</code>（追加按钮）、
+<code>rightbar_extra</code>（右侧栏的扩展位）。
+</p>
+<table>
+    <tr><th>工厂函数</th><th>适用节点</th><th>特点</th></tr>
+    <tr><td><code>get_deafult_group_editor_with_appbar</code></td><td>group</td><td>顶部带标题栏的卡片样式。注意函数名里 deafult 是历史拼写。</td></tr>
+    <tr><td><code>get_default_group_editor_with_rightbar</code></td><td>group</td><td>右侧竖栏样式，按钮折叠在菜单里，视觉上更紧凑</td></tr>
+    <tr><td><code>get_default_inline_editor</code></td><td>inline</td><td>行内样式，<code>surrounder</code> 决定编辑时文字的包裹</td></tr>
+    <tr><td><code>get_default_struct_editor_with_rightbar</code></td><td>structure</td><td>多列布局；<code>get_numchildren</code> 和 <code>get_widths</code> 决定列数和各列宽度，子组会按列数自动增删</td></tr>
+    <tr><td><code>get_default_spliter_editor</code></td><td>support</td><td>分隔线样式，<code>get_title</code> 决定线上的文字</td></tr>
+    <tr><td><code>get_default_display_editor</code></td><td>support</td><td>展示型（如图片）：<code>render_element</code> 渲染实际内容，<code>is_empty</code> 判断是否为空并显示占位图标</td></tr>
+    <tr><td><code>get_default_abstract_editor</code></td><td>abstract</td><td>抽象节点（根节点、批注）的容器</td></tr>
+    <tr><td><code>get_default_editors()</code></td><td>全部</td><td>返回七种节点类型各自的默认渲染器，交给 <code>EditorCore</code> 的 <code>default_renderers</code></td></tr>
+</table>
+
+<h2>印刷渲染器工厂</h2>
+<p>
+印刷一侧的工厂。公共定制点：<code>contexters</code>（contexter 生成函数的数组，
+工厂会把它们自动接入预处理，见教程第 6 章）。块级的工厂还支持
+<code>pre_element</code> 和 <code>aft_element</code>（在正文前后插入内容），
+以及更换整个内层或外层包装的 <code>inner</code> 和 <code>outer</code>。
+</p>
+<table>
+    <tr><th>工厂函数</th><th>适用节点</th><th>特点</th></tr>
+    <tr><td><code>get_default_group_renderer</code></td><td>group</td><td>块级渲染的主力；<code>small_margin_enter</code> 可以压缩块前间距</td></tr>
+    <tr><td><code>get_default_structure_renderer</code></td><td>structure</td><td>多列网格布局；<code>subinner</code> 定制每一列的包装</td></tr>
+    <tr><td><code>get_default_paragraph_renderer</code></td><td>paragraph</td><td>段落；支持在段首注入元素或文字</td></tr>
+    <tr><td><code>get_default_inline_renderer</code></td><td>inline</td><td><code>outer</code> 决定行内内容的包裹</td></tr>
+    <tr><td><code>get_default_abstract_renderer</code></td><td>abstract</td><td>渲染成一个带角标的链接，点击弹出对话框显示完整子文档</td></tr>
+    <tr><td><code>auto_renderer</code></td><td>任意</td><td>最通用的一个：给一个渲染函数（和可选的 contexters），直接构造出 <code>PrinterRenderer</code></td></tr>
+    <tr><td><code>useless_renderer_block / useless_renderer_inline / useless_renderer_text</code></td><td>用作默认渲染器</td><td>不加任何样式的直通渲染器，教程第 3 章用它们拼过 <code>default_renderers</code></td></tr>
+</table>
+
+<h2>contexter 系列</h2>
+<p>预处理阶段的工具类，机制和用法见教程第 6 章。</p>
+<table>
+    <tr><th>类</th><th>构造参数</th><th>用途</th></tr>
+    <tr><td><code>ContexterBase&lt;NT, CtxT, EnvT&gt;</code></td><td><code>(key, default_val)</code></td><td>基类。提供 <code>enter</code>/<code>exit</code> 钩子和 <code>get_env / set_env / get_context / set_context</code> 存取方法，自定义 contexter 从它继承</td></tr>
+    <tr><td><code>OrderContexter</code></td><td><code>(order_key, separate_groups?)</code></td><td>自动编号。同名计数器共享编号；<code>separate_groups</code> 为 true 时遇到「分离」的组重新计数</td></tr>
+    <tr><td><code>ReferenceContexter</code></td><td><code>(get_reference)</code></td><td>为节点生成引用名并写入缓存，交叉引用的基础</td></tr>
+    <tr><td><code>InjectContexter</code></td><td><code>(infokey, {preinfo?, aftinfo?})</code></td><td>在节点进入或离开时向环境写入一条信息</td></tr>
+    <tr><td><code>ConsumerContexter</code></td><td><code>(infokey)</code></td><td>后续节点从环境读出该信息，存进自己的上下文</td></tr>
+</table>
+<p>
+配套类型：<code>PreprocessInformation&lt;NT&gt;</code> 是传给 contexter 生成函数的信息包
+（<code>{node, parameters, context, env}</code>），<code>PreprocessFunction&lt;NT, R&gt;</code> 是这类函数的类型。
+</p>
+
+<h2 id="implbase">implbase：渲染器内部的 hooks 与部件</h2>
+<p>写自定义的编辑渲染器（或它的 <code>get_label</code>、<code>buttons_extra</code>）时，这些是最常用的工具：</p>
+<table>
+    <tr><th>导出</th><th>说明</th></tr>
+    <tr><td><code>useNode(is_equal?)</code></td><td>取当前正在渲染的概念节点。可传一个比较函数来控制何时触发重渲染</td></tr>
+    <tr><td><code>useParameters()</code></td><td>取当前节点处理后的参数，<code>get_label</code> 里用得最多</td></tr>
+    <tr><td><code>useEditor()</code></td><td>取当前的 <code>EditorComponent</code>，进而调用树操作方法</td></tr>
+    <tr><td><code>useResetSelection()</code></td><td>返回一对函数：保存光标位置、恢复光标位置。弹出面板交互结束后用来还原编辑位置</td></tr>
+    <tr><td><code>UniversalExtra</code></td><td>通用的行内小输入框组件，常嵌在节点右侧栏里快速编辑某个参数（示例应用用它编辑链接目标和图片地址，支持直接粘贴图片）</td></tr>
+    <tr><td><code>DefaultParameterContainer</code></td><td>参数编辑面板本体，默认的参数抽屉内部就是它</td></tr>
+    <tr><td><code>AutoIconButton / ButtonGroup / FoldedButtonGroup / MouselessButton</code></td><td>支持键盘导航的按钮组件，自定义按钮建议基于它们搭</td></tr>
+    <tr><td><code>MouselessHint / ShowHintControlButton</code></td><td>快捷键提示气泡、提示常驻开关</td></tr>
+    <tr><td><code>EditorConfig / make_editorconfig / useEditorConfig</code></td><td>编辑器样式配置的类型、合并函数和读取 hook</td></tr>
+</table>
+
+<h2>uibase：通用 UI 工具</h2>
+<p>
+uibase 是一组和编辑器本身无关的通用 UI 工具，默认实现内部大量使用它们；
+你在搭自定义界面（侧边栏按钮、参数编辑扩展）时也可以直接拿来用，省去自己造轮子：
+</p>
+<table>
+    <tr><th>导出</th><th>说明</th></tr>
+    <tr><td><code>AutoStack / AutoStackButtons / AutoTooltip / AutoStackedPopper</code></td><td>一族随布局方向自动调整的组件：外层是横向时内层自动变纵向，提示框位置也随之调整</td></tr>
+    <tr><td><code>mod_scrollbar(el)</code> / <code>ScrollBarBox</code></td><td>给容器应用 OverlayScrollbars 滚动条样式</td></tr>
+    <tr><td><code>usePersistedState(key, default)</code></td><td>和 localStorage 同步的 React state</td></tr>
+    <tr><td><code>TextIcon</code></td><td>圆形边框的文字图标</td></tr>
+    <tr><td><code>with_partial_props(Comp, defaults)</code></td><td>预先填好一部分 props，得到一个新组件</td></tr>
+    <tr><td><code>light_grey(color)</code></td><td>把颜色转成浅灰（配合 color 库使用）</td></tr>
+</table>
+
+<h2>印刷排版部件</h2>
+<p>
+印刷一侧另有一组排版部件，写印刷渲染器时用它们能保持和默认样式一致的间距与字号：
+<code>PrinterPartBox</code>（内容块）、<code>PrinterParagraphBox</code>（段落框）、
+<code>PrinterStructureBoxText</code>（结构性文字，教程第 5 章用它做定理标题）、
+<code>PrinterNewLevelBox</code> 与 <code>PrinterOldLevelBox</code>（进入、退出一层缩进）、
+<code>PrinterDisplayText</code>（展示型文字）、<code>PrinterWeakenText</code>（弱化文字），
+以及读取印刷样式配置的 <code>PrinterConfigContext</code>。
+完整清单见 <a href="../../reference/index.html">TypeDoc 参考</a>。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="api/default.html"></script>
+</body>
+</html>

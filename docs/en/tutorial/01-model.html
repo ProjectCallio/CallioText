@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1. Core Ideas: Concepts &amp; the Tree · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>1. Core Ideas: Concepts &amp; the Tree</h1>
+<p class="lead">
+Before writing any code, this chapter lays out how CallioText thinks about documents: what a concept is,
+why concepts come in two levels, what kinds of nodes the document tree holds, and what the editor and the
+printer are each responsible for. There is no code here, but every later chapter builds on this one, so it
+is worth reading through.
+</p>
+
+<h2>Starting from LaTeX</h2>
+<p>
+Anyone who has written a paper in Word remembers the taste of it: the theorems want a uniform style and
+consecutive numbers, and all of it is held together by hand. The bold is yours, the "Theorem 3.2" is
+yours; insert a new theorem before the third one and every number after it expires at once, to be fixed
+one by one; decide someday to restyle the theorems, and there is nothing for it but to comb through the
+whole document.
+</p>
+<p>LaTeX users take a different route. In LaTeX, a theorem is written:</p>
+<pre><code class="language-latex">\begin{theorem}
+    ...
+\end{theorem}</code></pre>
+<p>
+The author says only that a theorem runs from here to there; fonts, numbers and spacing are the style
+system's worry, and changing the style means changing one definition. Behind this sits an idea worth
+keeping:
+</p>
+<blockquote>
+<p>The content and structure of a document should be separate from its appearance. Authors declare structure; appearance is handled uniformly by rendering rules.</p>
+</blockquote>
+<p>
+LaTeX, however, is a product of the days before the internet: its output is pages prepared for the
+printer, its input is code that swells along with the document. What CallioText does is carry the same
+idea into a graphical editor:
+the interaction feels close to Word, the document's internal structure is as explicit as in LaTeX, its
+appearance is decided by rendering rules, and the output end is free, a web page or, further on, PDF.
+</p>
+
+<h2>Concepts</h2>
+<p>
+The <code>theorem</code> above is what CallioText calls a concept. A concept is a type you define for a
+category of document content: theorem, proof, footnote, quotation block, divider, all of these can be
+concepts. Each concept specifies two things:
+</p>
+<ol>
+    <li>Which parameters this kind of content has. A theorem might have a title parameter (whether it displays as Theorem, Lemma or Proposition) and a numbering-style parameter.</li>
+    <li>How it is rendered. The appearance while editing and the appearance in the output are two separate definitions that do not interfere with each other.</li>
+</ol>
+
+<h2>Concepts come in two levels</h2>
+<p>
+A key design decision in CallioText is that concepts are split into two levels.
+In OOP terms, a first-class concept is like a class, and a second-class concept is like an object of that class.
+</p>
+<table class="nowrap-first">
+    <tr><th></th><th>First-class concept (FirstClassConcept)</th><th>Second-class concept (SecondClassConcept)</th></tr>
+    <tr><td>Defined by</td><td>The engine, in code</td><td>Anyone, at runtime (for example loaded from JSON)</td></tr>
+    <tr><td>Defines</td><td>The parameter prototype (which parameters, their defaults) and the rendering logic</td><td>Inherits a first-class concept; overrides some parameter defaults, or pins some parameters</td></tr>
+</table>
+<p>
+A concrete example. Say a first-class concept <code>primary</code> stands for a passage that deserves
+prominent display. It defines three parameters, <code>title</code>, <code>prefix</code> and
+<code>ordering</code>, along with the rendering rule: title and number first, body after.
+A second-class concept named Proposition inherits <code>primary</code> and sets the default title to
+"Proposition"; another one named Project also inherits <code>primary</code> but displays the project's
+name as its title. The two share one copy of rendering code and differ only in parameters.
+</p>
+<p>There are two motivations for this design:</p>
+<ul>
+    <li>Rendering code is written once per first-class concept, and any number of second-class concepts share it. Maintenance stays cheap.</li>
+    <li>Second-class concepts can be created at runtime. Authors, even those who do not write code, can derive new document components themselves: if Proposition is not enough, they can simply create a Conjecture.</li>
+</ul>
+<p>
+Naming convention: first-class concepts take lowercase English names, such as
+<code>primary</code>, <code>strong</code>, <code>quote</code>; second-class concepts take real words from
+the author's vocabulary, such as Proposition, Emphasis, Quotation.
+</p>
+
+<h2>The document tree: seven kinds of nodes</h2>
+<p>
+A document is a tree. Its nodes come in seven kinds; five of them are concept nodes (each must specify
+which concept it uses), and two are plain content:
+</p>
+<table class="nowrap-first">
+    <tr><th>Node</th><th>type</th><th>Role</th><th>Allowed children</th></tr>
+    <tr><td>Text</td><td><code>text</code></td><td>Leaf node, the actual characters</td><td>none</td></tr>
+    <tr><td>Paragraph</td><td><code>paragraph</code></td><td>Container of a run of text</td><td>text, inline, support</td></tr>
+    <tr><td>Inline</td><td><code>inline</code></td><td>Inline semantics: emphasis, links, inline formulas</td><td>text, inline</td></tr>
+    <tr><td>Group</td><td><code>group</code></td><td>Block-level semantics: theorems, proofs, quotation blocks</td><td>paragraph, group, structure, support (no bare text or inline)</td></tr>
+    <tr><td>Structure</td><td><code>structure</code></td><td>Semantics with a fixed internal layout, such as a row split into columns</td><td>groups only</td></tr>
+    <tr><td>Support</td><td><code>support</code></td><td>Contentless placeholder elements: dividers, images</td><td>none (placeholder empty text)</td></tr>
+    <tr><td>Abstract</td><td><code>abstract</code></td><td>An independent sub-document attached to another node: footnotes, annotations. The document root is also one.</td><td>same as group</td></tr>
+</table>
+<p>Beyond the table, a few rules deserve a mention of their own:</p>
+<ul>
+    <li>All text lives inside paragraphs. As the table shows, text nodes cannot appear directly inside groups, structures or abstracts; text goes into a paragraph first. This rule keeps the tree structure regular.</li>
+    <li>Block nesting is unrestricted. Groups can contain groups: a quotation block can hold a theorem, the theorem can hold a list, to any depth.</li>
+    <li>A support node has no content of its own; an image's URL and width live in its parameters. It can stand on its own as a block (a divider) or sit inside a paragraph as an inline element (an inline image).</li>
+    <li>Abstracts recurse. A footnote can be made as an abstract; and an abstract is itself a node, so like any other concept node it can carry abstracts of its own, nesting level after level. The root of every document tree is also an abstract node, a fact that will come up repeatedly.</li>
+</ul>
+
+<h2>The fields of a concept node</h2>
+<p>Every concept node carries a fixed set of fields. Using the group node as the example:</p>
+<pre><code class="language-typescript">interface GroupNode {
+    type: "group"
+    idx: string
+    concept: string
+    parameters: ParameterList
+    children: NonLeafNode[]
+    abstract: AbstractNode[]
+    relation: "chaining" | "separating"
+}</code></pre>
+<ul>
+    <li><code>idx</code>: the node's identifier, unique across the document, generated by the library. Cross references (referring to one place from another) use it to locate their target.</li>
+    <li><code>concept</code>: the name of the concept this node uses. Note that this is the second-class concept's name, such as "Proposition".</li>
+    <li><code>parameters</code>: the parameter values. Each carries a type annotation, for example <code>{title: {type: "string", val: "Theorem"}}</code>. The annotation lets the editor build an appropriate editing control for each parameter: a text field for strings, a toggle for booleans.</li>
+    <li><code>abstract</code>: the list of abstract nodes attached to this node, such as an annotation hung on a theorem.</li>
+    <li><code>relation</code>: this node's relation to its previous sibling, either chaining or separating.</li>
+</ul>
+<p>
+<code>relation</code> deserves an example. Two adjacent list blocks can be two unrelated lists (separating),
+or one list that resumes after being interrupted (chaining). Rendering and numbering can both see the
+difference: automatic numbering, for instance, can be configured to restart at separating blocks and to
+continue across chaining ones. Authors can switch a block between the two states at any time in the editor.
+</p>
+
+<h2>The editor and the printer</h2>
+<p>
+Two parts of the library process this tree: the editor and the printer. The most fitting analogy for their
+relationship is a compiler. The document tree is an intermediate representation; the editor is the front
+end, encoding the high-level language (the author's graphical input) into that representation; the printer
+is the back end, translating the representation into the target language (a web page, or further on, PDF
+output). Front end and back end talk only through the intermediate representation, which is why the same
+tree can wear two fully independent appearances.
+</p>
+<ul>
+    <li>The editor: the interface authors work in. Each concept registers an editor renderer here, typically with a title bar, buttons and a parameter panel. The core class on this side is <code>EditorCore</code>.</li>
+    <li>The printer: the part that renders the tree into the final output, in the sense of typesetting for print. Each concept registers a printer renderer here, producing clean output suited for reading. The core class is <code>Printer</code>.</li>
+</ul>
+<p>
+The printer has one important trait: before actually rendering, it first walks the whole tree from start to
+end in document order (this step is called preprocessing). The reason is straightforward: information like
+theorem numbers cannot be computed from a single node. The fifth theorem is number 5 only because four
+theorems precede it, and someone has to count them. Preprocessing computes all such document-wide
+information up front so that each node can simply read its own result at render time. Automatic numbering
+and cross references are both built on this step; chapter 6 puts it to use.
+</p>
+
+<h2>Chapter summary</h2>
+<ul>
+    <li>Structure and appearance are separate: authors declare structure, rendering rules decide appearance.</li>
+    <li>Concepts have two levels, like classes and objects: first-class concepts are defined by the engine in code; second-class concepts can be created at runtime without code.</li>
+    <li>A document is a tree with seven node kinds; concept nodes carry idx, concept, parameters, abstract and relation.</li>
+    <li>The editor and the printer are like a compiler's front end and back end: one encodes graphical input into the document tree, the other translates the tree into typeset output, and they meet only at the tree.</li>
+    <li>The printer preprocesses (a full walk computing numbers and collecting references) before rendering.</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/01-model.html"></script>
+</body>
+</html>

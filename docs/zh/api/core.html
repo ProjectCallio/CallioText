@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>core：概念与节点 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>core：概念与节点</h1>
+<p class="lead">
+core 是纯数据层，包含概念类、文档树的类型定义和树的校验函数。
+它不依赖 React，可以在任何 JavaScript 环境中使用，包括 Node.js（比如在服务端校验文档）。
+</p>
+
+<h2>概念类</h2>
+
+<h3>FirstClassConcept</h3>
+<pre><code class="language-typescript">new FirstClassConcept({
+    type: "group" | "inline" | "structure" | "support" | "abstract",
+    name: string,
+    parameter_prototype?: ParameterList,   // 参数原型，缺省为 {}
+    meta_parameters?: MetaParameters,      // 元参数，缺省为 {}
+})</code></pre>
+<p>
+一级概念声明一类文档成分的机制：有哪些参数、各参数的类型和默认值。
+<code>(type, name)</code> 二元组是它的唯一标识。
+</p>
+<p>
+<code>meta_parameters</code>（元参数）是少数几个影响编辑器行为的开关，与普通参数不同，写作者不可见：
+</p>
+<table>
+    <tr><th>字段</th><th>含义</th></tr>
+    <tr><td><code>force_inline?: boolean</code></td><td>强制以行内样式渲染。比如行内图片：虽然是支撑节点，但要嵌在文字流里。</td></tr>
+    <tr><td><code>force_block?: boolean</code></td><td>强制以块级样式渲染。</td></tr>
+    <tr><td><code>force_void?: boolean</code></td><td>强制无子节点（编辑器不允许在其中输入内容）。</td></tr>
+</table>
+
+<h3>SecondClassConcept</h3>
+<pre><code class="language-typescript">new SecondClassConcept({
+    type: AllConceptTypes,
+    first_concept: string,               // 继承的一级概念名
+    name: string,                        // 写作者使用的名字，写进节点的 concept 字段
+    default_override?: ParameterList,    // 重写参数默认值（写作者仍可修改）
+    fixed_override?: FixedParameterList, // 固定参数值（写作者不可修改，支持函数型）
+})</code></pre>
+<p>
+二级概念是写作者实际使用的词汇。<code>fixed_override</code> 中值为
+<code>{type: "function", val: "p =&gt; ..."}</code> 的参数是函数型参数：
+印刷时以处理后的参数表为入参求值，让参数值随其他参数联动（用法见教程第 7 章）。
+</p>
+
+<h2>节点类型</h2>
+<p>七种节点的接口和子节点约束如下（直观的介绍见教程第 1 章）：</p>
+<table>
+    <tr><th>类型</th><th>关键字段</th><th>子节点约束</th></tr>
+    <tr><td><code>TextNode</code></td><td><code>{text: string}</code></td><td>无子节点</td></tr>
+    <tr><td><code>ParagraphNode</code></td><td><code>{children}</code>，没有 type 字段</td><td>text / inline / support</td></tr>
+    <tr><td><code>InlineNode</code></td><td><code>type: "inline"</code> 加概念字段</td><td>text / inline</td></tr>
+    <tr><td><code>GroupNode</code></td><td><code>type: "group"</code> 加概念字段和 <code>relation</code></td><td>非叶节点（不能直接是 text 或 inline）</td></tr>
+    <tr><td><code>StructNode</code></td><td><code>type: "structure"</code> 加概念字段和 <code>relation</code></td><td>只能是 group</td></tr>
+    <tr><td><code>SupportNode</code></td><td><code>type: "support"</code> 加概念字段</td><td>固定为 <code>[{text: ""}]</code> 占位</td></tr>
+    <tr><td><code>AbstractNode</code></td><td><code>type: "abstract"</code> 加概念字段</td><td>与 group 相同；文档根节点就是此类型</td></tr>
+</table>
+<p>「概念字段」指所有概念节点共有的四个字段：</p>
+<pre><code class="language-typescript">idx: string              // 节点编号，全文唯一，由 gene_idx() 生成
+concept: string          // 二级概念名
+parameters: ParameterList
+abstract: AbstractNode[] // 附着在此节点上的抽象节点</code></pre>
+<p>常用的联合类型：</p>
+<pre><code class="language-typescript">type Node               = TextNode | ParagraphNode | ConceptNode
+type ConceptNode        = InlineNode | GroupNode | StructNode | SupportNode | AbstractNode
+type NonLeafNode        = ParagraphNode | NonLeafConceptNode
+type AllConceptTypes    = "group" | "inline" | "structure" | "support" | "abstract"
+type AllNodeTypes       = AllConceptTypes | "paragraph" | "text"</code></pre>
+
+<h2>参数类型</h2>
+<p>
+参数的值不是裸值，而是带类型标注的小对象，三种基础类型如下。
+这个设计在教程第 1 章解释过：类型标注让编辑器能为每种参数生成合适的编辑控件。
+</p>
+<pre><code class="language-typescript">type ParameterValue =
+    | {type: "string",  val: string,  [k: string]: any}
+    | {type: "number",  val: number,  [k: string]: any}
+    | {type: "boolean", val: boolean, [k: string]: any}
+
+interface ParameterList { [key: string]: ParameterValue }</code></pre>
+<p>
+参数值对象允许携带额外字段。默认参数编辑器认识其中的 <code>choices: [...]</code>：
+带这个字段的参数会渲染成下拉选择而不是自由输入。
+<code>FixedParameterValue</code> 在此基础上额外允许 <code>{type: "function", val: string}</code>。
+</p>
+
+<h2>类型守卫与查找工具</h2>
+<p>
+处理来历不明的节点对象时（遍历一棵树、解析剪贴板内容都属于这种情况），第一件事是判断它是哪种节点。
+core 为每种节点提供了守卫函数，返回值兼作 TypeScript 的类型收窄；此外还有两个按路径查找节点的工具：
+</p>
+<table>
+    <tr><th>函数</th><th>说明</th></tr>
+    <tr><td><code>is_concetnode(node)</code></td><td>是否为概念节点。注意函数名里的 concet 是历史拼写。</td></tr>
+    <tr><td><code>is_inlinenode / is_groupnode / is_supportnode / is_structnode / is_abstractnode</code></td><td>各类型的守卫函数</td></tr>
+    <tr><td><code>is_paragraphnode / is_textnode</code></td><td>段落和文本的守卫函数</td></tr>
+    <tr><td><code>get_node_type(node): AllNodeTypes</code></td><td>返回节点类型字符串；遇到无法辨认的对象抛 <code>BadNodeError</code></td></tr>
+    <tr><td><code>find_node_by_path(root, path)</code></td><td>按路径（子节点下标数组）查找节点</td></tr>
+    <tr><td><code>find_concept_nodes_by_path(root, path)</code></td><td>收集路径沿途经过的所有概念节点，不含根节点</td></tr>
+</table>
+
+<h2>校验</h2>
+<p>校验函数有两个，签名如下：</p>
+<pre><code class="language-typescript">validate(tree: any): [boolean, string]
+validate_parameters(parameters: any, gene_msg: (s: string) =&gt; string): [boolean, string]</code></pre>
+<p>
+<code>validate</code> 递归检查一棵树是否为合法的文档树：字段是否齐全、参数类型是否匹配、
+各类节点的子节点约束是否成立。返回值是一个二元组，第一项表示是否合法，
+第二项在不合法时给出带节点路径的错误说明，形如 <code>node [1,0]: ...</code>。
+在把外部数据（用户上传、旧存档）交给编辑器之前应当先调用它，用法见教程第 7 章。
+<code>validate_parameters</code> 是其中校验参数表的部分，也单独导出。
+</p>
+
+<h2>通用工具（lib/utils）</h2>
+<p>
+另有几个不属于任何模块的通用小工具。其中 <code>merge_object</code> 值得单独认识：
+样式配置「只写想改的项、其余沿用默认」的合并语义就是它实现的：
+</p>
+<table>
+    <tr><th>函数</th><th>说明</th></tr>
+    <tr><td><code>gene_idx(): string</code></td><td>生成一个随机的节点编号（数字字符串）</td></tr>
+    <tr><td><code>merge_object(a, b)</code></td><td>递归合并两个对象，叶子值冲突时以 b 为准。样式配置的「部分覆盖」就是用它实现的。</td></tr>
+    <tr><td><code>object_foreach(obj, fn)</code></td><td>对对象的每个值做映射，返回新对象</td></tr>
+</table>
+
+<h2>异常类</h2>
+<p>
+库定义了三个异常类，都继承自 <code>Error</code>，可以用 <code>instanceof</code> 判别：
+<code>UnexpectedParametersError</code>（函数收到了不符合约定的参数）、
+<code>BadNodeError</code>（遇到了不符合约定的节点）、
+<code>ImpossibleError</code>（执行到了理论上不可能到达的代码路径）。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="api/core.html"></script>
+</body>
+</html>

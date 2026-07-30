@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6. 自动编号与交叉引用 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>6. 自动编号与交叉引用</h1>
+<p class="lead">
+这一章给上一章的定理加上自动编号（定理 1、定理 2、引理 3），
+再一步步走到「见定理 3」这类交叉引用。第 4 章讲的预处理机制在这里第一次真正派上用场，
+照例每一步之后都有能亲眼验证的东西。
+</p>
+
+<h2>预处理留下了什么</h2>
+<p>先把第 4 章的说法补充完整。预处理遍历整棵树时，实际维护着两种数据：</p>
+<ul>
+    <li>环境（<code>Env</code>）：一个在整个预处理过程中共用的对象，相当于遍历时的全局状态。「到目前为止出现了几个定理」这类信息就记在这里。</li>
+    <li>上下文（<code>Context</code>）：每个节点各有一个的对象，存放预处理为这个节点得出的结论。渲染阶段，节点的渲染代码能读到自己的上下文。</li>
+</ul>
+<p>
+两者的分工：环境是遍历过程中的草稿，上下文是留给每个节点的结果。
+以编号为例，预处理走到第 3 个定理时，环境里的计数器从 2 变成 3，
+同时把 3 写进这个定理自己的上下文；渲染时这个定理读自己的上下文，得知自己是第 3 个。
+</p>
+<p>
+库把「在预处理阶段维护环境、向上下文写结论」的工具抽象成一类对象，叫 contexter。
+一个 contexter 提供两个钩子：<code>enter()</code> 在预处理进入节点时被调用，
+<code>exit()</code> 在离开节点时被调用，钩子里可以读写环境和当前节点的上下文。
+编号这种最常见的需求不用自己写钩子，库提供了现成的 <code>OrderContexter</code>：
+enter 时把环境里的计数器加一，并把当前计数写进节点的上下文。
+</p>
+
+<h2>第一步：给定理编号</h2>
+<p>
+打开 <code>src/printers.tsx</code>，给定理块接上 <code>OrderContexter</code>。
+改动有两处：注册 contexter，以及在渲染时把编号读出来。改完的定理部分：
+</p>
+<pre><code class="language-tsx">import {
+    get_default_group_renderer,
+    OrderContexter,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+// 一个返回 OrderContexter 的函数。构造参数 "primary" 是计数器的名字：
+// 使用同名计数器的概念共享编号。
+const orderer_gene = (info: PreprocessInformation&lt;GroupNode&gt;) =&gt;
+    new OrderContexter&lt;GroupNode&gt;("primary")
+
+const primary_printer = get_default_group_renderer({
+    // 把 contexter 注册给渲染器。预处理经过这类节点时，
+    // 会自动调用它的 enter/exit，也就是自动完成计数。
+    contexters: [orderer_gene],
+
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; {
+        // 渲染阶段：再构造一个同样的 OrderContexter，
+        // 用它的 get_context() 从当前节点的上下文里读出编号。
+        const order = orderer_gene(info).get_context(info.context)
+        return &lt;PrinterStructureBoxText inline&gt;
+            {info.parameters.title} {order}
+        &lt;/PrinterStructureBoxText&gt;
+    },
+
+    aft_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        info.parameters.close
+            ? &lt;PrinterStructureBoxText inline&gt;{info.parameters.close}&lt;/PrinterStructureBoxText&gt;
+            : undefined
+    ),
+})</code></pre>
+<div class="tip">
+连着插入三个定理和一个引理，保存。右边的标题变成了「定理 1」「定理 2」「定理 3」「引理 4」。
+再在第一个定理前面插入一个新的定理，保存：所有编号自动重排。
+这就是「每次渲染前都重新预处理一遍」的效果，编号永远是新鲜的。
+</div>
+<p>
+「渲染时再构造一个 contexter」这个写法值得解释。contexter 本身不保存任何状态，
+状态全部在环境和上下文里。所以渲染时新建的实例和预处理时用的虽然不是同一个对象，
+但读同一个上下文得到的结果完全一样，它在这里只是一个读取器。
+</p>
+<p>
+定理和引理连续编号，是因为它们都是 primary，用的是同一个叫 <code>"primary"</code> 的计数器。
+想让不同的块各自独立编号，把计数器名字换成参数即可，比如
+<code>new OrderContexter(info.parameters.label)</code>：label 不同的块使用不同的计数器。
+<code>OrderContexter</code> 还有第二个构造参数 <code>separate_groups</code>，
+设为 true 时，遇到 <code>relation</code> 为「分离」的组就重新从 1 数起，
+配合第 1 章讲的 relation 字段，可以做出「同一个列表连续编号，新列表重新开始」的效果。
+</p>
+
+<h2>第二步：把引用名写进缓存</h2>
+<p>
+接下来是「见定理 3」。难点在于：引用方需要知道被引定理编到了几号，
+而编号只有预处理之后才存在，所以引用信息也得在预处理阶段生成。
+</p>
+<p>
+这里要引入预处理的第三种产物：缓存（cache）。它是一张按节点 <code>idx</code>
+（第 1 章讲的全文唯一编号）索引的表，contexter 在 <code>exit()</code> 时可以往里写内容。
+与上下文不同，缓存不属于某个节点私有，渲染阶段任何地方都能按 idx 查它，
+适合存「给别人看的信息」。
+</p>
+<p>
+库提供的 <code>ReferenceContexter</code> 就是往缓存里写引用名的工具：
+给它一个函数，告诉它如何为节点生成引用名（比如「定理 3」这个字符串）。
+在 <code>printers.tsx</code> 里给定理块追加：
+</p>
+<pre><code class="language-tsx">import { ReferenceContexter } from "@project-callio/calliotext"
+
+// 生成引用名的规则：标题加编号，比如「定理 3」。
+const reference_gene = () =&gt; new ReferenceContexter&lt;GroupNode&gt;((info) =&gt; {
+    const order = orderer_gene(info).get_context(info.context)
+    return `${info.parameters.title} ${order}`
+})
+
+const primary_printer = get_default_group_renderer({
+    // contexter 列表里追加 reference_gene，其余不变。
+    contexters: [orderer_gene, reference_gene],
+    // pre_element 和 aft_element 保持第一步的样子。
+})</code></pre>
+<div class="tip">
+缓存看不见摸不着？让它现形。到 <code>App.tsx</code> 里给印刷器组件加一个回调：
+<code>&lt;DefaultPrinterComponent printer={printer} root={tree}
+onUpdateCache={(cache) =&gt; console.log(cache)} /&gt;</code>。
+保存文档，打开浏览器控制台：打印出来的对象里，每个定理的 idx 下面都躺着它的引用名。
+确认之后这行回调可以删掉。
+</div>
+
+<h2>第三步：使用引用名</h2>
+<p>
+引用名进了缓存，剩下的就是取用。完整的「引用」功能是一个新概念，四样东西的套路和第 5 章完全一样，
+这里给出思路，具体代码留作练习（仓库 <code>test/demo</code> 里「链接」概念是完整的参考实现）：
+</p>
+<ol>
+    <li>定义一个「引用」行内概念，带一个 <code>target_idx</code> 参数，存被引节点的 idx。</li>
+    <li>它的印刷渲染器用 <code>usePrinterAllCaches()</code>（印刷渲染函数内可用的 hook）拿到整份缓存，按 <code>target_idx</code> 查出引用名显示出来。</li>
+    <li>编辑侧用 <code>onUpdateCache</code> 交出来的缓存做一个「选择引用目标」的界面。</li>
+    <li>想做「点击引用跳转到定理」，调用印刷器组件的 <code>scroll_to_idx(idx)</code> 方法。</li>
+</ol>
+<p>
+这条链路的每一环（参数、渲染器、hook、组件方法）都是前面见过的东西，只是第一次串在一起。
+</p>
+
+<h2>更通用的一对工具</h2>
+<p>最后认识一对处理「前面的节点影响后面的节点」的 contexter：</p>
+<ul>
+    <li><code>InjectContexter</code>：在某个节点被进入或离开时，向环境里写入一条信息。</li>
+    <li><code>ConsumerContexter</code>：在之后遍历到的节点上，把环境里的这条信息读出来，存进自己的上下文。</li>
+</ul>
+<p>
+典型场景：章节标题决定其后所有内容的页眉。章节节点用 InjectContexter 把标题写进环境，
+后面的节点用 ConsumerContexter 接收。<code>OrderContexter</code> 实际上就是这套机制的一个特化。
+如果现成工具都不够用，可以继承基类 <code>ContexterBase</code>，自己实现 <code>enter</code> 和 <code>exit</code>。
+</p>
+
+<h2>本章要点</h2>
+<ul>
+    <li>预处理维护两种数据：环境（全局草稿）和每个节点的上下文（留给节点的结论）；contexter 通过 enter/exit 钩子挂在预处理上。</li>
+    <li><code>OrderContexter</code> 负责编号：同名计数器共享编号，计数器名可以来自参数，<code>separate_groups</code> 控制分组重数。</li>
+    <li>contexter 无状态，渲染时现建一个用来读取上下文。</li>
+    <li>缓存按 idx 索引、全局可查；<code>ReferenceContexter</code> 在预处理时把引用名写进缓存，交叉引用据此实现。<code>onUpdateCache</code> 能把缓存交到你手里。</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/06-numbering.html"></script>
+</body>
+</html>

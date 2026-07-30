@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2. 准备工程 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>2. 准备工程</h1>
+<p class="lead">
+这一章我们创建一个前端工程，装好 CallioText 和它的全部依赖，
+再搭一个左右分栏的空白页面框架，作为整个教程共用的画布：左半边以后放编辑器，右半边放印刷器。
+内容都是常规操作，如果你熟悉 React 工程的搭建，可以快速扫过。
+</p>
+
+<h2>创建工程</h2>
+<p>用 Vite 创建一个 React + TypeScript 工程：</p>
+<pre><code class="language-bash">npm create vite@latest my-calliotext-app -- --template react-ts
+cd my-calliotext-app
+npm install</code></pre>
+
+<h2>安装 CallioText</h2>
+<pre><code class="language-bash">npm install @project-callio/calliotext</code></pre>
+<p>
+npm 会连同它的 peer 依赖一起装上（如果你的包管理器不自动安装 peer 依赖，
+把下表里的包手动装一遍即可）。这些库你的代码之后会直接用到，认识一下：
+</p>
+<table>
+    <tr><th>依赖</th><th>它是做什么的</th></tr>
+    <tr><td><code>slate / slate-history / slate-react</code></td><td>Slate 是一个专门用来构建编辑器的底层库，负责光标、选区、输入、撤销重做这些最基础的编辑功能。CallioText 的概念系统就建立在它上面。</td></tr>
+    <tr><td><code>@mui/material</code> 和两个 emotion 包</td><td>MUI 是一套 React 组件库（按钮、抽屉、提示框等），CallioText 的默认界面用它搭建。emotion 是 MUI 依赖的样式引擎。</td></tr>
+    <tr><td><code>@ftyyy/mouseless</code></td><td>提供全键盘操作（不用鼠标）的支持。</td></tr>
+</table>
+
+<h2>引入样式表</h2>
+<p>
+CallioText 自带一份样式文件，需要在工程入口引入一次。打开 <code>src/main.tsx</code>，在最上面加一行：
+</p>
+<pre><code class="language-tsx">import "@project-callio/calliotext/calliotext.css"</code></pre>
+
+<h2>搭一个页面框架</h2>
+<p>
+整个教程我们都会在同一个画布上工作：屏幕左半边放编辑器，右半边放印刷器，
+这样每次修改都能立刻对照「编辑的样子」和「输出的样子」。
+把 <code>src/App.tsx</code> 的内容整个换成下面这样。现在两边都还是空的，只是把位置占好：
+</p>
+<pre><code class="language-tsx">import React from "react"
+
+// 左右各占一半的样式。
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+export default function App(){
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            {/* 第 3 章：这里放编辑器 */}
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            {/* 第 4 章：这里放印刷器 */}
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+一个注意点：CallioText 的默认组件用绝对定位铺满父容器，所以父容器必须有确定的尺寸，
+否则组件没有可见的高度。上面的代码用 <code>position: absolute; inset: 0</code>
+让最外层容器铺满视口，两个半边再各自定位。
+</p>
+
+<h2>确认一切就绪</h2>
+<p>运行开发服务器：</p>
+<pre><code class="language-bash">npm run dev</code></pre>
+<p>
+在浏览器打开它给出的地址（通常是 <code>http://localhost:5173</code>）。
+如果页面是一片空白、终端和浏览器控制台都没有报错，工程就准备好了。
+下一章，我们让左半边出现一个真正能打字的编辑器。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/02-setup.html"></script>
+</body>
+</html>

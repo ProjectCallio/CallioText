@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6. Numbering &amp; Cross References · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>6. Numbering &amp; Cross References</h1>
+<p class="lead">
+This chapter gives the theorems from the last chapter automatic numbers (Theorem 1, Theorem 2, Lemma 3),
+then walks step by step toward references of the form "see Theorem 3". The preprocessing machinery from
+chapter 4 gets its first real use here, and as usual every step ends with something you can verify with
+your own eyes.
+</p>
+
+<h2>What preprocessing leaves behind</h2>
+<p>First, let's complete chapter 4's picture. While preprocessing walks the tree, it maintains two kinds of data:</p>
+<ul>
+    <li>The environment (<code>Env</code>): one object shared across the whole preprocessing pass, serving as the walk's global state. Information like "how many theorems so far" is kept here.</li>
+    <li>The context (<code>Context</code>): one object per node, holding the conclusions preprocessing reached about that node. At render time, a node's rendering code can read its own context.</li>
+</ul>
+<p>
+The division of labor: the environment is the walk's working draft, the context is the result left for
+each node. Take numbering: when preprocessing reaches the third theorem, the counter in the environment
+goes from 2 to 3, and the 3 is written into that theorem's own context; at render time the theorem reads
+its context and learns it is number three.
+</p>
+<p>
+The library abstracts "a tool that maintains the environment and writes conclusions into contexts during
+preprocessing" into a kind of object called a contexter. A contexter provides two hooks:
+<code>enter()</code> runs when preprocessing enters a node, <code>exit()</code> when it leaves, and the
+hooks may read and write the environment and the current node's context. For numbering, the most common
+case, no hooks need writing: the library ships <code>OrderContexter</code>, which increments a counter in
+the environment on enter and writes the current count into the node's context.
+</p>
+
+<h2>Step 1: number the theorems</h2>
+<p>
+Open <code>src/printers.tsx</code> and hook an <code>OrderContexter</code> onto the theorem block.
+Two changes: register the contexter, and read the number back at render time. The revised theorem part:
+</p>
+<pre><code class="language-tsx">import {
+    get_default_group_renderer,
+    OrderContexter,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+// A function returning an OrderContexter. The constructor argument "primary"
+// names the counter: concepts using the same counter name share numbering.
+const orderer_gene = (info: PreprocessInformation&lt;GroupNode&gt;) =&gt;
+    new OrderContexter&lt;GroupNode&gt;("primary")
+
+const primary_printer = get_default_group_renderer({
+    // Register the contexter with the renderer. As preprocessing passes nodes
+    // of this kind, it calls the contexter's enter/exit automatically,
+    // which is the counting done for you.
+    contexters: [orderer_gene],
+
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; {
+        // Render phase: construct another OrderContexter of the same shape,
+        // and use its get_context() to read the number out of this node's context.
+        const order = orderer_gene(info).get_context(info.context)
+        return &lt;PrinterStructureBoxText inline&gt;
+            {info.parameters.title} {order}
+        &lt;/PrinterStructureBoxText&gt;
+    },
+
+    aft_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        info.parameters.close
+            ? &lt;PrinterStructureBoxText inline&gt;{info.parameters.close}&lt;/PrinterStructureBoxText&gt;
+            : undefined
+    ),
+})</code></pre>
+<div class="tip">
+Insert three theorems and a lemma in a row, save. The headings on the right read "Theorem 1",
+"Theorem 2", "Theorem 3", "Lemma 4". Now insert a new theorem before the first one and save:
+every number rearranges. That is the effect of preprocessing running fresh before every render;
+the numbers are always current.
+</div>
+<p>
+The pattern of constructing another contexter at render time deserves a comment. A contexter holds no
+state of its own; all the state lives in the environment and the contexts. So the instance created at
+render time is not the same object as the one used during preprocessing, but reading the same context
+gives exactly the same result. Here it acts purely as a reader.
+</p>
+<p>
+Theorems and lemmas number continuously because both are primary and share the one counter named
+<code>"primary"</code>. To give different blocks independent numbering, derive the counter name from a
+parameter, as in <code>new OrderContexter(info.parameters.label)</code>: blocks with different labels then
+count separately. <code>OrderContexter</code> also takes a second constructor argument,
+<code>separate_groups</code>; when true, any group whose <code>relation</code> is separating restarts the
+count from 1, which together with chapter 1's relation field produces "one list numbers continuously, a
+new list starts over".
+</p>
+
+<h2>Step 2: write reference names into the cache</h2>
+<p>
+Now toward "see Theorem 3". The difficulty: the referring side needs to know what number the target
+received, and numbers only exist after preprocessing, so reference information must also be produced
+during preprocessing.
+</p>
+<p>
+This introduces the third product of preprocessing: the cache. It is a table indexed by node
+<code>idx</code> (the document-wide unique identifier from chapter 1), and contexters may write into it
+from their <code>exit()</code>. Unlike a context, the cache is not private to any node; at render time any
+code can look things up in it by idx, which makes it the right home for information meant for others.
+</p>
+<p>
+The library's <code>ReferenceContexter</code> is the tool that writes reference names into the cache:
+you give it a function producing a node's reference name (the string "Theorem 3", say).
+Append it to the theorem block in <code>printers.tsx</code>:
+</p>
+<pre><code class="language-tsx">import { ReferenceContexter } from "@project-callio/calliotext"
+
+// The rule for building a reference name: title plus number, e.g. "Theorem 3".
+const reference_gene = () =&gt; new ReferenceContexter&lt;GroupNode&gt;((info) =&gt; {
+    const order = orderer_gene(info).get_context(info.context)
+    return `${info.parameters.title} ${order}`
+})
+
+const primary_printer = get_default_group_renderer({
+    // Append reference_gene to the contexter list; nothing else changes.
+    contexters: [orderer_gene, reference_gene],
+    // pre_element and aft_element stay as in step 1.
+})</code></pre>
+<div class="tip">
+The cache feels invisible? Make it show itself. In <code>App.tsx</code>, give the printer component a
+callback: <code>&lt;DefaultPrinterComponent printer={printer} root={tree}
+onUpdateCache={(cache) =&gt; console.log(cache)} /&gt;</code>.
+Save the document and open the browser console: in the printed object, under each theorem's idx sits its
+reference name. Once you have seen it, the callback line can go.
+</div>
+
+<h2>Step 3: use the reference names</h2>
+<p>
+The names are in the cache; what remains is consuming them. A complete reference feature is one more
+concept, following exactly the four-piece routine of chapter 5. Here is the plan, with the code left as an
+exercise (the link concept in the repository's <code>test/demo</code> is a full reference implementation):
+</p>
+<ol>
+    <li>Define a Reference inline concept with a <code>target_idx</code> parameter holding the target node's idx.</li>
+    <li>Its printer renderer calls <code>usePrinterAllCaches()</code> (a hook available inside printer render functions) to get the whole cache, looks up <code>target_idx</code>, and displays the reference name it finds.</li>
+    <li>On the editing side, build a target picker from the cache that <code>onUpdateCache</code> hands out.</li>
+    <li>For click-to-jump, call the printer component's <code>scroll_to_idx(idx)</code> method.</li>
+</ol>
+<p>
+Every link of this chain (parameters, renderers, hooks, component methods) is something you have already
+met; this is just the first time they line up.
+</p>
+
+<h2>A more general pair of tools</h2>
+<p>Finally, a pair of contexters for cases where earlier nodes affect later ones:</p>
+<ul>
+    <li><code>InjectContexter</code>: writes a piece of information into the environment when its node is entered or exited.</li>
+    <li><code>ConsumerContexter</code>: on nodes visited later, reads that information out of the environment into their own contexts.</li>
+</ul>
+<p>
+A typical case: a section heading that all subsequent content shows in its header. The section node
+injects its title into the environment; later nodes consume it. <code>OrderContexter</code> is in fact a
+specialization of this machinery. And when none of the ready-made tools fit, subclass
+<code>ContexterBase</code> and implement <code>enter</code> and <code>exit</code> yourself.
+</p>
+
+<h2>Chapter summary</h2>
+<ul>
+    <li>Preprocessing maintains two kinds of data: the environment (a global draft) and per-node contexts (conclusions left for each node); contexters hook into it through enter/exit.</li>
+    <li><code>OrderContexter</code> handles numbering: same counter name means shared numbers, the counter name can come from a parameter, and <code>separate_groups</code> controls restarts.</li>
+    <li>Contexters are stateless; render-time code constructs one just to read the context.</li>
+    <li>The cache is indexed by idx and readable from anywhere; <code>ReferenceContexter</code> writes reference names into it during preprocessing, and <code>onUpdateCache</code> hands the cache to you.</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/06-numbering.html"></script>
+</body>
+</html>

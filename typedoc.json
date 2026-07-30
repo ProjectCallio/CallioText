@@ -1,0 +1,15 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["lib/index.tsx"],
+    "out": "docs/reference",
+    "name": "CallioText API Reference",
+    "tsconfig": "tsconfig.app.json",
+    "skipErrorChecking": true,
+    "readme": "none",
+    "excludeInternal": true,
+    "includeVersion": true,
+    "hideGenerator": true,
+    "navigationLinks": {
+        "文档首页 / Docs Home": "../index.html"
+    }
+}

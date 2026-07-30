@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>editor：编辑器 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>editor：编辑器</h1>
+<p class="lead">
+编辑一侧的全部内容：<code>EditorCore</code>（配置与节点工厂）、<code>EditorComponent</code>（React 组件与树操作）、
+插件系统、Slate 节点工具函数，以及编辑器状态 hooks。
+</p>
+
+<h2>EditorCore</h2>
+<p>
+EditorCore 是编辑一侧的入口对象：应用启动时构造一次，之后全程共用。
+三个构造参数与教程第 3 章的用法一致：
+</p>
+<pre><code class="language-typescript">new EditorCore({
+    renderers: EditorRendererDict,           // {group: {一级概念名: 渲染器}, ...}
+    default_renderers: EditorDefaultRendererDict, // 每种节点类型一个默认渲染器
+    printer: Printer,                        // 概念定义从这里查询
+})</code></pre>
+<p>
+它的方法分两类。一类是节点工厂（<code>create_</code> 系列）：按二级概念名创建各种新节点，
+idx、占位子节点这些细节都会自动填好，程序化构造文档内容时用它们，而不要手写对象字面量。
+另一类是查询：概念清单、渲染器、关联的印刷器。
+</p>
+<table>
+    <tr><th>方法</th><th>说明</th></tr>
+    <tr><td><code>create_text(text?)</code> / <code>create_paragraph(text?)</code></td><td>创建文本、段落节点</td></tr>
+    <tr><td><code>create_group(name, relation?)</code></td><td>按二级概念名创建组节点，relation 缺省为 <code>"separating"</code></td></tr>
+    <tr><td><code>create_inline(name, text?)</code> / <code>create_support(name)</code> / <code>create_structure(name, relation?)</code> / <code>create_abstract(name)</code></td><td>创建其余各类概念节点，同样按二级概念名</td></tr>
+    <tr><td><code>get_sec_concept_list(type)</code> / <code>get_fst_concept_list(type)</code></td><td>列出某节点种类下注册的二级、一级概念名</td></tr>
+    <tr><td><code>get_first_renderer(type, fst?)</code> / <code>get_second_renderer(type, sec?)</code> / <code>get_node_renderer(node)</code></td><td>渲染器查询，查不到时返回默认渲染器</td></tr>
+    <tr><td><code>get_printer()</code></td><td>取得关联的印刷器</td></tr>
+    <tr><td><code>get_meta_param(node)</code></td><td>取得节点一级概念的元参数</td></tr>
+</table>
+
+<h2>EditorComponent</h2>
+<p>
+编辑器的 React 组件（类组件）。实际使用中你通常挂载的是它的包装
+<code>DefaultEditorComponent</code>（见<a href="default.html">默认实现</a>那页），
+两者共享同一套 props：
+</p>
+<pre><code class="language-typescript">interface EditorComponentProps {
+    editorcore: EditorCore
+    plugin?: EditorPlugin                 // 自定义插件，叠加在内置插件之外
+    init_rootchildren?: AbstractNode["children"]        // 初始文档内容
+    init_rootproperty?: Omit&lt;AbstractNode, "children"&gt;  // 初始根节点属性
+    onUpdate?: (v: any) =&gt; void           // 树每次更新时回调
+    onKeyDown? / onKeyUp?: (e) =&gt; void    // 键盘事件回调
+    onFocusChange?: (editor?) =&gt; void     // 光标位置变化回调
+}</code></pre>
+<table>
+    <tr><th>实例方法</th><th>说明</th></tr>
+    <tr><td><code>get_root(): AbstractNode</code></td><td>把当前编辑内容组装成一棵完整的文档树，保存文档的入口</td></tr>
+    <tr><td><code>get_core()</code> / <code>get_slate()</code></td><td>取得 EditorCore、底层的 Slate 编辑器对象</td></tr>
+    <tr><td><code>get_cur_node()</code> / <code>get_cur_concept_node()</code></td><td>取得光标所在的节点、光标所在的最近的概念节点</td></tr>
+    <tr><td><code>get_node_by_path(path)</code></td><td>按路径取节点</td></tr>
+    <tr><td><code>new_concept_node(type, sec_name)</code></td><td>在当前位置插入指定二级概念的新节点（侧边栏插入按钮的底层实现）</td></tr>
+    <tr><td><code>set_root(property)</code></td><td>修改根节点的属性</td></tr>
+    <tr><td><code>add_apply_callback(cb)</code></td><td>注册一个在下一次 Slate apply 之后执行的回调</td></tr>
+</table>
+
+<h3>树操作方法</h3>
+<p>
+以下方法也在 <code>EditorComponent</code> 上（通过 mixin 混入，源码在 treeopmixin），
+是对 Slate <code>Transforms</code> 的概念级封装。写插件和自定义按钮时主要打交道的就是它们：
+</p>
+<table>
+    <tr><th>方法</th><th>说明</th></tr>
+    <tr><td><code>set_node(node, partial)</code> / <code>set_node_by_path(path, partial)</code></td><td>修改节点属性</td></tr>
+    <tr><td><code>auto_set_parameter(node, parameters)</code></td><td>修改节点参数，自动处理代理节点的情形</td></tr>
+    <tr><td><code>add_nodes(nodes, path)</code> / <code>add_nodes_here(nodes)</code></td><td>插入节点：指定路径，或当前光标处</td></tr>
+    <tr><td><code>add_nodes_before(nodes, target)</code> / <code>add_nodes_after(nodes, target)</code></td><td>在目标节点前、后插入</td></tr>
+    <tr><td><code>delete_concept_node(node)</code> / <code>delete_node_by_path(path)</code> / <code>delete_nodes_by_paths(paths)</code></td><td>删除节点</td></tr>
+    <tr><td><code>unwrap_node(node)</code></td><td>删除节点但保留其子节点</td></tr>
+    <tr><td><code>move_concept_node(node, posto)</code> / <code>move_node_by_path(from, to)</code></td><td>移动节点</td></tr>
+    <tr><td><code>replace_nodes(father, nodes)</code></td><td>替换某节点的全部子节点</td></tr>
+    <tr><td><code>wrap_selected_nodes(node, opts)</code> / <code>wrap_nodes(node, from, to, opts)</code></td><td>把当前选区、指定范围包进一个新节点</td></tr>
+</table>
+
+<h2>编辑渲染器</h2>
+<p>编辑渲染器本质上就是一个 React 组件，接收编辑器、节点和子内容三样东西：</p>
+<pre><code class="language-typescript">type EditorRenderer&lt;NT extends Node = Node&gt; =
+    (props: EditorRendererProps&lt;NT&gt;) =&gt; React.ReactElement
+
+interface EditorRendererProps&lt;NT&gt; {
+    editor: EditorComponent
+    node: NT
+    children: React.ReactNode   // Slate 提供的子内容，渲染器必须把它输出出去
+}</code></pre>
+<p>
+这是编辑渲染器的底层形态。日常开发中很少直接手写，
+一般用<a href="default.html">默认实现提供的工厂函数</a>生成，那些工厂已经处理好了按钮、参数编辑等公共部分。
+</p>
+
+<h2>插件系统</h2>
+<p>插件是一个包装 Slate 编辑器的函数：</p>
+<pre><code class="language-typescript">type EditorPlugin =
+    (editor: EditorComponent, slate: SlateReact.ReactEditor) =&gt; SlateReact.ReactEditor</code></pre>
+<p>
+插件接收编辑器和 Slate 编辑器对象，返回改造后的 Slate 编辑器，
+与 Slate 生态的插件写法一致。编写方法见教程第 7 章。相关导出：
+</p>
+<ul>
+    <li><code>with_ytext_plugins</code>：内置插件链，挂载编辑器组件时自动应用，不需要手动调用。
+        包含九个插件：元参数应用（行内、无内容节点的处理）、四类子节点约束、relation 修复、抽象节点修复、参数修复。</li>
+    <li><code>set_normalize_status({initializing?, pasting?})</code> 与 <code>get_normalize_status(key)</code>：
+        读写规范化状态。文档装载和粘贴过程中树会经历中间状态，
+        自定义插件应当在 <code>initializing</code> 为 true 时跳过自己的检查，否则会干扰装载。</li>
+</ul>
+
+<h2>Slate 节点工具函数</h2>
+<p>在插件和按钮里检查 Slate 节点时的常用函数，都以 <code>slate_</code> 开头：</p>
+<table>
+    <tr><th>函数</th><th>说明</th></tr>
+    <tr><td><code>slate_is_concept(node, type?)</code></td><td>是否为概念节点，第二个参数可以限定节点种类</td></tr>
+    <tr><td><code>slate_is_paragraph / slate_is_text</code></td><td>是否为段落、文本节点</td></tr>
+    <tr><td><code>slate_get_node_type(node)</code></td><td>取节点类型字符串</td></tr>
+    <tr><td><code>slate_is_same_concept_node(a, b)</code></td><td>按 idx 判断两个引用是否指向同一个节点</td></tr>
+    <tr><td><code>slate_concept_node2path(root, node)</code></td><td>求节点在树中的路径</td></tr>
+    <tr><td><code>slate_concept_father(root, node)</code> / <code>slate_concept_father_path(root, path)</code></td><td>求最近的概念祖先节点</td></tr>
+    <tr><td><code>slate_idx_to_node(root, idx)</code></td><td>按 idx 查找节点</td></tr>
+</table>
+
+<h2>编辑器状态 hooks</h2>
+<p>在编辑器之外的组件（比如你放在页面其他位置的工具栏）想感知编辑器状态时，用这些 hooks：</p>
+<table>
+    <tr><th>Hook</th><th>说明</th></tr>
+    <tr><td><code>useEditor()</code></td><td>在编辑渲染器内部取当前的 <code>EditorComponent</code>；不在编辑器上下文内调用会抛错</td></tr>
+    <tr><td><code>useCurEditor()</code></td><td>在任意位置取当前编辑器，基于 Zustand 实现，随编辑器版本刷新</td></tr>
+    <tr><td><code>useCurConceptNode()</code></td><td>取光标所在的概念节点，节点变化时触发重渲染</td></tr>
+    <tr><td><code>useCurConceptNodeIdxParam()</code></td><td>同上，但只在节点的 idx 或参数变化时才触发重渲染，开销更小</td></tr>
+    <tr><td><code>useEditorState</code></td><td>底层的 Zustand store，需要更精细的订阅控制时使用</td></tr>
+</table>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="api/editor.html"></script>
+</body>
+</html>

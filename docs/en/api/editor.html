@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>editor: The Editor · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>editor: The Editor</h1>
+<p class="lead">
+The entire editing side: <code>EditorCore</code> (configuration and node factory), <code>EditorComponent</code>
+(the React component and its tree operations), the plugin system, the Slate node utilities, and the editor
+state hooks.
+</p>
+
+<h2>EditorCore</h2>
+<p>
+EditorCore is the entry object of the editing side: constructed once at startup and shared from then on.
+Its three constructor arguments match the usage in tutorial chapter 3:
+</p>
+<pre><code class="language-typescript">new EditorCore({
+    renderers: EditorRendererDict,           // {group: {first-concept name: renderer}, ...}
+    default_renderers: EditorDefaultRendererDict, // one default renderer per node kind
+    printer: Printer,                        // concept definitions are queried from here
+})</code></pre>
+<p>
+Its methods fall into two groups. One is the node factory (the <code>create_</code> family): create new
+nodes by second-class concept name, with idx and placeholder children filled in automatically; use these
+rather than hand-written object literals when constructing document content programmatically. The other
+group is queries: concept lists, renderers, and the associated printer.
+</p>
+<table>
+    <tr><th>Method</th><th>Description</th></tr>
+    <tr><td><code>create_text(text?)</code> / <code>create_paragraph(text?)</code></td><td>Create text and paragraph nodes</td></tr>
+    <tr><td><code>create_group(name, relation?)</code></td><td>Create a group node by second-class concept name; relation defaults to <code>"separating"</code></td></tr>
+    <tr><td><code>create_inline(name, text?)</code> / <code>create_support(name)</code> / <code>create_structure(name, relation?)</code> / <code>create_abstract(name)</code></td><td>Create the other concept node kinds, likewise by second-class concept name</td></tr>
+    <tr><td><code>get_sec_concept_list(type)</code> / <code>get_fst_concept_list(type)</code></td><td>List the second- or first-class concept names registered under a node kind</td></tr>
+    <tr><td><code>get_first_renderer(type, fst?)</code> / <code>get_second_renderer(type, sec?)</code> / <code>get_node_renderer(node)</code></td><td>Renderer lookup; falls back to the default renderers</td></tr>
+    <tr><td><code>get_printer()</code></td><td>The associated printer</td></tr>
+    <tr><td><code>get_meta_param(node)</code></td><td>The meta parameters of the node's first-class concept</td></tr>
+</table>
+
+<h2>EditorComponent</h2>
+<p>
+The editor's React component (a class component). In practice you usually mount its wrapper
+<code>DefaultEditorComponent</code> (see the <a href="default.html">defaults page</a>); the two share one set
+of props:
+</p>
+<pre><code class="language-typescript">interface EditorComponentProps {
+    editorcore: EditorCore
+    plugin?: EditorPlugin                 // custom plugins, stacked on top of the built-ins
+    init_rootchildren?: AbstractNode["children"]        // initial document content
+    init_rootproperty?: Omit&lt;AbstractNode, "children"&gt;  // initial root properties
+    onUpdate?: (v: any) =&gt; void           // called on every tree update
+    onKeyDown? / onKeyUp?: (e) =&gt; void    // keyboard event callbacks
+    onFocusChange?: (editor?) =&gt; void     // called when the cursor position changes
+}</code></pre>
+<table>
+    <tr><th>Instance method</th><th>Description</th></tr>
+    <tr><td><code>get_root(): AbstractNode</code></td><td>Assemble the current content into a complete document tree; the entry point for saving</td></tr>
+    <tr><td><code>get_core()</code> / <code>get_slate()</code></td><td>The EditorCore, and the underlying Slate editor object</td></tr>
+    <tr><td><code>get_cur_node()</code> / <code>get_cur_concept_node()</code></td><td>The node at the cursor, and the nearest enclosing concept node</td></tr>
+    <tr><td><code>get_node_by_path(path)</code></td><td>Node lookup by path</td></tr>
+    <tr><td><code>new_concept_node(type, sec_name)</code></td><td>Insert a new node of the given second-class concept at the cursor (what the sidebar insert buttons call)</td></tr>
+    <tr><td><code>set_root(property)</code></td><td>Modify the root node's properties</td></tr>
+    <tr><td><code>add_apply_callback(cb)</code></td><td>Register a callback to run after the next Slate apply</td></tr>
+</table>
+
+<h3>Tree operations</h3>
+<p>
+The following methods also live on <code>EditorComponent</code> (mixed in; the source is in treeopmixin).
+They are concept-level wrappers over Slate's <code>Transforms</code>, and they are what plugins and custom
+buttons mostly deal with:
+</p>
+<table>
+    <tr><th>Method</th><th>Description</th></tr>
+    <tr><td><code>set_node(node, partial)</code> / <code>set_node_by_path(path, partial)</code></td><td>Modify node properties</td></tr>
+    <tr><td><code>auto_set_parameter(node, parameters)</code></td><td>Modify node parameters, handling proxy nodes automatically</td></tr>
+    <tr><td><code>add_nodes(nodes, path)</code> / <code>add_nodes_here(nodes)</code></td><td>Insert nodes at a path, or at the cursor</td></tr>
+    <tr><td><code>add_nodes_before(nodes, target)</code> / <code>add_nodes_after(nodes, target)</code></td><td>Insert before or after a target node</td></tr>
+    <tr><td><code>delete_concept_node(node)</code> / <code>delete_node_by_path(path)</code> / <code>delete_nodes_by_paths(paths)</code></td><td>Delete nodes</td></tr>
+    <tr><td><code>unwrap_node(node)</code></td><td>Delete a node but keep its children</td></tr>
+    <tr><td><code>move_concept_node(node, posto)</code> / <code>move_node_by_path(from, to)</code></td><td>Move nodes</td></tr>
+    <tr><td><code>replace_nodes(father, nodes)</code></td><td>Replace all children of a node</td></tr>
+    <tr><td><code>wrap_selected_nodes(node, opts)</code> / <code>wrap_nodes(node, from, to, opts)</code></td><td>Wrap the selection, or a given range, into a new node</td></tr>
+</table>
+
+<h2>Editor renderers</h2>
+<p>An editor renderer is at bottom just a React component, receiving the editor, the node, and the child content:</p>
+<pre><code class="language-typescript">type EditorRenderer&lt;NT extends Node = Node&gt; =
+    (props: EditorRendererProps&lt;NT&gt;) =&gt; React.ReactElement
+
+interface EditorRendererProps&lt;NT&gt; {
+    editor: EditorComponent
+    node: NT
+    children: React.ReactNode   // content supplied by Slate; the renderer must output it
+}</code></pre>
+<p>
+This is the raw form of an editor renderer. It is rarely written by hand; the
+<a href="default.html">factory functions of the default implementation</a> generate renderers with buttons
+and parameter editing already handled.
+</p>
+
+<h2>The plugin system</h2>
+<p>A plugin is a function that wraps the Slate editor:</p>
+<pre><code class="language-typescript">type EditorPlugin =
+    (editor: EditorComponent, slate: SlateReact.ReactEditor) =&gt; SlateReact.ReactEditor</code></pre>
+<p>
+A plugin receives the editor and the Slate editor object and returns the modified Slate editor, matching the
+plugin pattern of the Slate ecosystem. How to write one is covered in tutorial chapter 7. Related exports:
+</p>
+<ul>
+    <li><code>with_ytext_plugins</code>: the built-in plugin chain, applied automatically when the editor
+        component mounts; you never call it yourself. It contains nine plugins: meta-parameter application
+        (inline and void node handling), four child-constraint plugins, and repair plugins for relation,
+        abstract nodes and parameters.</li>
+    <li><code>set_normalize_status({initializing?, pasting?})</code> and
+        <code>get_normalize_status(key)</code>: read and write the normalization state. The tree passes
+        through intermediate states while a document loads or a paste is processed; custom plugins should
+        skip their checks while <code>initializing</code> is true, or they will interfere with loading.</li>
+</ul>
+
+<h2>Slate node utilities</h2>
+<p>Functions for inspecting Slate nodes in plugins and buttons, all prefixed <code>slate_</code>:</p>
+<table>
+    <tr><th>Function</th><th>Description</th></tr>
+    <tr><td><code>slate_is_concept(node, type?)</code></td><td>Whether the node is a concept node; the second argument narrows the kind</td></tr>
+    <tr><td><code>slate_is_paragraph / slate_is_text</code></td><td>Paragraph and text checks</td></tr>
+    <tr><td><code>slate_get_node_type(node)</code></td><td>The node's type string</td></tr>
+    <tr><td><code>slate_is_same_concept_node(a, b)</code></td><td>Whether two references point to the same node, compared by idx</td></tr>
+    <tr><td><code>slate_concept_node2path(root, node)</code></td><td>The node's path within the tree</td></tr>
+    <tr><td><code>slate_concept_father(root, node)</code> / <code>slate_concept_father_path(root, path)</code></td><td>The nearest concept ancestor</td></tr>
+    <tr><td><code>slate_idx_to_node(root, idx)</code></td><td>Find a node by idx</td></tr>
+</table>
+
+<h2>Editor state hooks</h2>
+<p>For components outside the editor (a toolbar placed elsewhere on the page, say) that need to track editor state:</p>
+<table>
+    <tr><th>Hook</th><th>Description</th></tr>
+    <tr><td><code>useEditor()</code></td><td>The current <code>EditorComponent</code>, inside editor renderers; throws outside the editor context</td></tr>
+    <tr><td><code>useCurEditor()</code></td><td>The current editor from anywhere, built on Zustand, refreshing with the editor version</td></tr>
+    <tr><td><code>useCurConceptNode()</code></td><td>The concept node at the cursor; re-renders when it changes</td></tr>
+    <tr><td><code>useCurConceptNodeIdxParam()</code></td><td>Same, but re-renders only when the node's idx or parameters change; cheaper</td></tr>
+    <tr><td><code>useEditorState</code></td><td>The underlying Zustand store, for finer subscription control</td></tr>
+</table>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="api/editor.html"></script>
+</body>
+</html>

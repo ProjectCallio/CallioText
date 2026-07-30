@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3. A Minimal Editor · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>3. A Minimal Editor</h1>
+<p class="lead">
+Time for the first real code: meeting the two core objects, <code>Printer</code> and
+<code>EditorCore</code>, understanding how renderers are registered, and putting a typeable editor into
+the left half of the page. We go step by step, and after each step there is something to see in the browser.
+</p>
+
+<h2>Two core objects</h2>
+<p>Before writing anything, meet the two objects this chapter constructs:</p>
+<ul>
+    <li><code>Printer</code>: renders document trees into typeset output. It is also the holder of concept definitions; the lists of first-class and second-class concepts are registered with it.</li>
+    <li><code>EditorCore</code>: the entry point of the editing side. It holds the editing-side configuration, creates new nodes, and queries the printer for concept definitions.</li>
+</ul>
+<p>
+Concept definitions are stored only once. Both the editor and the printer need information like which
+parameters a Proposition has; the library's design is that the printer holds the definitions and the editor
+queries them, which rules out the two sides drifting apart. The construction order is therefore fixed:
+<code>Printer</code> first, then <code>EditorCore</code> (passing the printer to it), then the editor
+component on the page. That is exactly the order of our next three steps.
+</p>
+
+<h2>Renderers</h2>
+<p>
+One more word to settle first: renderer. A renderer is the code that decides how a category of nodes is
+displayed; the rule "a Proposition appears in the editor as a card with a title bar" is a renderer.
+Renderers are registered per concept, and the registry is a two-level dictionary:
+</p>
+<pre><code class="language-tsx">{
+    group:     { "primary": renderer_for_propositions, "quote": renderer_for_quotations },
+    inline:    { "strong": renderer_for_emphasis },
+    support:   {},
+    structure: {},
+    abstract:  {},
+}</code></pre>
+<p>
+The first level is keyed by node kind (group, inline, support, structure, abstract), the second by
+first-class concept name. Nodes with no registered renderer fall back to a set of default renderers,
+one per node kind. This chapter registers no concepts at all and leaves everything to the defaults,
+so the registries below are empty, but the shape must already be right.
+</p>
+
+<h2>Step 1: construct the printer</h2>
+<p>
+Create <code>src/core.ts</code> and write only the printer half for now. It needs empty concept lists,
+an empty renderer registry, and a set of default renderers:
+</p>
+<pre><code class="language-tsx">import {
+    Printer,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+
+// Concept lists. Empty for now; chapter 5 adds real ones.
+export const first_concepts = []
+export const second_concepts = []
+
+// Per-concept renderers. No concepts, so all empty.
+const printer_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+// Default renderers used when lookup fails, one per node kind.
+const printer_defaults = {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+}
+
+// The printer's four arguments: first-class concepts, second-class concepts,
+// per-concept renderers, default renderers.
+export const printer = new Printer(
+    first_concepts, second_concepts,
+    printer_renderers, printer_defaults,
+)</code></pre>
+<p>
+The <code>useless_renderer_</code> family in the defaults are library-provided renderers that add no
+styling at all: block nodes render as a plain block, inline nodes as plain inline content, text as-is.
+Paragraphs use the library's default paragraph renderer so that paragraphs get normal spacing.
+The "useless" in the name means "no concept-level styling"; as fallbacks they do their job well.
+</p>
+
+<h2>Step 2: construct the editor core</h2>
+<p>
+Append the editing side to <code>core.ts</code>. The editor likewise has a per-concept renderer registry
+(also empty for now); its default renderers need no assembling, the library ships a complete set.
+After the addition, the whole file reads:
+</p>
+<pre><code class="language-tsx">import {
+    Printer, EditorCore,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+
+export const first_concepts = []
+export const second_concepts = []
+
+const printer_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+const printer_defaults = {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+}
+
+export const printer = new Printer(
+    first_concepts, second_concepts,
+    printer_renderers, printer_defaults,
+)
+
+// ==== new from here ====
+
+// The editor's own per-concept registry, also empty for now.
+const editor_renderers = {group: {}, inline: {}, support: {}, structure: {}, abstract: {}}
+
+export const editor_core = new EditorCore({
+    renderers: editor_renderers,
+    // get_default_editors() returns a ready-made default editing look
+    // for all seven node kinds; use it directly.
+    default_renderers: get_default_editors(),
+    printer,
+})</code></pre>
+<p>
+Note how <code>printer</code> is passed into <code>EditorCore</code>'s constructor. That is
+"the printer holds the definitions, the editor queries them" in code form.
+</p>
+
+<h2>Step 3: put the editor on the page</h2>
+<p>Back in <code>src/App.tsx</code>, replace chapter 2's left-half placeholder with the real component:</p>
+<pre><code class="language-tsx">import React, { useRef } from "react"
+import { DefaultEditorComponent } from "@project-callio/calliotext"
+import { editor_core } from "./core"
+
+const half: React.CSSProperties = {
+    position: "absolute", top: 0, height: "100%", width: "49%",
+}
+
+export default function App(){
+    // Keep a ref to the editor component; next chapter uses it to pull the document out.
+    const editor_ref = useRef&lt;DefaultEditorComponent | null&gt;(null)
+
+    return &lt;div style={{position: "absolute", inset: 0}}&gt;
+        &lt;div style={{...half, left: 0}}&gt;
+            &lt;DefaultEditorComponent
+                ref={editor_ref}
+                editorcore={editor_core}
+            /&gt;
+        &lt;/div&gt;
+        &lt;div style={{...half, left: "51%"}}&gt;
+            {/* chapter 4: the printer goes here */}
+        &lt;/div&gt;
+    &lt;/div&gt;
+}</code></pre>
+<p>
+<code>DefaultEditorComponent</code> is a complete, ready-made editor interface; giving it the editor core
+through <code>editorcore</code> is all it needs.
+</p>
+<div class="tip">
+Save and reload. The left half should show a sheet of paper and a vertical sidebar. Click into the paper
+and type; press Enter to start a paragraph; press Ctrl+Z to undo. All of it should behave like a normal
+editor. The sidebar is the button area for inserting concept nodes; with no concepts registered it is
+nearly empty, and chapter 5 will liven it up.
+</div>
+<p>
+What you type is already building a document tree: characters live in text nodes, text nodes sit inside
+paragraph nodes. The tree simply contains nothing but paragraphs and text so far.
+</p>
+
+<h2>What happened behind the scenes</h2>
+<p>
+First, the editor created an empty document on its own. We did not specify a document to open, so it
+constructed an empty root node (as chapter 1 said, the root is an abstract node) containing one empty
+paragraph. To make the editor open with an existing document, you pass the content in when mounting the
+component; chapter 7 shows how.
+</p>
+<p>
+Second, the built-in normalization plugins went to work. The child constraints from chapter 1's table
+(no bare text inside a group, for example) are not maintained by convention: the library ships a set of
+normalization plugins that watch the tree continuously and automatically repair any structure that violates
+the constraints, such as an ill-formed fragment arriving through paste. No configuration is needed.
+Adding constraints of your own ("the document must begin with a divider") is covered in chapter 7.
+</p>
+
+<h2>Chapter summary</h2>
+<ul>
+    <li>Construction order is fixed: <code>Printer</code>, then <code>EditorCore</code>, then <code>DefaultEditorComponent</code>. The printer holds concept definitions; the editor queries them.</li>
+    <li>Renderers decide how each category of node looks. The per-concept registry is a two-level dictionary: node kind first, first-class concept name second. Failed lookups fall back to default renderers.</li>
+    <li>With no initial content specified, the editor creates an empty document; the tree's structural constraints are maintained by built-in normalization plugins.</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="tutorial/03-editor.html"></script>
+</body>
+</html>

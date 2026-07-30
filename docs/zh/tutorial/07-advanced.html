@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7. 进阶主题 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>7. 进阶主题</h1>
+<p class="lead">
+教程的最后一章，把一个演示项目变成真正可用的应用还差的几块拼图：
+保存与加载文档、在运行时创建二级概念、编写自己的插件、键盘操作，以及样式配置。
+各节相对独立，可以按需要挑着读。
+</p>
+
+<h2>保存与加载文档</h2>
+<p>
+文档树是普通的、可以直接序列化成 JSON 的数据，没有任何特殊对象。
+保存就是取出树然后序列化，第 4 章已经用过取树的方法：
+</p>
+<pre><code class="language-tsx">const editor = editor_ref.current?.get_editor()
+if (editor) {
+    const root = editor.get_root()          // 一棵完整的文档树（AbstractNode）
+    localStorage.setItem("doc", JSON.stringify(root))
+}</code></pre>
+<p>
+加载的方向要多做两件事。第一，来路不明的数据（用户上传的文件、旧版本存档）在进入编辑器之前，
+应该先用库提供的 <code>validate</code> 函数校验，它会递归检查整棵树的结构是否合法，
+不合法时返回带节点路径的错误信息。第二，编辑器组件接收初始文档的方式，
+是把树拆成两部分传入：<code>children</code>（文档内容）传给 <code>init_rootchildren</code>，
+其余属性（idx、concept、parameters 等根节点自身的字段）传给 <code>init_rootproperty</code>：
+</p>
+<pre><code class="language-tsx">import { validate, AbstractNode } from "@project-callio/calliotext"
+
+const saved = JSON.parse(localStorage.getItem("doc")!)
+
+// 校验：ok 为 false 时 msg 里是带节点路径的错误说明。
+const [ok, msg] = validate(saved)
+if (!ok) throw new Error(msg)
+
+const {children, ...property} = saved as AbstractNode
+
+&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    init_rootchildren={children}
+    init_rootproperty={property}
+/&gt;</code></pre>
+<p>
+第 3 章说过，不传这两个参数时编辑器会自动创建空文档；传了，它就从你给的文档开始。
+</p>
+
+<h2>在运行时创建二级概念</h2>
+<p>
+第 1 章承诺过「二级概念可以在运行时创建，不需要写代码」，现在兑现它。
+二级概念的全部信息就是几个字段（继承谁、叫什么、重写哪些参数），完全可以放在一个 JSON 文件里，
+或者由后端接口下发。下面是一个实际系统中「命题」概念的定义：
+</p>
+<pre><code class="language-json">{
+    "命题": {
+        "first": "primary",
+        "type": "group",
+        "fixed": {
+            "title":  {"val": "p=&gt;p.category.val", "type": "function"},
+            "prefix": {"val": "p=&gt;p.alias.val",    "type": "function"}
+        },
+        "default": {
+            "category": {
+                "val": "命题", "type": "string",
+                "choices": ["定理", "引理", "推论", "断言", "命题"]
+            },
+            "alias": {"val": "", "type": "string"}
+        }
+    }
+}</code></pre>
+<p>这份定义里有两个新东西：</p>
+<ul>
+    <li>
+        函数型参数。<code>fixed</code>（对应代码里的 <code>fixed_override</code>）中，
+        <code>title</code> 的值不是一个字符串，而是一段箭头函数代码
+        <code>p =&gt; p.category.val</code>，类型标注为 <code>function</code>。
+        印刷时它会被求值，入参 <code>p</code> 是这个节点的参数表。
+        效果是：title 不再是固定值，而是随着 <code>category</code> 参数自动变化。
+    </li>
+    <li>
+        <code>choices</code>。参数值对象里可以附加额外字段，<code>choices</code> 是默认参数编辑器认识的一个：
+        带它的参数会渲染成下拉选择而不是自由输入框。
+    </li>
+</ul>
+<p>
+两者合起来，这一个二级概念就顶五个用：写作者插入一个「命题」，在参数面板里把
+<code>category</code> 从「命题」切换成「定理」或「引理」，块的标题随之自动变化，不需要五个单独的概念。
+</p>
+<p>把这样的 JSON 转换成二级概念对象，就是普通的遍历和构造：</p>
+<pre><code class="language-tsx">const ret: SecondClassConcept[] = []
+for (const name in data) {
+    const info = data[name]
+    ret.push(new SecondClassConcept({
+        name,
+        type: info.type,
+        first_concept: info.first,
+        default_override: info.default,
+        fixed_override: info.fixed,
+    }))
+}
+// 构造 Printer 时传入，或者用 printer.add_second_concept(x) 动态追加。</code></pre>
+
+<h2>编写自己的插件</h2>
+<p>
+第 3 章提到，树的结构约束由内置的规范化插件维护。当你需要额外的约束时（比如强制文档以某种节点开头），
+就要写自己的插件。插件的类型是：
+</p>
+<pre><code class="language-typescript">type EditorPlugin =
+    (editor: EditorComponent, slate: ReactEditor) =&gt; ReactEditor</code></pre>
+<p>
+它接收编辑器和底层的 Slate 编辑器对象，返回（通常是改造过的）Slate 编辑器。
+这是 Slate 生态的标准写法，最常见的形式是包装 <code>normalizeNode</code>：
+Slate 每次内容变化后都会调用它来检查和修复结构，我们在里面追加自己的检查。
+下面的插件强制文档必须以一条分隔线开头：
+</p>
+<pre><code class="language-tsx">import * as Slate from "slate"
+import { ReactEditor } from "slate-react"
+import {
+    EditorComponent, slate_is_concept, get_normalize_status,
+} from "@project-callio/calliotext"
+
+function force_leading_divider(editor: EditorComponent, slate: ReactEditor): ReactEditor {
+    const normalizeNode = slate.normalizeNode
+
+    slate.normalizeNode = (entry: [Slate.Node, number[]]) =&gt; {
+        const [node, path] = entry
+
+        // 文档装载阶段不做检查。装载过程中树会经历一些中间状态，
+        // 这时候急着修复反而会把文档改坏。
+        if (get_normalize_status("initializing")) {
+            normalizeNode(entry)
+            return
+        }
+
+        if (path.length === 0) {   // path 为空表示当前检查的是根节点
+            const root = node as Slate.Editor
+            const first = root.children[0]
+            // slate_is_concept 判断一个 Slate 节点是否为概念节点，第二个参数限定种类。
+            if (!first || !slate_is_concept(first, "support")) {
+                // 不满足约束：修复。create_support 按二级概念名创建一个支撑节点，
+                // add_nodes 把它插到路径 [0]，也就是文档开头。
+                editor.add_nodes(editor.get_core().create_support("分隔线"), [0])
+                return   // 修复后直接返回，Slate 会自动再跑一轮规范化来确认。
+            }
+        }
+        normalizeNode(entry)
+    }
+    return slate
+}</code></pre>
+<p>写好之后通过 <code>plugin</code> 参数挂载：</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent editorcore={editor_core} plugin={force_leading_divider} /&gt;</code></pre>
+<p>
+多个插件依次套起来即可：<code>plugin={(e, s) =&gt; pluginB(e, pluginA(e, s))}</code>。
+内置的规范化插件总是自动生效，你的插件叠加在它们之外，不会替换它们。
+</p>
+
+<h2>树操作 API</h2>
+<p>
+上面插件里用到的 <code>add_nodes</code>，来自编辑器提供的一组树操作方法。
+写插件和自定义按钮时最常用的有这些（完整清单见 <a href="../api/editor.html">API 文档</a>）：
+</p>
+<table>
+    <tr><th>方法</th><th>作用</th></tr>
+    <tr><td><code>add_nodes(nodes, path)</code> / <code>add_nodes_here(nodes)</code></td><td>在指定路径或当前光标处插入节点</td></tr>
+    <tr><td><code>set_node(node, partial)</code></td><td>修改节点的属性，比如参数</td></tr>
+    <tr><td><code>delete_concept_node(node)</code></td><td>删除节点</td></tr>
+    <tr><td><code>unwrap_node(node)</code></td><td>删除节点但保留其子节点（俗称软删除）</td></tr>
+    <tr><td><code>move_concept_node(node, path)</code></td><td>移动节点到指定位置</td></tr>
+    <tr><td><code>wrap_selected_nodes(node, opts)</code></td><td>把当前选区包进一个新节点</td></tr>
+    <tr><td><code>get_core().create_group("定理")</code> 等</td><td>按二级概念名创建各类新节点</td></tr>
+</table>
+
+<h2>键盘操作</h2>
+<p>
+默认编辑器内置了完整的键盘操作体系（基于 <code>@ftyyy/mouseless</code> 库）：
+用 Alt 系列组合键（例如 Alt+S）进入空间导航状态，然后用方向键在节点按钮、侧边栏、概念区之间移动，
+回车触发选中的按钮。长按控制键片刻，界面上会浮现各按钮对应的按键提示；
+也可以放一个 <code>ShowHintControlButton</code> 组件让提示常驻显示。
+这些都随 <code>DefaultEditorComponent</code> 自带，不需要配置。
+</p>
+
+<h2>样式配置</h2>
+<p>
+编辑器和印刷器各接受一份样式配置，涵盖字体、边距、宽度。配置是「部分覆盖」式的：
+只写想改的项，其余沿用默认值：
+</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    config={{fonts: {body: {fontFamily: "serif"}}}}   // 类型是 PartialEditorConfig
+/&gt;
+
+&lt;DefaultPrinterComponent
+    printer={printer}
+    root={tree}
+    config={{margins: {paragraph: "0.8rem"}}}          // 类型是 PartialPrinterConfig
+/&gt;</code></pre>
+<p>
+再配上 <code>sidebar_extras</code>（往侧边栏追加自定义按钮，传组件数组）和 <code>onSave</code>，
+你手里的东西就和仓库 <code>test/demo</code> 里那个完整示例应用的骨架相同了。
+</p>
+<p>
+教程到此结束。接下来可以阅读 <a href="../api/overview.html">API 文档</a>系统了解各模块的全貌，
+或者在 <a href="../../reference/index.html">TypeDoc 参考</a>里逐项查阅。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/07-advanced.html"></script>
+</body>
+</html>

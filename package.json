@@ -1,6 +1,6 @@
 {
     "name": "@project-callio/calliotext",
-    "version": "0.0.21",
+    "version": "0.0.22",
     "type": "module",
     "publishConfig": {
         "access": "public"
@@ -26,6 +26,7 @@
         "preview": "vite preview",
         "test": "vitest run",
         "test:watch": "vitest",
+        "docs:api": "typedoc",
         "dev": "cd test/demo && npm run test:dev",
         "demo:dev": "cd test/demo && npm run test:dev",
         "demo:build": "cd test/demo && npm run test:build",
@@ -72,6 +73,7 @@
         "slate": "^0.112.0",
         "slate-history": "^0.113.1",
         "slate-react": "^0.112.1",
+        "typedoc": "^0.28.20",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.26.1",
         "vite": "^6.3.1",

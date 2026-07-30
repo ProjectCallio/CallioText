@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5. 定义自己的概念 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>5. 定义自己的概念</h1>
+<p class="lead">
+这一章是整个教程的核心。我们从零定义一个「定理」概念，看着它一步步长出编辑外观和印刷外观，
+然后从它派生出「引理」，最后再加上行内的「强调」和占位的「分隔线」。
+每一步都很短，每一步之后都能在页面上看到变化。
+</p>
+
+<h2>路线图</h2>
+<p>第 1 章讲过，让一个概念真正可用需要四样东西，这一章就按这个顺序逐样补齐：</p>
+<ol>
+    <li>一级概念：声明这类成分有哪些参数、默认值是什么。</li>
+    <li>二级概念：写作者实际使用的名字，出现在侧边栏的插入按钮上。</li>
+    <li>编辑渲染器：这个概念在编辑器里长什么样。</li>
+    <li>印刷渲染器：这个概念在输出成品里长什么样。</li>
+</ol>
+<div class="warn-box">
+一个容易踩的坑：即使某个一级概念只打算有一种用法，也必须给它配一个二级概念，
+否则写作者根本没法插入它（能插入的只有二级概念）。
+反过来，渲染器是按一级概念的名字注册的，二级概念自动沿用它继承的一级概念的渲染器，
+不需要（也不能）单独为二级概念注册渲染器。
+</div>
+
+<h2>第一步：注册第一个概念</h2>
+<p>
+新建 <code>src/concepts.ts</code>，定义一级概念 <code>primary</code>（一段需要突出展示的话，
+定理、引理这类东西以后都从它派生），再给它配一个二级概念「定理」：
+</p>
+<pre><code class="language-tsx">import { FirstClassConcept, SecondClassConcept } from "@project-callio/calliotext"
+
+/** primary：一段需要突出展示的话。按惯例一级概念用小写英文单词命名。 */
+export const primary_style = new FirstClassConcept({
+    type: "group",              // 它是组节点（占一块区域）
+    name: "primary",
+    parameter_prototype: {      // 参数原型：有哪些参数，默认值是什么
+        title: {type: "string", val: "定理"},   // 开头显示的标题
+        close: {type: "string", val: ""},       // 结尾显示的记号，比如证明结束的方块
+    },
+})
+
+export const first_concepts = [primary_style]
+
+/** 「定理」：写作者使用的名字。直接采用 primary 的默认参数。 */
+export const second_concepts = [
+    new SecondClassConcept({type: "group", first_concept: "primary", name: "定理"}),
+]</code></pre>
+<p>
+参数原型里的每个参数都带类型标注（<code>type: "string"</code> 等），
+第 1 章说过，这是为了让编辑器自动生成合适的编辑控件。
+</p>
+<p>
+然后到 <code>src/core.ts</code>，把第 3 章留空的概念清单换成刚写的这两个列表。
+只改开头几行，其余不动：
+</p>
+<pre><code class="language-tsx">import {
+    Printer, EditorCore,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+import { first_concepts, second_concepts } from "./concepts"
+
+// 原来在这里定义的两个空列表删掉，直接用上面 import 进来的。
+// 文件其余部分保持第 3 章的样子。</code></pre>
+<div class="tip">
+刷新页面，看侧边栏：多了一个「定理」按钮。点它，一个块插进了文档，可以在里面打字、分段。
+这个块现在长得很朴素，只有一个通用的卡片外观，因为我们还没为 primary 注册编辑渲染器，
+它用的是第 3 章配置的默认渲染器。下一步就来改善它。
+</div>
+
+<h2>第二步：编辑外观</h2>
+<p>
+编辑侧不需要从零实现界面：库提供了一批工厂函数，传入少量定制点，
+返回一个功能完整的编辑渲染器，自带标题栏、删除按钮、复制按钮、参数编辑面板等。
+新建 <code>src/editors.tsx</code>（注意后缀是 .tsx，因为里面有 JSX）：
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_deafult_group_editor_with_appbar,
+    useParameters,
+} from "@project-callio/calliotext"
+
+export const editor_renderers = {
+    group: {
+        // 组节点的编辑样式：一张顶部带标题栏的卡片。
+        // get_label 决定标题栏上显示什么字。
+        "primary": get_deafult_group_editor_with_appbar({
+            get_label: () =&gt; useParameters().title,
+        }),
+    },
+    inline: {},
+    support: {},
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p>这短短几行里有两个值得停下来看的东西：</p>
+<ul>
+    <li>
+        <code>useParameters()</code>：一个 React hook，返回当前正在渲染的节点的参数值。
+        它返回的是处理好的普通值：直接拿到字符串 <code>"定理"</code>，
+        而不是树上存储的 <code>{type: "string", val: "定理"}</code>。渲染代码里用的基本都是这种形式。
+    </li>
+    <li>
+        <code>get_label</code> 传入的函数会被当作 React 组件调用，所以里面才能用 hook。
+        效果马上会看到：参数一变，标题栏立刻跟着变。
+    </li>
+</ul>
+<div class="tip">
+注意函数名 <code>get_deafult_group_editor_with_appbar</code> 里的 deafult 拼得不对。
+这是这个库的历史遗留拼写，函数名就叫这个，照抄即可，改「对」了反而找不到函数。
+</div>
+<p>到 <code>core.ts</code> 里把编辑器的空注册表换成它。同样只改两行：</p>
+<pre><code class="language-tsx">import { editor_renderers } from "./editors"
+
+// 删掉原来的 const editor_renderers = {...} 空对象定义，
+// EditorCore 的构造代码不用动，它引用的名字没变。</code></pre>
+<div class="tip">
+刷新页面，插入一个「定理」：卡片顶部出现了标题栏，写着「定理」。
+打开它的参数编辑（标题栏上的按钮），把 title 改成「命题」，标题栏的字立刻变了。
+这就是 <code>get_label</code> 作为组件被调用的效果：参数在变，标签在跟。
+</div>
+
+<h2>第三步：印刷外观</h2>
+<p>
+编辑侧活了，印刷侧还是那个「什么样式都不加」的默认块。给它一个像样的印刷外观：
+标题行在前，正文在后。新建 <code>src/printers.tsx</code>：
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_default_group_renderer,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+/** 定理块的印刷样式，第一版：只有一个标题行。 */
+const primary_printer = get_default_group_renderer({
+    // pre_element：渲染在正文之前的内容。我们放标题。
+    // PrinterStructureBoxText 是库提供的「结构性文字」样式组件，
+    // 用它包起来的文字使用和正文有区别的字体样式，适合做标题、标签。
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        &lt;PrinterStructureBoxText inline&gt;{info.parameters.title}&lt;/PrinterStructureBoxText&gt;
+    ),
+})
+
+export const printer_renderers = {
+    group: {
+        "primary": primary_printer,
+    },
+    inline: {},
+    support: {},
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p>
+<code>get_default_group_renderer</code> 是印刷侧组节点的工厂函数。
+它已经处理好块与块之间的间距、缩进这些排版细节，你只往「空位」里填内容。
+<code>pre_element</code> 是其中一个空位：渲染在正文之前的元素。
+填空位的函数收到一个 <code>info</code>，里面有当前节点（<code>info.node</code>）和处理好的参数
+（<code>info.parameters</code>），和编辑侧一样，参数是直接可用的普通值。
+</p>
+<p><code>core.ts</code> 里照方抓药，把印刷器的空注册表换成 import：</p>
+<pre><code class="language-tsx">import { printer_renderers } from "./printers"
+
+// 删掉原来的 const printer_renderers = {...} 空对象定义。
+// 到这里，core.ts 里三处「留空」都换成了真东西，它的最终形态是：
+
+import {
+    Printer, EditorCore,
+    get_default_editors,
+    get_default_paragraph_renderer,
+    useless_renderer_block, useless_renderer_inline, useless_renderer_text,
+} from "@project-callio/calliotext"
+import { first_concepts, second_concepts } from "./concepts"
+import { editor_renderers } from "./editors"
+import { printer_renderers } from "./printers"
+
+const printer_defaults = {
+    group     : useless_renderer_block,
+    structure : useless_renderer_block,
+    support   : useless_renderer_block,
+    abstract  : useless_renderer_block,
+    inline    : useless_renderer_inline,
+    text      : useless_renderer_text,
+    paragraph : get_default_paragraph_renderer({}),
+}
+
+export const printer = new Printer(
+    first_concepts, second_concepts,
+    printer_renderers, printer_defaults,
+)
+
+export const editor_core = new EditorCore({
+    renderers: editor_renderers,
+    default_renderers: get_default_editors(),
+    printer,
+})</code></pre>
+<div class="tip">
+在定理里写点内容，保存。右半边出现了一个带标题行的定理块：「定理」二字用结构性字体，正文跟在后面。
+把参数里的 title 改成「命题」再保存，右边的标题也换了。
+</div>
+
+<h2>第四步：用上第二个参数</h2>
+<p>
+参数原型里还有一个 <code>close</code> 没用上，它是显示在结尾的记号（比如证明结束的那个方块）。
+给印刷渲染器加一个 <code>aft_element</code> 空位，渲染在正文之后。
+改完的 <code>printers.tsx</code>：
+</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_default_group_renderer,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+/** 定理块的印刷样式，第二版：标题行加可选的结尾记号。 */
+const primary_printer = get_default_group_renderer({
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        &lt;PrinterStructureBoxText inline&gt;{info.parameters.title}&lt;/PrinterStructureBoxText&gt;
+    ),
+    // aft_element：渲染在正文之后的内容。close 为空字符串就什么都不显示。
+    aft_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        info.parameters.close
+            ? &lt;PrinterStructureBoxText inline&gt;{info.parameters.close}&lt;/PrinterStructureBoxText&gt;
+            : undefined
+    ),
+})
+
+export const printer_renderers = {
+    group: {
+        "primary": primary_printer,
+    },
+    inline: {},
+    support: {},
+    structure: {},
+    abstract: {},
+}</code></pre>
+<div class="tip">
+打开定理的参数编辑，把 close 填成「∎」，保存。右边的定理块结尾出现了这个记号。
+把 close 清空再保存，记号消失。一个参数从声明（第一步的参数原型）到编辑（参数面板自动出现输入框）
+到渲染（这里的 aft_element），整条链路你已经走通了。
+</div>
+
+<h2>第五步：派生「引理」</h2>
+<p>
+现在见证二级概念的价值。在 <code>concepts.ts</code> 里追加一个「引理」，
+它同样继承 <code>primary</code>，只是把标题的默认值换掉。改完的 <code>concepts.ts</code>：
+</p>
+<pre><code class="language-tsx">import { FirstClassConcept, SecondClassConcept } from "@project-callio/calliotext"
+
+export const primary_style = new FirstClassConcept({
+    type: "group",
+    name: "primary",
+    parameter_prototype: {
+        title: {type: "string", val: "定理"},
+        close: {type: "string", val: ""},
+    },
+})
+
+export const first_concepts = [primary_style]
+
+export const second_concepts = [
+    new SecondClassConcept({type: "group", first_concept: "primary", name: "定理"}),
+
+    // 「引理」：也是 primary，只是默认标题不同。
+    new SecondClassConcept({
+        type: "group", first_concept: "primary", name: "引理",
+        default_override: {title: {type: "string", val: "引理"}},
+    }),
+]</code></pre>
+<div class="tip">
+刷新页面：侧边栏多了「引理」按钮。插进来一个，标题栏自动写着「引理」，
+编辑外观和印刷外观都和定理一模一样，因为它沿用 primary 名下注册的渲染器。
+没写一行渲染代码，就多了一种文档组件，这就是二级概念：渲染逻辑只写一份，用法自由派生。
+</div>
+<p>
+顺带认识 <code>default_override</code> 的兄弟 <code>fixed_override</code>：
+前者改默认值，写作者之后还能在参数面板里改；后者把参数固定住，写作者改不了。
+<code>fixed_override</code> 还支持函数型参数，让参数值随其他参数联动，第 7 章会见到。
+</p>
+
+<h2>第六步：行内的「强调」和占位的「分隔线」</h2>
+<p>
+最后补上另外两种节点的例子，一次做完三个文件。<code>concepts.ts</code> 追加两个一级概念和两个二级概念，
+最终形态：
+</p>
+<pre><code class="language-tsx">import { FirstClassConcept, SecondClassConcept } from "@project-callio/calliotext"
+
+export const primary_style = new FirstClassConcept({
+    type: "group",
+    name: "primary",
+    parameter_prototype: {
+        title: {type: "string", val: "定理"},
+        close: {type: "string", val: ""},
+    },
+})
+
+/** strong：行内的强调。不写 parameter_prototype 就是没有参数。 */
+export const strong_style = new FirstClassConcept({
+    type: "inline",
+    name: "strong",
+})
+
+/** divider：一条分隔线。支撑节点，自己没有内容。 */
+export const divider_style = new FirstClassConcept({
+    type: "support",
+    name: "divider",
+})
+
+export const first_concepts = [primary_style, strong_style, divider_style]
+
+export const second_concepts = [
+    new SecondClassConcept({type: "group", first_concept: "primary", name: "定理"}),
+    new SecondClassConcept({
+        type: "group", first_concept: "primary", name: "引理",
+        default_override: {title: {type: "string", val: "引理"}},
+    }),
+    new SecondClassConcept({type: "inline",  first_concept: "strong",  name: "强调"}),
+    new SecondClassConcept({type: "support", first_concept: "divider", name: "分隔线"}),
+]</code></pre>
+<p><code>editors.tsx</code> 给两个新概念各配一个编辑外观，最终形态：</p>
+<pre><code class="language-tsx">import React from "react"
+import {
+    get_deafult_group_editor_with_appbar,
+    get_default_inline_editor,
+    get_default_spliter_editor,
+    useParameters,
+} from "@project-callio/calliotext"
+
+export const editor_renderers = {
+    group: {
+        "primary": get_deafult_group_editor_with_appbar({
+            get_label: () =&gt; useParameters().title,
+        }),
+    },
+    inline: {
+        // 行内编辑器。surrounder 决定编辑时文字外面包一层什么，
+        // 这里包一层加粗标签，让作者边写边能看出这段文字被强调了。
+        "strong": get_default_inline_editor({
+            surrounder: (props) =&gt; &lt;strong&gt;{props.children}&lt;/strong&gt;,
+        }),
+    },
+    support: {
+        // 分隔线的编辑样式：一条带文字的横线。
+        "divider": get_default_spliter_editor({get_title: () =&gt; "分隔线"}),
+    },
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p><code>printers.tsx</code> 同样补上两个印刷外观，最终形态：</p>
+<pre><code class="language-tsx">import React from "react"
+import { Divider } from "@mui/material"
+import {
+    get_default_group_renderer,
+    get_default_inline_renderer,
+    auto_renderer,
+    PrinterStructureBoxText,
+    PreprocessInformation, GroupNode,
+} from "@project-callio/calliotext"
+
+const primary_printer = get_default_group_renderer({
+    pre_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        &lt;PrinterStructureBoxText inline&gt;{info.parameters.title}&lt;/PrinterStructureBoxText&gt;
+    ),
+    aft_element: (info: PreprocessInformation&lt;GroupNode&gt;) =&gt; (
+        info.parameters.close
+            ? &lt;PrinterStructureBoxText inline&gt;{info.parameters.close}&lt;/PrinterStructureBoxText&gt;
+            : undefined
+    ),
+})
+
+export const printer_renderers = {
+    group: {
+        "primary": primary_printer,
+    },
+    inline: {
+        // 行内强调：输出时也包一层加粗。outer 的意思是「整个节点外面包什么」。
+        "strong": get_default_inline_renderer({
+            outer: (props) =&gt; &lt;strong&gt;{props.children}&lt;/strong&gt;,
+        }),
+    },
+    support: {
+        // 分隔线输出成一条横线。支撑节点没有内容，
+        // 用 auto_renderer 直接从一个渲染函数造出渲染器，最简单。
+        "divider": auto_renderer({render_function: () =&gt; &lt;Divider /&gt;}),
+    },
+    structure: {},
+    abstract: {},
+}</code></pre>
+<p>
+这里出现了一个必须记住的规矩：<code>props.children</code> 是子节点渲染好的结果，
+凡是接到它的地方（上面 strong 的 <code>outer</code> 和 <code>surrounder</code> 都接到了）
+一定要把它输出出去，否则子内容就丢了。
+</p>
+<div class="tip">
+刷新页面，把三个新概念都试一遍：选中一段文字插入「强调」，文字被加粗包住；
+插入一条「分隔线」，编辑器里出现一条带字的横线；保存之后，
+右边出现加粗的文字和一条干净的横线。
+</div>
+
+<h2>回头看</h2>
+<p>
+这一章从一个空荡荡的编辑器走到了拥有四个概念的结构化编辑器，而每种节点的套路是一样的：
+声明参数、起名字、选一个编辑工厂填定制点、选一个印刷工厂填定制点。
+以后每加一个概念都是这套动作，区别只在选哪个工厂、填哪些空位。
+工厂的完整清单在 <a href="../api/default.html">API 文档的默认实现</a>那页。
+</p>
+<p>
+不过现在所有定理都只叫「定理」，没有编号。下一章用印刷器「先预处理、再渲染」的本事，
+给它们加上自动编号，再做出「见定理 3」这样的交叉引用。
+</p>
+
+<h2>本章要点</h2>
+<ul>
+    <li>概念可用的四样东西：一级概念（参数）、二级概念（名字和默认值）、编辑渲染器、印刷渲染器。</li>
+    <li>写作者插入的是二级概念；渲染器注册在一级概念名下，二级概念自动沿用。</li>
+    <li>渲染代码拿到的参数都是处理好的普通值；<code>get_label</code> 这类函数被当作组件调用，参数一变界面就跟着变。</li>
+    <li>接到 <code>props.children</code> 必须输出它，否则子内容丢失。</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="tutorial/05-custom-concept.html"></script>
+</body>
+</html>

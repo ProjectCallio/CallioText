@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Default Implementation &amp; UI · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>Default Implementation &amp; UI</h1>
+<p class="lead">
+This page covers two areas: <code>default_implementation</code> (the ready-to-use components and factories
+the tutorial is built on) and <code>implbase / uibase</code> (the infrastructure you reach for when writing
+custom renderers).
+</p>
+
+<h2>The two top-level components</h2>
+
+<h3>DefaultEditorComponent</h3>
+<p>
+The complete default editor interface. It accepts all props of <code>EditorComponentProps</code> (see the
+<a href="editor.html">editor page</a>), plus:
+</p>
+<pre><code class="language-typescript">{
+    config?: PartialEditorConfig            // style configuration (fonts, margins, widths), partial override
+    onSave?: () =&gt; void                     // called when the user triggers the save action
+    sidebar_extras?: (() =&gt; React.ReactNode)[]  // custom buttons appended to the sidebar
+    end_element?: React.ReactNode           // an element appended after the document
+}</code></pre>
+<p>
+It includes the paper, the sidebar, the floating areas for parameter and concept editing, the overlay for
+editing abstract nodes, and keyboard navigation. Notifications are built in as well (it carries its own
+notistack SnackbarProvider). Calling <code>get_editor()</code> through a ref returns the inner working
+<code>EditorComponent</code>, which gives access to <code>get_root()</code> and the other methods.
+</p>
+
+<h3>DefaultPrinterComponent</h3>
+<pre><code class="language-typescript">{
+    printer: Printer
+    root: AbstractNode
+    config?: PartialPrinterConfig
+    onUpdateCache?: (cache: PrinterCache) =&gt; void
+    onDidMount?: (printer_comp: PrinterComponent, me: DefaultPrinterComponent) =&gt; void
+}</code></pre>
+<p>
+The complete default printing interface. <code>onUpdateCache</code> hands you the cache after every
+preprocessing pass (used for cross references, tutorial chapter 6). <code>onDidMount</code> provides the
+inner <code>PrinterComponent</code>; take it from here when you need methods like
+<code>scroll_to_idx</code>.
+</p>
+
+<h2>Editor renderer factories</h2>
+<p>
+These functions generate fully interactive editing appearances for each node kind. The shared customization
+points: <code>get_label</code> (the label; called as a component, so hooks are allowed inside),
+<code>surrounder</code> (how the content is wrapped), <code>buttons_extra</code> (additional buttons), and
+<code>rightbar_extra</code> (an extension slot in the right bar).
+</p>
+<table>
+    <tr><th>Factory</th><th>Node kind</th><th>Character</th></tr>
+    <tr><td><code>get_deafult_group_editor_with_appbar</code></td><td>group</td><td>A card with a top title bar. The "deafult" in the name is a historical spelling.</td></tr>
+    <tr><td><code>get_default_group_editor_with_rightbar</code></td><td>group</td><td>A right-side bar style with buttons folded into a menu; visually more compact</td></tr>
+    <tr><td><code>get_default_inline_editor</code></td><td>inline</td><td>Inline style; <code>surrounder</code> decides how the text is wrapped while editing</td></tr>
+    <tr><td><code>get_default_struct_editor_with_rightbar</code></td><td>structure</td><td>Multi-column layout; <code>get_numchildren</code> and <code>get_widths</code> decide the number and widths of columns, and child groups are added or removed to match</td></tr>
+    <tr><td><code>get_default_spliter_editor</code></td><td>support</td><td>Divider style; <code>get_title</code> supplies the caption on the rule</td></tr>
+    <tr><td><code>get_default_display_editor</code></td><td>support</td><td>Display style (images and the like): <code>render_element</code> renders the actual content, <code>is_empty</code> decides when to show a placeholder icon</td></tr>
+    <tr><td><code>get_default_abstract_editor</code></td><td>abstract</td><td>Container for abstract nodes (the root, annotations)</td></tr>
+    <tr><td><code>get_default_editors()</code></td><td>all</td><td>Returns default renderers for all seven node kinds, for <code>EditorCore</code>'s <code>default_renderers</code></td></tr>
+</table>
+
+<h2>Printer renderer factories</h2>
+<p>
+The printing-side factories. The shared customization point is <code>contexters</code> (an array of
+contexter-producing functions, wired into preprocessing automatically; tutorial chapter 6). The block-level
+factories additionally take <code>pre_element</code> and <code>aft_element</code> (content injected before
+and after the body) and, for deeper changes, <code>inner</code> and <code>outer</code> (replacing the inner
+or outer wrapper entirely).
+</p>
+<table>
+    <tr><th>Factory</th><th>Node kind</th><th>Character</th></tr>
+    <tr><td><code>get_default_group_renderer</code></td><td>group</td><td>The workhorse for blocks; <code>small_margin_enter</code> tightens the spacing before the block</td></tr>
+    <tr><td><code>get_default_structure_renderer</code></td><td>structure</td><td>Multi-column grid; <code>subinner</code> customizes the wrapper of each column</td></tr>
+    <tr><td><code>get_default_paragraph_renderer</code></td><td>paragraph</td><td>Paragraphs; supports injecting elements or text at the start</td></tr>
+    <tr><td><code>get_default_inline_renderer</code></td><td>inline</td><td><code>outer</code> decides the wrapping of the inline content</td></tr>
+    <tr><td><code>get_default_abstract_renderer</code></td><td>abstract</td><td>Renders as a badged link; clicking opens a dialog showing the full sub-document</td></tr>
+    <tr><td><code>auto_renderer</code></td><td>any</td><td>The most general one: give it a render function (and optionally contexters) and it constructs a <code>PrinterRenderer</code> directly</td></tr>
+    <tr><td><code>useless_renderer_block / useless_renderer_inline / useless_renderer_text</code></td><td>as defaults</td><td>Pass-through renderers adding no styling; tutorial chapter 3 assembled <code>default_renderers</code> from them</td></tr>
+</table>
+
+<h2>The contexter family</h2>
+<p>The preprocessing-phase tools; mechanism and usage in tutorial chapter 6.</p>
+<table>
+    <tr><th>Class</th><th>Constructor</th><th>Purpose</th></tr>
+    <tr><td><code>ContexterBase&lt;NT, CtxT, EnvT&gt;</code></td><td><code>(key, default_val)</code></td><td>The base class. Provides the <code>enter</code>/<code>exit</code> hooks and the accessors <code>get_env / set_env / get_context / set_context</code>; custom contexters inherit from it</td></tr>
+    <tr><td><code>OrderContexter</code></td><td><code>(order_key, separate_groups?)</code></td><td>Automatic numbering. Same counter name means shared numbers; with <code>separate_groups</code> true, separating groups restart the count</td></tr>
+    <tr><td><code>ReferenceContexter</code></td><td><code>(get_reference)</code></td><td>Generates a reference name per node into the cache; the basis of cross references</td></tr>
+    <tr><td><code>InjectContexter</code></td><td><code>(infokey, {preinfo?, aftinfo?})</code></td><td>Writes a piece of information into the environment when its node is entered or exited</td></tr>
+    <tr><td><code>ConsumerContexter</code></td><td><code>(infokey)</code></td><td>Later nodes read that information out of the environment into their own contexts</td></tr>
+</table>
+<p>
+Companion types: <code>PreprocessInformation&lt;NT&gt;</code> is the information bundle passed to
+contexter-producing functions (<code>{node, parameters, context, env}</code>), and
+<code>PreprocessFunction&lt;NT, R&gt;</code> is the type of such functions.
+</p>
+
+<h2 id="implbase">implbase: hooks and widgets inside renderers</h2>
+<p>When writing a custom editor renderer (or its <code>get_label</code> and <code>buttons_extra</code>), these are the everyday tools:</p>
+<table>
+    <tr><th>Export</th><th>Description</th></tr>
+    <tr><td><code>useNode(is_equal?)</code></td><td>The concept node currently being rendered; pass a comparison function to control when re-renders happen</td></tr>
+    <tr><td><code>useParameters()</code></td><td>The current node's processed parameters; the staple of <code>get_label</code></td></tr>
+    <tr><td><code>useEditor()</code></td><td>The current <code>EditorComponent</code>, giving access to the tree operations</td></tr>
+    <tr><td><code>useResetSelection()</code></td><td>Returns a pair of functions: save the cursor position, restore it. Used to bring the editing position back after an overlay interaction</td></tr>
+    <tr><td><code>UniversalExtra</code></td><td>A small generic inline input component, often embedded in a node's right bar for quickly editing one parameter (the example application uses it for link targets and image sources; supports pasting images directly)</td></tr>
+    <tr><td><code>DefaultParameterContainer</code></td><td>The parameter editing panel itself; the default parameter drawer is built around it</td></tr>
+    <tr><td><code>AutoIconButton / ButtonGroup / FoldedButtonGroup / MouselessButton</code></td><td>Button components with keyboard navigation support; base custom buttons on them</td></tr>
+    <tr><td><code>MouselessHint / ShowHintControlButton</code></td><td>Shortcut hint bubbles, and a toggle to keep hints visible</td></tr>
+    <tr><td><code>EditorConfig / make_editorconfig / useEditorConfig</code></td><td>The editor style configuration: its type, the merge function, and the reading hook</td></tr>
+</table>
+
+<h2>uibase: general UI utilities</h2>
+<p>
+uibase is a set of general UI utilities unrelated to the editor itself. The default implementation uses
+them heavily, and they are equally usable when you build custom interface pieces (sidebar buttons,
+parameter editing extensions), saving you from reinventing them:
+</p>
+<table>
+    <tr><th>Export</th><th>Description</th></tr>
+    <tr><td><code>AutoStack / AutoStackButtons / AutoTooltip / AutoStackedPopper</code></td><td>A family of components that adjust to the layout direction automatically: inside a horizontal container the inner stack turns vertical, and tooltip placement follows</td></tr>
+    <tr><td><code>mod_scrollbar(el)</code> / <code>ScrollBarBox</code></td><td>Apply OverlayScrollbars styling to a container</td></tr>
+    <tr><td><code>usePersistedState(key, default)</code></td><td>React state synchronized with localStorage</td></tr>
+    <tr><td><code>TextIcon</code></td><td>A circular text icon</td></tr>
+    <tr><td><code>with_partial_props(Comp, defaults)</code></td><td>Pre-fill part of a component's props and get a new component</td></tr>
+    <tr><td><code>light_grey(color)</code></td><td>Convert a color to light grey (works with the color package)</td></tr>
+</table>
+
+<h2>Printing typography widgets</h2>
+<p>
+The printing side also ships a set of typography widgets. Using them in printer renderers keeps your spacing
+and type scale consistent with the defaults: <code>PrinterPartBox</code> (a content block),
+<code>PrinterParagraphBox</code> (a paragraph box), <code>PrinterStructureBoxText</code> (structural text;
+tutorial chapter 5 uses it for theorem headings), <code>PrinterNewLevelBox</code> and
+<code>PrinterOldLevelBox</code> (entering and leaving an indentation level),
+<code>PrinterDisplayText</code> (display text), <code>PrinterWeakenText</code> (de-emphasized text), and
+<code>PrinterConfigContext</code> for reading the printing style configuration. The full list is in the
+<a href="../../reference/index.html">TypeDoc reference</a>.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="api/default.html"></script>
+</body>
+</html>

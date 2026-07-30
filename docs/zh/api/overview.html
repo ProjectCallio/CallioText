@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API 总览 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>API 总览</h1>
+<p class="lead">
+CallioText 的所有导出都来自同一个入口 <code>@project-callio/calliotext</code>，数量在一百个以上。
+这一页先按模块把它们分成五组，说明每组的职责和边界；逐项的细节可以配合
+<a href="../../reference/index.html">TypeDoc 完整参考</a>查阅。
+</p>
+
+<h2>模块分层</h2>
+<p>库的源码分为下面几层，越靠下越基础：</p>
+<div class="layers">
+    <div class="layer">
+        <div class="layer-name">default_implementation</div>
+        <div class="layer-desc">开箱即用的默认实现：DefaultEditorComponent、DefaultPrinterComponent、get_default_ 系列工厂、contexter 系列、印刷排版部件</div>
+    </div>
+    <div class="layer-row">
+        <div class="layer">
+            <div class="layer-name">editor</div>
+            <div class="layer-desc">编辑器核心：EditorCore、EditorComponent、插件系统、树操作</div>
+        </div>
+        <div class="layer">
+            <div class="layer-name">printer</div>
+            <div class="layer-desc">印刷器核心：Printer、PrinterComponent、PrinterRenderer、Env 与 Context</div>
+        </div>
+    </div>
+    <div class="layer">
+        <div class="layer-name">implbase + uibase</div>
+        <div class="layer-desc">React 基础设施：hooks、样式配置系统、按钮组件、通用 UI 工具、异常类</div>
+    </div>
+    <div class="layer">
+        <div class="layer-name">core</div>
+        <div class="layer-desc">概念模型与文档树：FirstClassConcept、SecondClassConcept、七种节点类型、validate、类型守卫</div>
+    </div>
+</div>
+<p>
+从下往上看。最底层的 <code>core</code> 是纯数据：一级和二级概念的类、七种节点的类型定义、
+树的校验函数。它不依赖 React，也不关心界面，任何环境都能引用，比如在服务端校验一篇文档。
+</p>
+<p>
+往上一层是 <code>implbase</code> 和 <code>uibase</code>，一批 React 基础设施：
+读取当前节点和参数的 hooks、样式配置系统、支持键盘导航的按钮组件，以及贯穿全库的异常类。
+它们自己不构成编辑器，但上面两层都搭在它们之上。
+</p>
+<p>
+再往上，<code>editor</code> 和 <code>printer</code> 并排而立，分别是编辑一侧和输出一侧的核心。
+并排意味着互不依赖：editor 不知道文档将来会被怎样排版，printer 也不知道文档是怎么被编辑出来的，
+两者只共享 core 定义的文档树。教程第 1 章用编译器前端和后端做的比喻，说的就是这个结构。
+editor 负责对 Slate 的封装、树操作和插件系统；printer 负责两阶段渲染和渲染器协议。
+</p>
+<p>
+最顶层的 <code>default_implementation</code> 把下面所有东西组装成开箱即用的成品：
+完整的编辑器和印刷器组件、各类渲染器工厂函数、contexter 系列。教程通篇使用的都是这一层。
+</p>
+<p>
+日常使用的路径通常也是自顶向下的：从 default_implementation 的组件和工厂开始；
+需要定制某个概念的外观时，用工厂的定制点，配合 implbase 的 hooks；
+需要程序化修改文档或编写插件时，下到 editor；
+需要自动编号和交叉引用时，和 printer 的预处理机制打交道；
+而 core 随时都在场，因为概念和节点类型贯穿一切。下表是各层职责的速查：
+</p>
+<table>
+    <tr><th>分层</th><th>职责</th><th>典型使用场景</th></tr>
+    <tr>
+        <td><a href="core.html">core</a></td>
+        <td>纯数据层：概念类、节点类型定义、树的校验。不依赖 React。</td>
+        <td>定义概念、持久化、类型标注</td>
+    </tr>
+    <tr>
+        <td><a href="editor.html">editor</a></td>
+        <td>编辑一侧：对 Slate 的封装、渲染器的注册与分派、树操作方法、插件系统、编辑器状态 hooks。</td>
+        <td>写自定义插件、自定义按钮、程序化修改文档</td>
+    </tr>
+    <tr>
+        <td><a href="printer.html">printer</a></td>
+        <td>输出一侧：两阶段渲染（预处理加渲染）、渲染器协议、预处理产物的类型定义。</td>
+        <td>写自定义印刷渲染器、实现引用类功能</td>
+    </tr>
+    <tr>
+        <td><a href="default.html">default_implementation</a></td>
+        <td>默认实现：完整的编辑器和印刷器组件、各类渲染器工厂函数、contexter 系列。</td>
+        <td>绝大多数应用从这一层开始用</td>
+    </tr>
+    <tr>
+        <td><a href="default.html#implbase">implbase / uibase</a></td>
+        <td>基础设施：<code>useNode</code>、<code>useParameters</code> 等 hooks、样式配置系统、UI 小组件、异常类。</td>
+        <td>在自定义渲染器内部使用</td>
+    </tr>
+</table>
+
+<h2>典型的组装方式</h2>
+<p>教程第 3 到第 5 章搭建的结构，浓缩起来就是这样：</p>
+<pre><code class="language-tsx">import {
+    // core：定义概念
+    FirstClassConcept, SecondClassConcept,
+    // printer：印刷核心
+    Printer,
+    // editor：编辑核心
+    EditorCore,
+    // default_implementation：默认组件与工厂
+    DefaultEditorComponent, DefaultPrinterComponent,
+    get_default_editors, get_default_group_renderer,
+} from "@project-callio/calliotext"
+
+const printer = new Printer(first_concepts, second_concepts,
+                            printer_renderers, printer_defaults)
+const core    = new EditorCore({renderers, default_renderers: get_default_editors(), printer})
+
+&lt;DefaultEditorComponent editorcore={core} /&gt;
+&lt;DefaultPrinterComponent printer={printer} root={tree} /&gt;</code></pre>
+<p>
+这几行浓缩了各层之间的接线：core 定义的概念交给 Printer 保管；Printer 交给 EditorCore，
+供编辑侧随时查询；最后两个默认组件各自拿着自己一侧的核心开始工作。
+任何 CallioText 应用的骨架都是这个形状，区别只在概念清单和渲染器的具体内容。
+</p>
+
+<h2>贯穿全库的几条约定</h2>
+<p>下面这些约定在各个模块里反复出现，先记住它们，读后面几页会顺畅很多：</p>
+<ul>
+    <li>渲染器字典按一级概念名索引。形如 <code>{group: {"primary": renderer}, inline: {...}, ...}</code>，
+        第一层是节点种类，第二层是一级概念名。查不到的节点使用按节点种类提供的默认渲染器。</li>
+    <li>文档节点引用的是二级概念。节点的 <code>concept</code> 字段存二级概念名，
+        由 <code>Printer</code> 解析出它继承的一级概念，进而找到渲染器和参数原型。</li>
+    <li>参数有两种形态。树上存储的是带类型标注的 <code>ParameterList</code>（形如 <code>{type, val}</code>）；
+        渲染代码收到的是处理后的 <code>ProcessedParameterList</code>：二级概念的重写已经套用、
+        函数型参数已经求值、类型包装已经剥掉，拿到的直接是普通值。</li>
+    <li>命名风格。函数和方法是 snake_case（<code>get_root</code>），类和组件是 PascalCase（<code>EditorCore</code>）。
+        个别导出保留了历史拼写，例如 <code>get_deafult_group_editor_with_appbar</code> 和模块名
+        <code>intermidiate</code>，使用时照抄即可。</li>
+</ul>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="api/overview.html"></script>
+</body>
+</html>
