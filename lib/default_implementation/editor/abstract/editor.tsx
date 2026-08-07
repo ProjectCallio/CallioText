@@ -78,8 +78,19 @@ import {
 } from "../../../editor"
 
 export {
-    AbstractEditorArea , 
-    useAbstractEditorStore
+    AbstractEditorArea ,
+    useAbstractEditorStore ,
+    open_abstract_editor ,
+}
+
+/** 打开抽象编辑器，编辑某个节点的一个抽象。
+ * 默认编辑器界面上的抽象管理按钮用的就是这个入口；
+ * 自定义渲染器（比如为无二级定义的辅助子节点自绘管理界面时）也可以直接调用它。
+ * @param node 抽象所附着的节点。
+ * @param abs_idx 要编辑的抽象节点的`idx`（注意是节点编号，不是它在`abstract`列表中的下标）。
+*/
+function open_abstract_editor(node: ConceptNode, abs_idx: string){
+    useAbstractEditorStore.getState().open_editor(node, abs_idx)
 }
 
 // TODO 也许该有编号冲突检查？

@@ -89,17 +89,28 @@ const tree_op_mixin = {
         Slate.Transforms.removeNodes<NT>(editor.get_slate() , {at: path})
     } , 
 
-    /** 这个函数删除一个节点的若干子节点。 */
+    /** 这个函数按路径批量删除节点。
+     * 按显式路径删除，不依赖当前选区，因此在编辑器没有焦点时（比如在effect里）也能正常工作。
+     * 无效或已失效的路径会被静默忽略。
+    */
     delete_nodes_by_paths<NT extends Slate.Node>(editor: EditorComponent, paths: number[][]){
         if(paths.length == 0){
             throw new UnexpectedParametersError("这这不能")
         }
-        let path_strs: string[] = paths.reduce((s,x)=>[...s, JSON.stringify(x)] , [] as string[])
+        const slate = editor.get_slate()
 
-        Slate.Transforms.removeNodes<NT>(editor.get_slate() , {
-            match: (node, path)=>path_strs.indexOf(JSON.stringify(path)) >= 0 // 只要在列表中...
+        // 用pathRef追踪路径：前面的删除会使后面的路径移动，pathRef会自动跟随。
+        // 用withoutNormalizing打包：避免逐个删除的中途触发规范化，干扰后续删除。
+        Slate.Editor.withoutNormalizing(slate, () => {
+            const refs = paths.map(p => Slate.Editor.pathRef(slate, p))
+            for(const ref of refs){
+                const p = ref.unref()
+                if(p && Slate.Node.has(slate, p)){
+                    Slate.Transforms.removeNodes<NT>(slate, {at: p})
+                }
+            }
         })
-    } , 
+    } ,
     
     /** 这个函数把一个节点移动到另一个位置。 */
     move_concept_node<NT extends Slate.Node & ConceptNode>(editor: EditorComponent, node_from: NT, position_to: number[]){

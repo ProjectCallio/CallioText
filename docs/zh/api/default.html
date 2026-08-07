@@ -66,6 +66,12 @@
     <tr><td><code>get_default_abstract_editor</code></td><td>abstract</td><td>抽象节点（根节点、批注）的容器</td></tr>
     <tr><td><code>get_default_editors()</code></td><td>全部</td><td>返回七种节点类型各自的默认渲染器，交给 <code>EditorCore</code> 的 <code>default_renderers</code></td></tr>
 </table>
+<p>
+与抽象编辑相关的还有一个函数导出：<code>open_abstract_editor(node, abs_idx)</code>，
+以编程方式打开抽象编辑器，编辑 <code>node</code> 上 <code>idx</code> 为 <code>abs_idx</code> 的抽象
+（注意第二个参数是抽象节点的编号，不是它在列表中的下标）。
+默认界面上的抽象管理按钮用的就是这个入口；在自定义渲染器里为子节点自绘抽象管理界面时，直接调用它即可。
+</p>
 
 <h2>印刷渲染器工厂</h2>
 <p>

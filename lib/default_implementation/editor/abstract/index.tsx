@@ -45,6 +45,10 @@ export {
 } from "./add_button"
 
 export {
+    open_abstract_editor,
+} from "./editor"
+
+export {
     AbstractManageBox,
 } from "./manage_box"
 

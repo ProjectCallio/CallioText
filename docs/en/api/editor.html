@@ -83,7 +83,7 @@ buttons mostly deal with:
     <tr><td><code>auto_set_parameter(node, parameters)</code></td><td>Modify node parameters, handling proxy nodes automatically</td></tr>
     <tr><td><code>add_nodes(nodes, path)</code> / <code>add_nodes_here(nodes)</code></td><td>Insert nodes at a path, or at the cursor</td></tr>
     <tr><td><code>add_nodes_before(nodes, target)</code> / <code>add_nodes_after(nodes, target)</code></td><td>Insert before or after a target node</td></tr>
-    <tr><td><code>delete_concept_node(node)</code> / <code>delete_node_by_path(path)</code> / <code>delete_nodes_by_paths(paths)</code></td><td>Delete nodes</td></tr>
+    <tr><td><code>delete_concept_node(node)</code> / <code>delete_node_by_path(path)</code> / <code>delete_nodes_by_paths(paths)</code></td><td>Delete nodes. The batch version deletes by explicit paths without depending on the current selection (so it works in focus-free contexts such as effects); invalid paths are ignored silently</td></tr>
     <tr><td><code>unwrap_node(node)</code></td><td>Delete a node but keep its children</td></tr>
     <tr><td><code>move_concept_node(node, posto)</code> / <code>move_node_by_path(from, to)</code></td><td>Move nodes</td></tr>
     <tr><td><code>replace_nodes(father, nodes)</code></td><td>Replace all children of a node</td></tr>

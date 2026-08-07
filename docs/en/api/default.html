@@ -71,6 +71,13 @@ points: <code>get_label</code> (the label; called as a component, so hooks are a
     <tr><td><code>get_default_abstract_editor</code></td><td>abstract</td><td>Container for abstract nodes (the root, annotations)</td></tr>
     <tr><td><code>get_default_editors()</code></td><td>all</td><td>Returns default renderers for all seven node kinds, for <code>EditorCore</code>'s <code>default_renderers</code></td></tr>
 </table>
+<p>
+One more function export relates to abstract editing: <code>open_abstract_editor(node, abs_idx)</code>
+opens the abstract editor programmatically, editing the abstract on <code>node</code> whose
+<code>idx</code> equals <code>abs_idx</code> (note that the second argument is the abstract node's
+identifier, not its position in the list). The abstract-management buttons of the default interface use
+this same entry; call it directly when drawing your own abstract management UI inside a custom renderer.
+</p>
 
 <h2>Printer renderer factories</h2>
 <p>

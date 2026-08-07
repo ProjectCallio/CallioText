@@ -80,7 +80,7 @@ idx、占位子节点这些细节都会自动填好，程序化构造文档内�
     <tr><td><code>auto_set_parameter(node, parameters)</code></td><td>修改节点参数，自动处理代理节点的情形</td></tr>
     <tr><td><code>add_nodes(nodes, path)</code> / <code>add_nodes_here(nodes)</code></td><td>插入节点：指定路径，或当前光标处</td></tr>
     <tr><td><code>add_nodes_before(nodes, target)</code> / <code>add_nodes_after(nodes, target)</code></td><td>在目标节点前、后插入</td></tr>
-    <tr><td><code>delete_concept_node(node)</code> / <code>delete_node_by_path(path)</code> / <code>delete_nodes_by_paths(paths)</code></td><td>删除节点</td></tr>
+    <tr><td><code>delete_concept_node(node)</code> / <code>delete_node_by_path(path)</code> / <code>delete_nodes_by_paths(paths)</code></td><td>删除节点。批量版本按显式路径删除，不依赖当前选区（在 effect 等无焦点场景也能工作），无效路径会被静默忽略</td></tr>
     <tr><td><code>unwrap_node(node)</code></td><td>删除节点但保留其子节点</td></tr>
     <tr><td><code>move_concept_node(node, posto)</code> / <code>move_node_by_path(from, to)</code></td><td>移动节点</td></tr>
     <tr><td><code>replace_nodes(father, nodes)</code></td><td>替换某节点的全部子节点</td></tr>
