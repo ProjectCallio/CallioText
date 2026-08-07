@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import {
     SaveIcon ,
+    SlidersHorizontal ,
 } from "lucide-react"
 import { useSnackbar } from "notistack"
 
@@ -43,10 +44,13 @@ import {
 } from "../../core"
 
 import {
-    useAreaStore , 
-    AreaName, 
-    area_container_ref , 
+    useAreaStore ,
+    AreaName,
+    area_container_ref ,
 } from "./base"
+import {
+    AreaTitle ,
+} from "./area_title"
 import {
     mod_scrollbar_nohide , 
     usePersistedState ,  
@@ -252,16 +256,15 @@ const ParameterArea = React.memo(({
         >
         <Box sx={{
             display: "flex",
-            alignItems: "space-between",
-            justifyContent: "space-between",
-            paddingBottom: has_parameters ? "0.5rem" : "0",
-            borderBottom : "1px solid",
-            borderBottomColor: has_parameters ? palette.divider : "transparent",
-            transition: "all 0.3s",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "1rem",
+            width: "100%",
+            marginBottom: "0.5rem",
         }}>
-            
+            <AreaTitle icon={SlidersHorizontal}>修改参数</AreaTitle>
             <Box sx={{ position: "relative", display: "inline-block" }}>
-                <AutoIconButton 
+                <AutoIconButton
                     onClick={()=>{
                         const parameters = parametereditor_ref.current?.get_parameters()
                         if(!parameters){
@@ -279,12 +282,12 @@ const ParameterArea = React.memo(({
                     icon_props = {{
                         sx: {
                             opacity : !has_parameters ? 0 : 1,
-                        } , 
+                        } ,
                         disabled: !has_unsaved_changes,
                     }}
                 />
                 {has_unsaved_changes && has_parameters && (
-                    <Box 
+                    <Box
                         sx={{
                             position: "absolute",
                             top: "2px",
@@ -299,14 +302,31 @@ const ParameterArea = React.memo(({
                     />
                 )}
             </Box>
+            <DraggerBox
+                my_position = {position}
+                dragging_me = {dragging_me}
+                onDragStart = {()=>{
+                    set_dragging(area_id)
+                    if(box_ref.current){
+                        const rect = box_ref.current.getBoundingClientRect()
+                        set_sizes({[area_id]: {
+                            width : rect.width,
+                            height: rect.height,
+                        }})
+                    }
+                }}
+            />
+        </Box>
 
-            <Box sx={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "flex-start",
-                flexDirection: "row",
-                gap: "1rem",
-            }}>
+        <Box sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            paddingBottom: has_parameters ? "0.5rem" : "0",
+            borderBottom : "1px solid",
+            borderBottomColor: has_parameters ? palette.divider : "transparent",
+            transition: "all 0.3s",
+        }}>
 
                 <Box sx={{
                     display: "flex",
@@ -345,21 +365,6 @@ const ParameterArea = React.memo(({
                         // layout = {true}
                     >{cur_node.idx}</motion.div></AnimatePresence></Typography>
                 </Box>
-                <DraggerBox  
-                    my_position = {position}
-                    dragging_me = {dragging_me} 
-                    onDragStart = {e=>{
-                        set_dragging(area_id)
-                        if(box_ref.current){
-                            const rect = box_ref.current.getBoundingClientRect()
-                            set_sizes({[area_id]: {
-                                width : rect.width,
-                                height: rect.height,
-                            }})
-                        }
-                    }}
-                />
-            </Box>
         </Box>
         </motion.div>}</AnimatePresence>
 
@@ -421,6 +426,6 @@ const ParameterArea = React.memo(({
                 }}
             /></Box>
         </motion.div>}</AnimatePresence>
-    
+
     </Paper>
 })
