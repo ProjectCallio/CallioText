@@ -32,4 +32,12 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    // 库的 get_label、render_element 等回调按约定在组件渲染中执行，
+    // 里面调用 useParameters 等 hook 是 API 设计的一部分，规则无从判断。
+    files: ['demo/src/concepts/**/*.{ts,tsx}'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
 )

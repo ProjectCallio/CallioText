@@ -5,6 +5,7 @@
 <p align="center">
     <a href="https://www.npmjs.com/package/@project-callio/calliotext"><img src="https://img.shields.io/npm/v/%40project-callio%2Fcalliotext" alt="npm version"></a>
     <a href="https://projectcallio.github.io/CallioText/en/"><img src="https://img.shields.io/badge/docs-online-brightgreen" alt="docs"></a>
+    <a href="https://projectcallio.github.io/CallioText/demo/"><img src="https://img.shields.io/badge/demo-live-orange" alt="live demo"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="license"></a>
 </p>
 
@@ -30,6 +31,13 @@ is decided uniformly by rendering rules, and numbering and references are mainta
 - **Full keyboard operation**: built-in spatial navigation and key hints; hands never leave the keyboard.
 - **Replaceable at every layer**: from the ready-made default interface down to how each node kind renders, every layer can be swapped for your own.
 
+## Live demo
+
+[projectcallio.github.io/CallioText/demo](https://projectcallio.github.io/CallioText/demo/)
+is a complete editor built with CallioText, running entirely in the browser: the left pane is the
+editor, the right pane the typeset output, preloaded with a short mathematical note. No installation
+required.
+
 ## Documentation
 
 - [Tutorial](https://projectcallio.github.io/CallioText/en/tutorial/01-model.html): seven chapters, from the core ideas to automatic numbering, building a complete structured editor from zero.
@@ -53,12 +61,15 @@ npm install @project-callio/calliotext
 | --------- | ------- |
 | `lib/` | Library source |
 | `test/unit/` | Unit tests (vitest) |
+| `demo/` | Source of the live demo |
 | `docs/` | Documentation site (GitHub Pages deploys from this directory) |
 
 ```bash
-npm test            # run the unit tests
-npm run build       # build the library (dist/)
-npm run docs:api    # regenerate the TypeDoc reference (docs/reference/)
+npm test              # run the unit tests
+npm run build         # build the library (dist/)
+npm run docs:api      # regenerate the TypeDoc reference (docs/reference/)
+npm run webdemo:dev   # run the live demo locally
+npm run webdemo:build # build the live demo into docs/demo/
 ```
 
 Issues and ideas are welcome.

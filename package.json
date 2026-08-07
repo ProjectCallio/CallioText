@@ -30,7 +30,9 @@
         "dev": "cd test/demo && npm run test:dev",
         "demo:dev": "cd test/demo && npm run test:dev",
         "demo:build": "cd test/demo && npm run test:build",
-        "demo:published": "cd test/demo && npm run test:published"
+        "demo:published": "cd test/demo && npm run test:published",
+        "webdemo:dev": "vite --config demo/vite.config.ts",
+        "webdemo:build": "vite build --config demo/vite.config.ts"
     },
     "peerDependencies": {
         "@ftyyy/mouseless": "^0.0.9",

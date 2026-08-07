@@ -144,6 +144,12 @@ onUpdateCache={(cache) =&gt; console.log(cache)} /&gt;</code>。
 <p>
 这条链路的每一环（参数、渲染器、hook、组件方法）都是前面见过的东西，只是第一次串在一起。
 </p>
+<p>
+<a href="../../demo/?lang=zh">在线演示</a>里就跑着一份走通这条链路的实现：它的「链接」概念在
+<code>target</code> 恰好是文档内某个节点的 idx 时按内部引用处理，<code>autotext</code>
+开启时文字直接取缓存里的引用名，点击滚动到被引节点。演示预置的文章里就有一个这样的引用；
+代码在仓库的 <code>demo/src/concepts/printers.tsx</code>。
+</p>
 
 <h2>更通用的一对工具</h2>
 <p>最后认识一对处理「前面的节点影响后面的节点」的 contexter：</p>

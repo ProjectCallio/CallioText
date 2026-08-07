@@ -5,6 +5,7 @@
 <p align="center">
     <a href="https://www.npmjs.com/package/@project-callio/calliotext"><img src="https://img.shields.io/npm/v/%40project-callio%2Fcalliotext" alt="npm 版本"></a>
     <a href="https://projectcallio.github.io/CallioText/zh/"><img src="https://img.shields.io/badge/%E6%96%87%E6%A1%A3-%E5%9C%A8%E7%BA%BF-brightgreen" alt="文档"></a>
+    <a href="https://projectcallio.github.io/CallioText/demo/?lang=zh"><img src="https://img.shields.io/badge/%E6%BC%94%E7%A4%BA-%E5%9C%A8%E7%BA%BF-orange" alt="在线演示"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="许可"></a>
 </p>
 
@@ -28,6 +29,12 @@ CallioText 的做法是把语义用「概念」显式建模：编辑在图形界
 - **全键盘操作**：内置空间导航和按键提示，写作时双手不离开键盘。
 - **逐层可替换**：从开箱即用的默认界面，到每种节点的渲染方式，每一层都可以换成自己的实现。
 
+## 在线演示
+
+[projectcallio.github.io/CallioText/demo/?lang=zh](https://projectcallio.github.io/CallioText/demo/?lang=zh)
+是一个用 CallioText 搭出来的完整编辑器，整个跑在浏览器里：左边是编辑器，右边是排版成品，
+预置了一篇简短的数学短文。不需要安装任何东西。
+
 ## 文档
 
 - [入门教程](https://projectcallio.github.io/CallioText/zh/tutorial/01-model.html)：七章，从核心思想到自动编号，从零搭出一个完整的结构化编辑器。
@@ -49,12 +56,15 @@ npm install @project-callio/calliotext
 | ---- | ---- |
 | `lib/` | 库的源码 |
 | `test/unit/` | 单元测试（vitest） |
+| `demo/` | 在线演示的源码 |
 | `docs/` | 文档站点（GitHub Pages 从此目录部署） |
 
 ```bash
-npm test            # 运行单元测试
-npm run build       # 构建库（dist/）
-npm run docs:api    # 重新生成 TypeDoc 参考（docs/reference/）
+npm test              # 运行单元测试
+npm run build         # 构建库（dist/）
+npm run docs:api      # 重新生成 TypeDoc 参考（docs/reference/）
+npm run webdemo:dev   # 本地运行在线演示
+npm run webdemo:build # 把在线演示构建到 docs/demo/
 ```
 
 发现问题或者有想法，欢迎提 issue。

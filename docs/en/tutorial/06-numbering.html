@@ -154,6 +154,13 @@ exercise:
 Every link of this chain (parameters, renderers, hooks, component methods) is something you have already
 met; this is just the first time they line up.
 </p>
+<p>
+A working implementation of this exact chain runs in the <a href="../../demo/">live demo</a>: its Link
+concept treats a <code>target</code> that matches a node idx as an internal reference, takes its text
+from the reference name in the cache when <code>autotext</code> is on, and scrolls to the target on
+click. The article preloaded there contains one such reference; the code is in
+<code>demo/src/concepts/printers.tsx</code> in the repository.
+</p>
 
 <h2>A more general pair of tools</h2>
 <p>Finally, a pair of contexters for cases where earlier nodes affect later ones:</p>
