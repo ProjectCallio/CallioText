@@ -14,6 +14,7 @@ import {
 
 import {
     AutoIconButton,
+    useTexts ,
 } from "../../../../implbase"
 
 export {
@@ -22,26 +23,28 @@ export {
 }
 
 const ParamAreaControlButton = React.memo(() => {
+    const texts    = useTexts()
     const open     = useAreaStore(state => state.open)
     const set_open = useAreaStore(state => state.set_open)
 
     return <AutoIconButton 
         onClick = {React.useCallback(() => set_open("param", !open.param), [open.param])} 
         icon    = {Columns3CogIcon}
-        title   = "参数区域"
+        title   = {texts.buttons.parameter_area}
         size    = "large" 
         activate = {open.param}
     />
 })
 
 const ConceptAreaControlButton = React.memo(() => {
+    const texts    = useTexts()
     const open     = useAreaStore(state => state.open)
     const set_open = useAreaStore(state => state.set_open)
 
     return <AutoIconButton 
         onClick = {React.useCallback(() => set_open("concep", !open.concep), [open.concep])} 
         icon    = {PuzzleIcon}
-        title   = "概念区域"
+        title   = {texts.buttons.concept_area}
         size    = "large" 
         activate = {open.concep}
     />

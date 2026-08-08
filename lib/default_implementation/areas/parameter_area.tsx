@@ -34,10 +34,11 @@ import {
 import { useSnackbar } from "notistack"
 
 import {
-    DefaultParameterContainer , 
-    DefaultParameterContainerRef, 
-    AutoIconButton , 
-    MouselessHint , 
+    DefaultParameterContainer ,
+    DefaultParameterContainerRef,
+    AutoIconButton ,
+    MouselessHint ,
+    useTexts ,
 } from "../../implbase"
 import {
     ParameterList , 
@@ -150,6 +151,7 @@ const ParameterArea = React.memo(({
     zIndex?: number
     area_id: AreaName
 })=>{
+    const texts = useTexts()
     const {enqueueSnackbar} = useSnackbar()
     const editor = useCurEditor() // 当前正在编辑的编辑器
     
@@ -263,7 +265,7 @@ const ParameterArea = React.memo(({
             width: "100%",
             marginBottom: "0.5rem",
         }}>
-            <AreaTitle icon={SlidersHorizontal}>修改参数</AreaTitle>
+            <AreaTitle icon={SlidersHorizontal}>{texts.areas.parameter_title}</AreaTitle>
             <Box sx={{ position: "relative", display: "inline-block" }}>
                 <AutoIconButton
                     onClick={()=>{
@@ -273,11 +275,11 @@ const ParameterArea = React.memo(({
                         }
                         editor.auto_set_parameter(cur_node, parameters)
                         set_has_unsaved_changes(false)
-                        enqueueSnackbar("修改参数成功", {
+                        enqueueSnackbar(texts.messages.parameters_saved, {
                             variant: "success",
                         })
                     }}
-                    title = "应用参数修改"
+                    title = {texts.buttons.apply_parameters}
                     icon = {SaveIcon}
                     size = "medium"
                     icon_props = {{
@@ -420,7 +422,7 @@ const ParameterArea = React.memo(({
                         return
                     }
                     editor.auto_set_parameter(cur_node, parameters)
-                    enqueueSnackbar("已自动应用参数", {
+                    enqueueSnackbar(texts.messages.parameters_auto_applied, {
                         variant: "success",
                     })
                     set_has_unsaved_changes(false)

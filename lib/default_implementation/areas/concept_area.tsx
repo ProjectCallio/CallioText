@@ -42,6 +42,7 @@ import {
 import {
     MouselessButton ,
     MouselessHint ,
+    useTexts ,
 } from "../../implbase"
 
 import {
@@ -77,13 +78,6 @@ const concept_list = [
     "structure" ,
 ] as const
 
-const type_labels: {[key in Exclude<AllConceptTypes, "abstract">]: string} = {
-    "group"     : "组" ,
-    "inline"    : "行内" ,
-    "support"   : "支持" ,
-    "structure" : "结构" ,
-}
-
 const HOLDING = [KeyNames.alt, KeyNames.x]
 
 // 缩放的尺寸限制。
@@ -101,6 +95,7 @@ const ConceptArea = React.memo(({
     area_id: AreaName
 })=>{
 
+    const texts = useTexts()
     const editor = useCurEditor() // 当前正在编辑的编辑器
 
     // 订阅container的版本号：container变化时触发重渲染，从而拿到新的container_ref。
@@ -308,7 +303,7 @@ const ConceptArea = React.memo(({
                     fontWeight: 500,
                     display: "block",
                     marginBottom: "0.3rem",
-                }}>{type_labels[typename]}</Typography>
+                }}>{texts.areas.concept_types[typename]}</Typography>
                 <Box sx={{
                     display: "flex",
                     flexDirection: "row",
@@ -433,7 +428,7 @@ const ConceptArea = React.memo(({
                 gap: "1rem",
                 width: "100%",
             }}>
-                <AreaTitle icon={Shapes}>插入概念</AreaTitle>
+                <AreaTitle icon={Shapes}>{texts.areas.concept_title}</AreaTitle>
                 <DraggerBox
                     my_position = {position}
                     dragging_me = {dragging_me}

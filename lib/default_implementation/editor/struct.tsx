@@ -53,6 +53,7 @@ import {
     useParameters , 
     AutoIconButton , 
     useEditorConfig,
+    useTexts ,
 } from "../../implbase"
 
 import { 
@@ -128,6 +129,7 @@ function get_default_struct_editor_with_rightbar({
         const SUR     = surrounder
         const Extra   = rightbar_extra
         const GetLabel = get_label
+        const texts = useTexts()
 
         const mychildren = React.useMemo(()=>node.children, [node])
         const mypath = React.useMemo(()=>slate_concept_node2path(editor.get_root() , node), [editor, node])
@@ -204,7 +206,7 @@ function get_default_struct_editor_with_rightbar({
                     button_comp = {with_partial_props(AutoIconButton, {
                         size: "small" , 
                         icon: ChevronDownIcon , 
-                        title: "展开" , 
+                        title: texts.buttons.expand , 
                     })}
                     buttons = {[
                         <DefaultParameterEditButton /> , 

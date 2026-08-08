@@ -34,9 +34,9 @@ and releasing the combination returns you to ordinary typing.
 </p>
 <p>
 What has to be remembered, then, is only which combination belongs to which part of the interface, six
-in all; movement within a part is always the arrow keys. The price is that an operation takes two steps,
-entering and selecting. What you get for it is that key space never runs out, and a new button needs no
-key assigned to it, since it simply joins the sequence of its space.
+in all; movement within a part is always the arrow keys. This matters for customization too: a button you
+append to the sidebar or to a node needs no shortcut assigned to it, since it joins the sequence of its
+space and the same arrow keys reach it.
 </p>
 
 <h2>Every combination</h2>
@@ -66,16 +66,6 @@ The browser default is suppressed for all of these, so Ctrl+S does not open a "s
         cursor. No mouse is involved at any point, not even to open the panel.
     </figcaption>
 </figure>
-<p>
-The up and down movement under Alt+X deserves a note of its own. Buttons in the concept panel wrap
-automatically, and how many fit on a row depends on the panel's current width and on how long the concept
-names are, so "the same position one row up" is not a fixed offset in the sequence. What happens instead
-is that every keystroke measures the buttons where they actually are, finds the nearest row in the
-direction you asked for, and picks the button in it whose horizontal centre is closest. Consecutive
-vertical moves also remember the horizontal position you started from, so passing through a short row
-does not drag your position sideways, which is how moving a cursor vertically behaves in a text editor.
-</p>
-
 <h2>Key hints</h2>
 <p>
 Not remembering the combinations is normal, so the interface hints at them, and does so by default. Hold
@@ -92,12 +82,6 @@ the combination for each part along with the arrow keys it accepts. Release and 
     </figcaption>
 </figure>
 <p>
-"A moment" is about two hundred milliseconds. The delay is there because Alt participates in every
-combination, so hints appearing the instant it goes down would flash on every ordinary operation. Note
-also that hints appear only while Alt is held alone: once a second key goes down, Alt+X for instance, you
-evidently know where you are going and the hints have no reason to stay in the way.
-</p>
-<p>
 The fourth sidebar button is the master switch for all of this. Turn it off once the keys are familiar
 and holding Alt produces no hints. The switch is itself an ordinary component
 (<code>ShowHintControlButton</code>), so if you are building your own interface you can put it elsewhere.
@@ -105,10 +89,9 @@ and holding Alt produces no hints. The switch is itself an ordinary component
 
 <h2>How this relates to typing</h2>
 <p>
-Worth noting: spatial navigation only takes over the arrow keys while the combination is held. Release
-it and the arrows, Enter and Backspace all return to Slate's ordinary text editing with the cursor still
-where it was. This navigation is a temporary state layered over text editing rather than a mode you have
-to leave, so there is no way to lose track of which mode you are in and type a line of nonsense.
+Spatial navigation only takes over the arrow keys while the combination is held. Release it and the
+arrows, Enter and Backspace all return to ordinary text editing with the cursor still where it was. It is
+a temporary state layered over text editing, not a mode you have to leave.
 </p>
 <div class="tip">
 Try this sequence without touching the mouse: put the cursor in the text, hold Alt+X, select Theorem and

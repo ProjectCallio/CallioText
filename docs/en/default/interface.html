@@ -22,9 +22,7 @@ holds, and finally the two floating panels together with the container you have 
 <p>
 The default editor splits the rectangle it is given into left and right. About nine tenths of the width
 on the left is the paper, the document content itself; the narrow strip that remains on the right is the
-sidebar, holding buttons that act on the document as a whole. The ratio shifts a little with screen
-width, giving the sidebar proportionally less on wider screens, since there are only a handful of
-buttons and they gain nothing from growing with the window.
+sidebar, holding buttons that act on the document as a whole.
 </p>
 <p>
 Beyond that there are the two floating panels, Insert Concept and Edit Parameters. They take no part in
@@ -86,16 +84,13 @@ the second sits flush against the first and the two read as one run. A list of i
 chaining, two unrelated theorems want separation.
 </p>
 <p>
-The two "add paragraph" buttons deserve a sentence more, because they solve a problem peculiar to
-structured editors. In a plain text editor the cursor can always go between any two characters; in a
-tree-shaped document, if two block nodes are direct neighbours there is simply no position between them
-where a cursor could go, and therefore no way to insert anything in between. These buttons create such a
-position out of nothing: add an empty paragraph first, then write into it.
+The two "add paragraph" buttons solve a problem peculiar to tree-shaped documents: when two block nodes
+are direct neighbours there is no position between them where a cursor could go, and therefore no way to
+insert anything in between. These buttons create such a position out of nothing.
 </p>
 <p>
-Unwrap is worth a mention too. When you delete a theorem, what you usually want to remove is the fact
-that it is a theorem, not the sentence inside it. Unwrap does exactly that: the node disappears and the
-content stays where it was, as ordinary paragraphs.
+Unwrap is the other kind of deletion: it removes the fact that something is a theorem while leaving the
+content where it was, as ordinary paragraphs.
 </p>
 
 <h2>The parameter drawer</h2>
@@ -107,8 +102,7 @@ The Edit parameters button unfolds a drawer from the node listing all of its par
     <figcaption>
         The concept name and this node's idx sit at the top, with the parameters listed below. This
         theorem has two editable parameters: <code>alias</code> is its byname and <code>category</code>
-        decides whether it counts as a theorem or a lemma. The panel titles are in Chinese because the
-        default implementation's own interface strings are not yet translated.
+        decides whether it counts as a theorem or a lemma.
     </figcaption>
 </figure>
 <p>
@@ -142,9 +136,8 @@ the main editor's core, so the concepts available inside a footnote are exactly 
 body.
 </p>
 <p>
-This also explains why abstract nodes are not edited inline: an abstract node is a complete little
-document of its own, with its own paragraphs and possibly its own theorems. There is no room for that
-between two lines of running text, and a separate window is the natural place for it.
+They get a window of their own because an abstract node is a complete little document, with its own
+paragraphs and possibly its own theorems, and there is no room for that between two lines of text.
 </p>
 
 <h2>The sidebar</h2>
@@ -191,14 +184,11 @@ you left them.
     <figcaption>
         Insert Concept above, with the concepts divided into four sections by node kind; Edit Parameters
         below, showing the theorem the cursor is in. The panels are translucent, so the text underneath
-        shows through. Their titles and section labels are still in Chinese, as noted above.
+        shows through.
     </figcaption>
 </figure>
 <p>
-Their relationship with the sidebar buttons is that the buttons control visibility while the panels
-themselves are a permanent workspace. They float rather than occupying a fixed side because inserting
-concepts and editing parameters are both frequent operations: a fixed panel would squeeze the text, and
-a menu would be too slow.
+Two of the sidebar buttons show and hide these panels.
 </p>
 
 <h3>AreaContainer: the one part you must place yourself</h3>

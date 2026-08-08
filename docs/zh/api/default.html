@@ -25,6 +25,7 @@
 <p>完整的默认编辑器界面。它接受 <code>EditorComponentProps</code> 的全部 props（见 <a href="editor.html">editor 那页</a>），另外追加：</p>
 <pre><code class="language-typescript">{
     config?: PartialEditorConfig            // 样式配置（字体、边距、宽度），部分覆盖式
+    texts?: PartialEditorTexts              // 界面文字（按钮提示、面板标题、提示语），部分覆盖式
     onSave?: () =&gt; void                     // 用户触发保存动作时回调
     sidebar_extras?: (() =&gt; React.ReactNode)[]  // 向侧边栏追加自定义按钮
     end_element?: React.ReactNode           // 附加在文档末尾的元素
@@ -120,6 +121,7 @@
     <tr><td><code>DefaultParameterContainer</code></td><td>参数编辑面板本体，默认的参数抽屉内部就是它</td></tr>
     <tr><td><code>AutoIconButton / ButtonGroup / FoldedButtonGroup / MouselessButton</code></td><td>支持键盘导航的按钮组件，自定义按钮建议基于它们搭</td></tr>
     <tr><td><code>MouselessHint / ShowHintControlButton</code></td><td>快捷键提示气泡、提示常驻开关</td></tr>
+    <tr><td><code>EditorTexts / make_editortexts / useTexts</code></td><td>界面文字表的类型、合并函数和读取 hook；自定义按钮想跟随语言就用它</td></tr>
     <tr><td><code>EditorConfig / make_editorconfig / useEditorConfig</code></td><td>编辑器样式配置的类型、合并函数和读取 hook</td></tr>
 </table>
 

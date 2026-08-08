@@ -56,10 +56,15 @@ import {
     EditorComponentEditingBox  ,
 } from "./uibase"
 import {
-    EditorConfigContext , 
-    make_editorconfig , 
-    PartialEditorConfig , 
+    EditorConfigContext ,
+    make_editorconfig ,
+    PartialEditorConfig ,
 } from "../../implbase/editorconfig"
+import {
+    EditorTextsContext ,
+    make_editortexts ,
+    PartialEditorTexts ,
+} from "../../implbase/texts"
 
 import {
     DefaultSidebar , 
@@ -140,6 +145,7 @@ const HandleSave = React.memo(({
 
 type DefaultEditorComponentprops = EditorComponentProps & {
     config?: PartialEditorConfig
+    texts?: PartialEditorTexts // 界面文字，只写想改的项。
     onSave?: ()=>void // 保存时操作。
 
     sidebar_extras?: (() => React.ReactNode)[]
@@ -187,6 +193,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
         const toolbar_width = {xs: "10%" , md: "7%"  , xl: "5%" } // 工具栏的宽度。
 
         const config        = make_editorconfig(this.props.config)
+        const texts         = make_editortexts(this.props.texts)
 
         // 当焦点发生变化时，更新parameteredit_ref
         const onFocusChange = ()=>{
@@ -195,6 +202,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
 
         // TODO 现在abstracteditor用不了space navigator，因为这里get_editor给出的是父编辑器。
         return <EditorConfigContext.Provider value={config}>
+        <EditorTextsContext.Provider value={texts}>
         <SnackbarProvider maxSnack={3} anchorOrigin={{vertical: "top", horizontal: "right"}}>
         <IdxConflictSolver get_editor={me.get_editor}>{(conflictcheck: ()=>void)=>(
             <EditorBackgroundPaper>
@@ -287,6 +295,7 @@ class DefaultEditorComponent extends React.Component <DefaultEditorComponentprop
             </EditorBackgroundPaper>
         )}</IdxConflictSolver>
         </SnackbarProvider>
+        </EditorTextsContext.Provider>
         </EditorConfigContext.Provider>
     }
 }

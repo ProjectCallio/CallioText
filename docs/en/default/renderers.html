@@ -72,11 +72,9 @@ a component, written <code>&lt;GetLabel /&gt;</code>. That familiar line above:
 <pre><code class="language-tsx">get_label: () =&gt; useParameters().category</code></pre>
 <p>
 looks like an ordinary function, but it is a function component taking no props whose body calls a hook.
-The design is not gratuitous: precisely because it is a component, you can call
-<code>useParameters()</code>, <code>useNode()</code> or even <code>useTheme()</code> inside it, which is
-what makes the label follow the parameters as they change. Were it a plain function, there would be
-nowhere to subscribe to those changes and the label would go stale. The price is that the rules of hooks
-apply: no conditional calls, no calls in loops.
+Precisely because it is a component, you can call <code>useParameters()</code>, <code>useNode()</code> or
+even <code>useTheme()</code> inside it, which is what makes the label follow its parameters. The price is
+that the rules of hooks apply: no conditional calls, no calls in loops.
 </p>
 
 <h2>Inline nodes</h2>

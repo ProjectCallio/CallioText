@@ -70,6 +70,7 @@ import {
     useParameters , 
     NodeInfoProvider , 
     AutoIconButton,  
+    useTexts ,
 } from "../../implbase"
 
 import Color from "color"
@@ -201,6 +202,7 @@ function get_default_group_editor_with_rightbar({
         editor, node, children
     }: EditorRendererProps<Slate.Node & GroupNode>) => {
         const GetLabel    = get_label
+        const texts = useTexts()
         
         const Extra = rightbar_extra 
         const SUR = surrounder
@@ -267,7 +269,7 @@ function get_default_group_editor_with_rightbar({
                         button_comp = {React.useMemo(()=>(with_partial_props(AutoIconButton, {
                             size: "medium" , 
                             icon: ChevronDownIcon , 
-                            title: "展开" , 
+                            title: texts.buttons.expand , 
                         })), [])}
                         buttons = {buttons_comp}
                     /> 

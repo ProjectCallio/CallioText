@@ -34,6 +34,7 @@ import {
     useEditor,
     AutoIconButton,
     ButtonGroup , 
+    useTexts ,
 } from "../../../implbase"
 
 export {
@@ -115,6 +116,7 @@ const NewAbstractMenu = React.memo(({
  * @returns 一个渲染了两个 Button 的 
  */
 const DefaultNewAbstractButton = React.memo(() => {
+    const texts = useTexts()
     const [ae, set_ae] = React.useState<HTMLElement | undefined>(undefined)
     const boxref = React.useRef<HTMLDivElement | null>(null)
 
@@ -141,7 +143,7 @@ const DefaultNewAbstractButton = React.memo(() => {
                 <AutoIconButton
                     onClick={() => open()}
                     icon={FilePlus2Icon}
-                    title="新建抽象"
+                    title={texts.buttons.new_abstract}
                     size="medium"
                 />
             </Box>

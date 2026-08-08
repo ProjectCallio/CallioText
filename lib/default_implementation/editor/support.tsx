@@ -51,6 +51,7 @@ import {
     useParameters, 
     AutoIconButton, 
     useEditorConfig, 
+    useTexts ,
 } from "../../implbase"
 import { 
     EditorComponentPaper as ComponentPaper , 
@@ -79,6 +80,7 @@ function get_default_spliter_editor({
     return ({editor, node, children}: EditorRendererProps<SupportNode>) => {
         const GetTitle = get_title
 
+        const texts = useTexts()
         const palette = useTheme().palette
         const bgcolor = React.useMemo(() => {
             let c = Color( palette.primary.main )
@@ -105,7 +107,7 @@ function get_default_spliter_editor({
                             button_comp = {with_partial_props(AutoIconButton, {
                                 size: "small" , 
                                 icon: ChevronDownIcon , 
-                                title: "展开" , 
+                                title: texts.buttons.expand , 
                             })}
                             buttons = {[
                                 <DefaultParameterEditButton /> , 
@@ -151,6 +153,7 @@ function get_default_display_editor({
 }){
     return ({editor, node, children}: EditorRendererProps<SupportNode>) => {
         const config = useEditorConfig()
+        const texts = useTexts()
         const palette = useTheme().palette
 
         const parameters  = React.useMemo(()=>(
@@ -193,7 +196,7 @@ function get_default_display_editor({
                         button_comp = {with_partial_props(AutoIconButton, {
                             size: "small" , 
                             icon: ChevronDownIcon , 
-                            title: "展开" , 
+                            title: texts.buttons.expand , 
                         })}
                         buttons = {[
                             <DefaultParameterEditButton /> , 

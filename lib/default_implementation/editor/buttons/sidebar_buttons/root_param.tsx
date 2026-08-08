@@ -47,6 +47,7 @@ import {
     AutoElement , 
     MouselessSelect , 
     
+    useTexts ,
 } from "../../../../implbase"
 
 export { 
@@ -58,6 +59,7 @@ export {
  * @param props.onExit 抽屉关闭时的行为。
  */
 const DefaultRootParameterEditButton = React.memo(({ onExit }: { onExit?: (e: any) => void }) => {
+    const texts = useTexts()
     const editor = useEditor()
     const root = editor.get_root()
 
@@ -89,7 +91,7 @@ const DefaultRootParameterEditButton = React.memo(({ onExit }: { onExit?: (e: an
     return <Box sx={{ marginX: "auto" }}>
         <AutoIconButton onClick={()=>{
             set_open(true)
-        }} title="设置参数" icon={SettingsIcon} size="large"/>
+        }} title={texts.buttons.edit_parameters} icon={SettingsIcon} size="large"/>
         {subcomp}
     </Box>
 })
@@ -111,6 +113,7 @@ const DefaultRootParameterWithDrawer = React.memo(({
     /** 抽屉应该关闭时的回调。 */
     onClose?: (e:any)=>void
 })=>{
+    const texts = useTexts()
     const editor = useEditor()
     const root = editor.get_root()
 
@@ -140,7 +143,7 @@ const DefaultRootParameterWithDrawer = React.memo(({
                     // 在退出时更新所服务的节点的参数。
                     const parameters = par_editor.get_parameters()
                     editor.set_root({parameters: {...editor.get_root().parameters, ...parameters}})
-                    enqueueSnackbar("已应用参数", {
+                    enqueueSnackbar(texts.messages.parameters_applied, {
                         variant: "success",
                     })
                 }    
@@ -188,7 +191,7 @@ const DefaultRootParameterWithDrawer = React.memo(({
             paddingRight: "1rem",
         }}>
             <AutoIconButton 
-                title = "关闭并应用"
+                title = {texts.buttons.close_and_apply}
                 icon = {ArrowRightFromLineIcon}
                 size = "large"
                 onClick = {onClose}

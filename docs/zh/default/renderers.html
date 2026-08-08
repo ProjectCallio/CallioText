@@ -69,9 +69,8 @@ React 组件，而不是「返回字符串的普通函数」。渲染器内部�
 <pre><code class="language-tsx">get_label: () =&gt; useParameters().category</code></pre>
 <p>
 看起来像一个普通函数，实际上它是一个没有 props 的函数组件，函数体里调用了 hook。
-这个设计不是故意绕：正因为它是组件，你才能在里面调用 <code>useParameters()</code>、
-<code>useNode()</code> 乃至 <code>useTheme()</code>，从而让标题随参数变化而自动更新。
-如果它只是个普通函数，就没有地方订阅这些变化，参数改了标题也不会跟着变。
+正因为它是组件，你才能在里面调用 <code>useParameters()</code>、<code>useNode()</code>
+乃至 <code>useTheme()</code>，标题才会随参数变化自动更新。
 代价是必须遵守 hook 的规则：不能条件调用，也不能在循环里调用。
 </p>
 

@@ -44,9 +44,7 @@ holds information but never draws; the component draws but holds nothing.
 The benefit of separating them is that several components can share one core. The floating window that
 edits abstract nodes is a ready example: it is another editor component sharing the main editor's core,
 so both sides see identical concept definitions and renderers, and a theorem inserted inside a footnote
-goes through exactly the same code as one inserted in the body. Were core and component a single object,
-that reuse would have to be achieved by duplicating configuration, and the two copies would drift apart
-sooner or later.
+goes through exactly the same code as one inserted in the body.
 </p>
 
 <h2>Three levels of depth</h2>
@@ -60,10 +58,8 @@ For you as a user, that dividing line means three levels of depth, increasing in
     <tr><td>Skip the default implementation</td><td>Your own interface built on <code>EditorComponent</code></td><td>When your interface differs fundamentally</td></tr>
 </table>
 <p>
-Few people need the third level, but the fact that it exists matters: the default implementation uses no
-private interfaces, so everything it calls, you can call. This layer is not a premise you must accept;
-it is one implementation you may consult or discard. Every page in this part explains not just how to
-use something but also how it works, precisely so that the third level stays open.
+Few people need the third level, but it is available: the default implementation uses no private
+interfaces, so everything it calls, you can call.
 </p>
 
 <h2>What DefaultEditorComponent assembles</h2>
@@ -83,8 +79,7 @@ outside in:
     <tr><td><code>DefaultSidebar</code> / <code>Areas</code> / <code>AbstractEditorArea</code></td><td>The sidebar, the two floating panels, the floating editor for abstract nodes</td></tr>
 </table>
 <p>
-Three of these layers deserve their own explanation, because they answer a good many later questions of
-the form "why am I allowed to write it that way".
+Three of these layers deserve their own explanation.
 </p>
 <p>
 The first is <code>SnackbarProvider</code>. It is here because the default implementation's buttons

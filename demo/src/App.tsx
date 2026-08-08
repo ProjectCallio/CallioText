@@ -34,6 +34,7 @@ import {
     default_editors ,
 } from "./concepts"
 import { demo_theme , demo_printer_config } from "./theme"
+import { editor_texts } from "./editor_texts"
 import { MathJaxContext } from "./math"
 import { build_document } from "./document"
 
@@ -204,6 +205,7 @@ const App: React.FC = () => {
                     key="editor-component"
                     ref={editor_ref}
                     editorcore={editor_core}
+                    texts={editor_texts}
                     init_rootchildren={tree_children}
                     init_rootproperty={tree_property}
                     onUpdate={debounced_update}

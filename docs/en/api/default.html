@@ -29,6 +29,7 @@ The complete default editor interface. It accepts all props of <code>EditorCompo
 </p>
 <pre><code class="language-typescript">{
     config?: PartialEditorConfig            // style configuration (fonts, margins, widths), partial override
+    texts?: PartialEditorTexts              // interface text (button hints, panel titles, toasts), partial override
     onSave?: () =&gt; void                     // called when the user triggers the save action
     sidebar_extras?: (() =&gt; React.ReactNode)[]  // custom buttons appended to the sidebar
     end_element?: React.ReactNode           // an element appended after the document
@@ -128,6 +129,7 @@ contexter-producing functions (<code>{node, parameters, context, env}</code>), a
     <tr><td><code>DefaultParameterContainer</code></td><td>The parameter editing panel itself; the default parameter drawer is built around it</td></tr>
     <tr><td><code>AutoIconButton / ButtonGroup / FoldedButtonGroup / MouselessButton</code></td><td>Button components with keyboard navigation support; base custom buttons on them</td></tr>
     <tr><td><code>MouselessHint / ShowHintControlButton</code></td><td>Shortcut hint bubbles, and a toggle to keep hints visible</td></tr>
+    <tr><td><code>EditorTexts / make_editortexts / useTexts</code></td><td>The interface text table, its merge function and the hook renderers read it with</td></tr>
     <tr><td><code>EditorConfig / make_editorconfig / useEditorConfig</code></td><td>The editor style configuration: its type, the merge function, and the reading hook</td></tr>
 </table>
 

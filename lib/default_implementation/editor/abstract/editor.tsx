@@ -60,6 +60,7 @@ import {
     useResetSelection,
     AutoIconButton , 
     MouselessHint , 
+    useTexts ,
 } from "../../../implbase"
 
 import {
@@ -116,6 +117,7 @@ const useAbstractEditorStore = create<{
 
 
 const AbstractEditorArea = React.memo(({}:{})=>{
+    const texts = useTexts()
     const { enqueueSnackbar } = useSnackbar()
     const palette = useTheme().palette
 
@@ -209,7 +211,7 @@ const AbstractEditorArea = React.memo(({}:{})=>{
             abs.children = root.children
         })
         fat_editor.set_node(father_node, { abstract: new_abstract_list })
-        enqueueSnackbar("保存成功", { variant: "success" })
+        enqueueSnackbar(texts.messages.save_success, { variant: "success" })
 
         // 注意这里需要依赖son_node
         // 因为son_node变化会导致son_editor_ref刷新

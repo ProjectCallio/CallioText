@@ -46,6 +46,7 @@ import {
     useParameters , 
     AutoIconButton , 
     useEditorConfig,
+    useTexts ,
 } from "../../implbase"
 
 import { 
@@ -90,6 +91,7 @@ function get_default_inline_editor({
         const Extra = rightbar_extra
         const SUR   = surrounder
         const GetLabel = get_label
+        const texts = useTexts()
 
         const config = useEditorConfig()
         const palette = useTheme().palette
@@ -117,7 +119,7 @@ function get_default_inline_editor({
                         button_comp = {with_partial_props(AutoIconButton, {
                             size: "very-small" , 
                             icon: ChevronDownIcon , 
-                            title: "展开" , 
+                            title: texts.buttons.expand , 
                         })} 
                         buttons = {[
                             <DefaultParameterEditButton /> , 

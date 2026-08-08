@@ -31,10 +31,8 @@ keeps its default. The editor's configuration has three parts:
 </table>
 <p>
 Each font is a set of <code>fontFamily</code>, <code>fontSize</code>, <code>lineHeight</code> and the
-like. The division of labour between the three is worth noticing: <code>body</code> is what the author
-types, <code>structure</code> is text the interface itself produces (node labels, words on buttons), and
-<code>info</code> is auxiliary hints. Keeping them apart lets "what the author wrote" and "what the
-system added" look different, so a glance is enough to tell which words are part of the document.
+like. <code>body</code> is what the author types, <code>structure</code> is text the interface itself
+produces (node labels, words on buttons), and <code>info</code> is auxiliary hints.
 </p>
 <pre><code class="language-tsx">&lt;DefaultEditorComponent
     editorcore={editor_core}
@@ -48,6 +46,27 @@ This configuration is separate from the printer's, because the editing interface
 ought to look different: while editing you may want generous line spacing to make clicking easier,
 whereas the output should be compact and well set. For the printer side see
 <a href="printer.html">The Printer Side</a>.
+</p>
+
+<h2>Interface text</h2>
+<p>
+Every string the default implementation puts on screen (button hints, panel titles, the messages raised
+after an operation) lives in one text table. It defaults to Chinese and is overridden partially through
+the <code>texts</code> prop, exactly like <code>config</code>:
+</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    texts={{
+        buttons: {delete_node: "Delete node", unwrap_node: "Unwrap node"},
+        areas  : {concept_title: "Insert Concept", parameter_title: "Edit Parameters"},
+    }}
+/&gt;</code></pre>
+<p>
+The full set of fields is the <code>EditorTexts</code> type, in three parts: <code>buttons</code> for
+button hints, <code>areas</code> for panel titles and concept type labels, and <code>messages</code> for
+toasts. The library ships no i18n framework of its own, so manage translations however you like and hand
+the finished strings over. The live demo does exactly this: Chinese uses the library defaults, English
+passes an override, in <code>demo/src/editor_texts.ts</code>.
 </p>
 
 <h2>Theme</h2>
@@ -159,11 +178,6 @@ then have to handle yourself is exactly the list in the table on the
 conflict repair, key dispatch, and handing the editor instance to downstream components. All of these are
 publicly exported, and the source of <code>DefaultEditorComponent</code> is itself a template you can
 copy from.
-</p>
-<p>
-It should be said that this level is a fair amount of work, and that the middle levels cover more
-situations than one expects. Before deciding to rewrite the layer, it is worth confirming that the
-existing options really are insufficient.
 </p>
 
 <div class="pager" id="pager"></div>

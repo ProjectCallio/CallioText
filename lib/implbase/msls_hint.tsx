@@ -36,6 +36,9 @@ import {
 import {
     AutoIconButton,
 } from "./buttons"
+import {
+    useTexts ,
+} from "./texts"
 
 export {
     MouselessHint,
@@ -57,13 +60,14 @@ const useHintStore = create(persist<{
 }))
 
 const ShowHintControlButton = React.memo(()=>{
+    const texts = useTexts()
     const show_hint = useHintStore(state=>state.showhint)
     const set_showhint = useHintStore(state=>state.set_showhint)
 
     return <AutoIconButton 
         onClick = {() => set_showhint(!show_hint)} 
         icon    = {TagsIcon}
-        title   = "显示提示"
+        title   = {texts.buttons.show_hint}
         size    = "large" 
         activate = {show_hint}
     />

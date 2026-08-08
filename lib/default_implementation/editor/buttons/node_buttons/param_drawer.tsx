@@ -38,6 +38,7 @@ import {
     DefaultParameterContainer , 
     useResetSelection,
     AutoIconButton,
+    useTexts ,
 } from "../../../../implbase"
 
 export { 
@@ -62,6 +63,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
     /** 抽屉应该关闭时的回调。 */
     onClose?: (e?: any)=>void
 })=>{
+    const texts = useTexts()
     const editor = useEditor()
     const parametereditor_ref = React.useRef<DefaultParameterContainerRef | null>(null)
     const {enqueueSnackbar} = useSnackbar()
@@ -89,7 +91,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
                     // 在退出时更新所服务的节点的参数。
                     const parameters = par_editor.get_parameters()
                     editor.auto_set_parameter(node, parameters)
-                    enqueueSnackbar("已自动应用参数", {
+                    enqueueSnackbar(texts.messages.parameters_auto_applied, {
                         variant: "success",
                     })
                 }    
@@ -146,7 +148,7 @@ const DefaultParameterWithEditorWithDrawer = React.memo(({
             paddingRight: "1rem",
         }}>
             <AutoIconButton 
-                title = "关闭并应用"
+                title = {texts.buttons.close_and_apply}
                 icon = {ArrowRightFromLineIcon}
                 size = "large"
                 onClick = {onClose}

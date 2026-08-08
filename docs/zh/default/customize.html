@@ -31,10 +31,9 @@
 </table>
 <p>
 每种字体是一组 <code>fontFamily</code>、<code>fontSize</code>、<code>lineHeight</code> 这样的字段。
-三种字体的分工值得留意：<code>body</code> 是写作者输入的内容，
+三种字体的分工是：<code>body</code> 是写作者输入的内容，
 <code>structure</code> 是界面自己产生的文字（节点标题、按钮上的字），
-<code>info</code> 是辅助提示。把它们分开，是为了让「作者写的」和「系统加的」在视觉上能区分开，
-一眼就能看出哪些字是文档的一部分。
+<code>info</code> 是辅助提示。
 </p>
 <pre><code class="language-tsx">&lt;DefaultEditorComponent
     editorcore={editor_core}
@@ -47,6 +46,26 @@
 这套配置和印刷器的配置是分开的两份，因为编辑界面和印刷成品本来就应该长得不一样：
 编辑时你可能想要更大的行距方便点选，成品则要紧凑美观。印刷侧的配置见
 <a href="printer.html">印刷侧的默认实现</a>。
+</p>
+
+<h2>界面文字</h2>
+<p>
+默认实现界面上的全部文字（按钮提示、面板标题、操作后弹出的提示）都集中在一份文案表里，
+默认是中文，通过 <code>texts</code> 参数部分覆盖，写法和 <code>config</code> 一样：
+</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    texts={{
+        buttons: {delete_node: "Delete node", unwrap_node: "Unwrap node"},
+        areas  : {concept_title: "Insert Concept", parameter_title: "Edit Parameters"},
+    }}
+/&gt;</code></pre>
+<p>
+完整的字段见 <code>EditorTexts</code> 类型，分成 <code>buttons</code>（按钮提示）、
+<code>areas</code>（面板标题和概念类型标签）、<code>messages</code>（提示语）三块。
+库本身不带任何 i18n 框架，所以你用什么方案管理翻译都可以，把最终的字符串传进来即可。
+在线演示就是这么做的：中文用库的默认值，英文传一份覆盖，见
+<code>demo/src/editor_texts.ts</code>。
 </p>
 
 <h2>主题</h2>
@@ -151,10 +170,6 @@ const bare_editor = ({node, children}: EditorRendererProps) =&gt; (
 这时你需要自己处理的东西，正好就是<a href="overview.html">总览</a>那张表里列的：
 样式配置的上下文、提示气泡容器、编号冲突修复、按键分发、以及把编辑器实例交给下游组件。
 这些都是公开导出的，<code>DefaultEditorComponent</code> 的源码本身就是一份可以照抄的样板。
-</p>
-<p>
-需要提醒的是，这一档的工作量不小，而中间那几档能覆盖的场景比想象中多。
-在决定重写整层之前，值得先确认现有的选项确实不够用。
 </p>
 
 <div class="pager" id="pager"></div>

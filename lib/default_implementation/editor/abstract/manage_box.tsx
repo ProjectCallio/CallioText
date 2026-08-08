@@ -39,6 +39,7 @@ import {
     AutoIconButton, 
     useEditorConfig,
     MouselessHint,
+    useTexts ,
 } from "../../../implbase"
 
 import {
@@ -78,6 +79,7 @@ const AbstractChip = React.memo(React.forwardRef(({
     onClick?: () => void,
     onDelete?: () => void,
 }, ref: React.Ref<AbstractChipRef>)=>{
+    const texts = useTexts()
 
     const editor = useEditor()
     const config = useEditorConfig()
@@ -186,7 +188,7 @@ const AbstractChip = React.memo(React.forwardRef(({
                 }}
                 clickable
                 deleteIcon = {<AutoIconButton
-                    title = {deleting ? "确定删除" : "删除"}
+                    title = {deleting ? texts.buttons.confirm_delete_abstract : texts.buttons.delete_abstract}
                     icon_props = {{sx:{
                         width: "0.95rem",
                         height: "0.95rem",
