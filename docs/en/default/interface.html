@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Editing Interface · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>The Editing Interface</h1>
+<p class="lead">
+This page goes through the default editor's interface block by block: how the screen divides, what each
+of the buttons on a node does, how parameters get edited, where abstract nodes live, what the sidebar
+holds, and finally the two floating panels together with the container you have to place yourself.
+</p>
+
+<h2>How the screen divides</h2>
+<p>
+The default editor splits the rectangle it is given into left and right. About nine tenths of the width
+on the left is the paper, the document content itself; the narrow strip that remains on the right is the
+sidebar, holding buttons that act on the document as a whole. The ratio shifts a little with screen
+width, giving the sidebar proportionally less on wider screens, since there are only a handful of
+buttons and they gain nothing from growing with the window.
+</p>
+<p>
+Beyond that there are the two floating panels, Insert Concept and Edit Parameters. They take no part in
+the left-right division; they float above the interface and can be dragged and resized. Which region
+they float over is up to you, which is the subject of the last section on this page.
+</p>
+<figure class="shot">
+    <img src="../../assets/shots/en/layout.png" alt="The default editor's paper and its sidebar">
+    <figcaption>
+        The paper takes most of the left; the narrow strip on the right is the sidebar. Every concept node
+        on the paper has its own frame and buttons: the two Item nodes above fold their buttons to the
+        right, the Theorem below spreads them across the top, and the titled rule between them is a
+        section divider.
+    </figcaption>
+</figure>
+
+<h2>Nodes on the paper</h2>
+<p>
+Every concept node on the paper carries its own row of buttons. There are two arrangements: spread
+across an appbar at the top of the node, or collected into a strip on the right and folded behind a
+chevron. Which one a concept gets is decided by the renderer factory it uses, covered in
+<a href="renderers.html">Editor Renderer Factories</a>.
+</p>
+<figure class="shot">
+    <img src="../../assets/shots/en/node-appbar.png" alt="A Theorem node with an appbar">
+    <figcaption>
+        A Theorem node with an appbar. "Theorem" on the left is the label, followed by the eight
+        operation buttons. The small blocks with chevrons inside the sentence are inline math nodes, each
+        with buttons of its own; the block below is a block-level math node with its buttons folded to
+        the right. "Footnote: 0" at the bottom is an abstract node attached to this theorem.
+    </figcaption>
+</figure>
+<figure class="shot">
+    <img src="../../assets/shots/en/node-rightbar.png" alt="An Item node with a rightbar">
+    <figcaption>
+        The same buttons in the rightbar arrangement: only the concept name and a chevron show, and the
+        group opens on click. Item nodes, short and appearing in runs, suit this; a toolbar over every
+        one of them would be unbearable.
+    </figcaption>
+</figure>
+<p>
+Either way the buttons themselves are the same eight:
+</p>
+<table>
+    <tr><th>Button</th><th>Role</th></tr>
+    <tr><td>Edit parameters</td><td>Opens the parameter drawer to edit this node's parameters in place</td></tr>
+    <tr><td>Chaining switch</td><td>Toggles the node's <code>relation</code>, whether it is separated from or chained to the previous node</td></tr>
+    <tr><td>Copy node</td><td>Copies the node together with its whole subtree</td></tr>
+    <tr><td>Delete node</td><td>Deletes the node and its content</td></tr>
+    <tr><td>Unwrap node</td><td>Deletes the node itself but keeps its content, commonly called a soft delete</td></tr>
+    <tr><td>Add paragraph above</td><td>Inserts an empty paragraph before the node</td></tr>
+    <tr><td>Add paragraph below</td><td>Inserts an empty paragraph after the node</td></tr>
+    <tr><td>New abstract</td><td>Attaches an abstract node, a footnote for example, to this node</td></tr>
+</table>
+<p>
+The chaining switch corresponds to the <code>relation</code> property from tutorial chapter 1. Two
+adjacent nodes of the same kind are numbered independently and spaced apart when separated; when chained,
+the second sits flush against the first and the two read as one run. A list of items usually wants
+chaining, two unrelated theorems want separation.
+</p>
+<p>
+The two "add paragraph" buttons deserve a sentence more, because they solve a problem peculiar to
+structured editors. In a plain text editor the cursor can always go between any two characters; in a
+tree-shaped document, if two block nodes are direct neighbours there is simply no position between them
+where a cursor could go, and therefore no way to insert anything in between. These buttons create such a
+position out of nothing: add an empty paragraph first, then write into it.
+</p>
+<p>
+Unwrap is worth a mention too. When you delete a theorem, what you usually want to remove is the fact
+that it is a theorem, not the sentence inside it. Unwrap does exactly that: the node disappears and the
+content stays where it was, as ordinary paragraphs.
+</p>
+
+<h2>The parameter drawer</h2>
+<p>
+The Edit parameters button unfolds a drawer from the node listing all of its parameters.
+</p>
+<figure class="shot medium">
+    <img src="../../assets/shots/en/param-drawer.png" alt="The parameter drawer of a Theorem node">
+    <figcaption>
+        The concept name and this node's idx sit at the top, with the parameters listed below. This
+        theorem has two editable parameters: <code>alias</code> is its byname and <code>category</code>
+        decides whether it counts as a theorem or a lemma. The panel titles are in Chinese because the
+        default implementation's own interface strings are not yet translated.
+    </figcaption>
+</figure>
+<p>
+The control each parameter gets is decided by its type and its extra fields:
+</p>
+<table>
+    <tr><th>Parameter</th><th>Control</th></tr>
+    <tr><td>Has a <code>choices</code> field</td><td>A dropdown whose options are the <code>choices</code> array</td></tr>
+    <tr><td><code>string</code></td><td>A text field</td></tr>
+    <tr><td><code>number</code></td><td>A number field</td></tr>
+    <tr><td><code>boolean</code></td><td>A switch</td></tr>
+</table>
+<p>
+Note the order: <code>choices</code> takes precedence over type. A parameter typed <code>string</code>
+that carries <code>choices</code> renders as a dropdown rather than a text field. The Proposition concept
+in tutorial chapter 7 relies on this to turn <code>category</code> into a choice between Theorem, Lemma
+and Corollary.
+</p>
+<p>
+Parameters pinned by a second-class concept through <code>fixed_override</code> do not appear here, since
+authors are not meant to change them in the first place. This is where the practical difference between
+fixed and default parameters shows: the former are part of the concept, the latter merely a starting
+point.
+</p>
+
+<h2>Abstract nodes</h2>
+<p>
+Abstract nodes attached to a node (footnotes, for instance) appear as a row of small chips below it.
+Clicking one opens a floating window to edit it. That window is an independent editor component sharing
+the main editor's core, so the concepts available inside a footnote are exactly those available in the
+body.
+</p>
+<p>
+This also explains why abstract nodes are not edited inline: an abstract node is a complete little
+document of its own, with its own paragraphs and possibly its own theorems. There is no room for that
+between two lines of running text, and a separate window is the natural place for it.
+</p>
+
+<h2>The sidebar</h2>
+<p>
+The sidebar carries four fixed buttons, all of which act on the whole document or the whole interface
+rather than on one node:
+</p>
+<figure class="shot narrow">
+    <img src="../../assets/shots/en/sidebar.png" alt="The four sidebar buttons">
+    <figcaption>
+        Top to bottom: root parameters, parameter area, concept area, show hints. The last three are
+        toggles and carry a filled background while on, as all three do here. Buttons you add yourself
+        go below the divider.
+    </figcaption>
+</figure>
+<table>
+    <tr><th>Button</th><th>Role</th></tr>
+    <tr><td>Root parameters</td><td>Edits the parameters of the document's root node, its title for example</td></tr>
+    <tr><td>Parameter area</td><td>Shows or hides the Edit Parameters panel</td></tr>
+    <tr><td>Concept area</td><td>Shows or hides the Insert Concept panel</td></tr>
+    <tr><td>Show hints</td><td>The master switch for key hints, on by default</td></tr>
+</table>
+<p>
+The last one governs whether shortcut hints appear at all. It is on by default, so holding Alt by itself
+for a moment makes each button show the key that reaches it; with it off, holding Alt produces nothing.
+Turning it off once the shortcuts are familiar makes for a quieter screen. The hint mechanism is covered
+in detail on the <a href="keyboard.html">Keyboard Operation</a> page.
+</p>
+<p>
+Buttons you add yourself come after these four, separated by a divider; see
+<a href="customize.html">Customizing the Default Editor</a> for how.
+</p>
+
+<h2>The two floating panels</h2>
+<p>
+The Insert Concept panel lists every second-class concept currently available, grouped by node kind;
+clicking one inserts it at the cursor. The Edit Parameters panel shows the parameters of the concept node
+the cursor is in, applied when you press save. Both can be dragged around and resized from the bottom
+right corner, and both remember position and size in the browser's local storage, so they come back where
+you left them.
+</p>
+<figure class="shot medium">
+    <img src="../../assets/shots/en/panels.png" alt="The Insert Concept and Edit Parameters panels">
+    <figcaption>
+        Insert Concept above, with the concepts divided into four sections by node kind; Edit Parameters
+        below, showing the theorem the cursor is in. The panels are translucent, so the text underneath
+        shows through. Their titles and section labels are still in Chinese, as noted above.
+    </figcaption>
+</figure>
+<p>
+Their relationship with the sidebar buttons is that the buttons control visibility while the panels
+themselves are a permanent workspace. They float rather than occupying a fixed side because inserting
+concepts and editing parameters are both frequent operations: a fixed panel would squeeze the text, and
+a menu would be too slow.
+</p>
+
+<h3>AreaContainer: the one part you must place yourself</h3>
+<p>
+Both panels are rendered by the editor component internally, but their positioning depends on an external
+container: a panel places itself within that container's coordinate system and cannot be dragged outside
+it. That container is <code>AreaContainer</code>, and you have to render it.
+</p>
+<div class="warn-box">
+If no <code>AreaContainer</code> exists on the page, the two floating panels do not appear. There is no
+error, nothing simply happens, which makes it easy to go looking for the fault somewhere else.
+</div>
+<p>
+<code>AreaContainer</code> renders as an absolutely positioned empty box filling its parent, with no
+appearance of its own. You are using it to mark out a rectangle and tell the panels they may move around
+inside it. Where you put it depends on which region you want them to float over. If the editor and the
+printed output sit side by side, the printer side is a good choice, so the panels float over the output
+and never cover the text being edited:
+</p>
+<pre><code class="language-tsx">import { AreaContainer, DefaultEditorComponent, DefaultPrinterComponent } from "@project-callio/calliotext"
+
+&lt;Box sx={{position: "relative", width: "100%", height: "100%"}}&gt;
+    &lt;Box sx={{position: "absolute", left: 0, width: "50%", height: "100%"}}&gt;
+        &lt;DefaultEditorComponent editorcore={editor_core} /&gt;
+    &lt;/Box&gt;
+
+    &lt;Box sx={{position: "absolute", left: "50%", width: "50%", height: "100%"}}&gt;
+        {/* The container fills the printer column, so that is where the panels may move. */}
+        &lt;Box sx={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}&gt;
+            &lt;AreaContainer /&gt;
+        &lt;/Box&gt;
+        &lt;DefaultPrinterComponent printer={printer} root={tree} /&gt;
+    &lt;/Box&gt;
+&lt;/Box&gt;</code></pre>
+<div class="tip">
+Open the page now, put the cursor in the text and hold Alt+X. A dashed selection box appears on the
+Insert Concept panel; arrow keys move it, Enter inserts. Release Alt+X and the cursor returns to the
+text. Rest the cursor inside a concept node and hold Alt+Z instead, and the Edit Parameters panel is the
+one that answers the arrow keys. Neither shortcut needs configuring; the panels bring them along.
+</div>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="default/interface.html"></script>
+</body>
+</html>

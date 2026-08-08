@@ -68,8 +68,10 @@ in full.
 <p>
 Each of these capabilities has its chapter in the tutorial: the editing/printing separation is built by
 hand in chapters 3 and 4, the concept system in chapter 5, numbering and cross references in chapter 6,
-keyboard operation and deeper customization in chapter 7. By the end of the tutorial, every item above is
-something you built, not just something you heard about.
+plugins, persistence and keyboard operation in chapter 7. By the end of the tutorial, every item above is
+something you built, not just something you heard about. A separate part follows the tutorial, devoted to
+the default implementation: the default editor's interface, its renderer factories and how to customize
+them.
 </p>
 <p>
 To see all of this working before reading any further, open the
@@ -140,13 +142,15 @@ its value once you define concepts. Start with tutorial chapter 1:
 
 <h2>Documentation map</h2>
 <p>
-The documentation has three parts. The tutorial is the main line, progressing chapter by chapter from
-zero; the API docs assume you have read the tutorial and are organized by module for daily lookup; the
-TypeDoc reference covers every single export, and details the other two skip can be found there:
+The documentation has four parts. The tutorial is the main line, progressing chapter by chapter from
+zero; the default implementation part is devoted to the ready-made interface and is best read after the
+tutorial; the API docs are organized by module for daily lookup; the TypeDoc reference covers every
+single export, and details the others skip can be found there:
 </p>
 <table>
     <tr><th>Section</th><th>Content</th></tr>
     <tr><td><a href="tutorial/01-model.html">Tutorial</a></td><td>Build a structured editor with theorem numbering and cross references, step by step from zero.</td></tr>
+    <tr><td><a href="default/overview.html">Default Implementation</a></td><td>The default editor's interface, keyboard scheme, renderer factories and customization points, one by one.</td></tr>
     <tr><td><a href="api/overview.html">API Docs</a></td><td>The public API organized by module: signatures, purpose and notes.</td></tr>
     <tr><td><a href="../reference/index.html">Full Reference</a></td><td>Item-by-item reference generated from source comments by TypeDoc (the comments are in Chinese).</td></tr>
     <tr><td><a href="../demo/">Live Demo</a></td><td>A complete editor built with CallioText, running in the browser; its source is in the repository's <code>demo/</code> directory.</td></tr>

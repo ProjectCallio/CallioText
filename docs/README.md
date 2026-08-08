@@ -9,6 +9,7 @@ docs/
   en/               英文文档（默认入口，首页开头有中文版链接）
   zh/               中文文档（教程 + API）
   reference/        TypeDoc 自动生成的完整 API 参考（勿手改）
+  demo/             在线演示的构建产物（由 npm run webdemo:build 生成，勿手改）
 ```
 
 ## 本地预览

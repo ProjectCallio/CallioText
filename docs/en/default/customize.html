@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customizing the Default Editor · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>Customizing the Default Editor</h1>
+<p class="lead">
+This page gathers every modification available without abandoning the default implementation, ordered
+from least to most invasive: the style configuration, the theme, buttons added to the sidebar and to
+nodes, replacing an individual renderer, and finally where to take over if you drop the layer entirely.
+</p>
+
+<h2>Style configuration</h2>
+<p>
+The <code>config</code> prop takes a partial configuration: write only what you want changed, the rest
+keeps its default. The editor's configuration has three parts:
+</p>
+<table>
+    <tr><th>Field</th><th>Contents</th></tr>
+    <tr><td><code>margins</code></td><td><code>background</code> (between the sheet and its contents), <code>paragraph</code> (between paragraphs), <code>small</code> (minor spacing)</td></tr>
+    <tr><td><code>widths</code></td><td><code>editable_drawer</code> (width of pop-out drawers), <code>minimum_content</code> (minimum width of an element with content)</td></tr>
+    <tr><td><code>fonts</code></td><td><code>body</code> (running text), <code>structure</code> (structural text such as node labels), <code>info</code> (hints)</td></tr>
+</table>
+<p>
+Each font is a set of <code>fontFamily</code>, <code>fontSize</code>, <code>lineHeight</code> and the
+like. The division of labour between the three is worth noticing: <code>body</code> is what the author
+types, <code>structure</code> is text the interface itself produces (node labels, words on buttons), and
+<code>info</code> is auxiliary hints. Keeping them apart lets "what the author wrote" and "what the
+system added" look different, so a glance is enough to tell which words are part of the document.
+</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    config={{
+        margins: {paragraph: "1rem"},
+        fonts  : {body: {fontFamily: "Georgia", fontSize: "1.1rem"}},
+    }}
+/&gt;</code></pre>
+<p>
+This configuration is separate from the printer's, because the editing interface and the printed output
+ought to look different: while editing you may want generous line spacing to make clicking easier,
+whereas the output should be compact and well set. For the printer side see
+<a href="printer.html">The Printer Side</a>.
+</p>
+
+<h2>Theme</h2>
+<p>
+The default implementation uses MUI's theme throughout: colours, corner radii and button styles all come
+from the theme, and none are hard-coded. Changing the palette therefore means wrapping a
+<code>ThemeProvider</code> around it, dark mode included, and both editor and printer follow:
+</p>
+<pre><code class="language-tsx">&lt;ThemeProvider theme={createTheme({palette: {mode: "dark"}})}&gt;
+    &lt;DefaultEditorComponent editorcore={editor_core} /&gt;
+&lt;/ThemeProvider&gt;</code></pre>
+<p>
+The split between theme and config is that the theme governs colour and control appearance while the
+config governs fonts, margins and widths. To change the background colour of a theorem block, look at the
+theme; to change how much space sits between paragraphs, look at the config.
+</p>
+
+<h2>Sidebar buttons and a trailing element</h2>
+<p>
+<code>sidebar_extras</code> takes an array of components appended after the four built-in sidebar buttons,
+with a divider inserted automatically. Appended buttons join the keyboard navigation on their own (hold
+Alt+E, then move with the up and down arrows); nothing needs registering. Inside a button,
+<code>useEditor()</code> gives you the editor:
+</p>
+<pre><code class="language-tsx">import { useEditor, AutoIconButton } from "@project-callio/calliotext"
+import { Download as DownloadIcon } from "lucide-react"
+
+function ExportButton(){
+    const editor = useEditor()
+    return &lt;AutoIconButton
+        icon={DownloadIcon} title="Export" size="medium"
+        onClick={() =&gt; {
+            const root = editor.get_root()
+            console.log(JSON.stringify(root))
+        }}
+    /&gt;
+}
+
+&lt;DefaultEditorComponent editorcore={editor_core} sidebar_extras={[ExportButton]} /&gt;</code></pre>
+<p>
+<code>AutoIconButton</code> is the icon button the default implementation uses for itself; it hooks into
+the key hints and the theme automatically, so a button built with it looks like the built-in ones. You
+can of course return a plain MUI <code>IconButton</code> instead, at the cost of handling hints and
+styling yourself.
+</p>
+<p>
+<code>end_element</code> is arbitrary content placed below the sheet, suitable for a status bar, a word
+count and similar.
+</p>
+
+<h2>Buttons on a node</h2>
+<p>
+Sidebar buttons act on the whole document. For an operation that acts on one node, the place to add it is
+that node's own button group, through the <code>buttons_extra</code> option of the renderer factory. Such
+a button can reach its node with <code>useNode()</code> and <code>useParameters()</code>:
+</p>
+<pre><code class="language-tsx">function MarkDoneButton(){
+    const editor = useEditor()
+    const node   = useNode()
+    return &lt;AutoIconButton
+        icon={CheckIcon} title="Mark done" size="medium"
+        onClick={() =&gt; {
+            editor.set_node(node, {parameters: {
+                ...node.parameters,
+                done: {val: true, type: "boolean"},
+            }})
+        }}
+    /&gt;
+}
+
+const theorem_editor = get_deafult_group_editor_with_appbar({
+    get_label    : () =&gt; useParameters().category,
+    buttons_extra: [MarkDoneButton],
+})</code></pre>
+
+<h2>Replacing a single renderer</h2>
+<p>
+If one concept's appearance is too far from what the factories offer, replace just that renderer and
+leave the rest alone. A renderer is an ordinary React component receiving three props,
+<code>editor</code>, <code>node</code> and <code>children</code>:
+</p>
+<pre><code class="language-tsx">import { NodeInfoProvider, EditorRendererProps } from "@project-callio/calliotext"
+
+const bare_editor = ({node, children}: EditorRendererProps) =&gt; (
+    &lt;NodeInfoProvider node={node}&gt;
+        &lt;div style={{borderLeft: "3px solid #888", paddingLeft: "1rem"}}&gt;
+            {children}
+        &lt;/div&gt;
+    &lt;/NodeInfoProvider&gt;
+)</code></pre>
+<p>
+Writing your own renderer comes with two hard requirements. First, <code>children</code> must reach the
+screen, or the child content is lost and Slate raises an error for the DOM it cannot find. Second, if you
+want to call hooks such as <code>useParameters()</code> inside, or to place buttons from the default
+implementation, you have to wrap a <code>NodeInfoProvider</code> yourself, since that layer was
+previously supplied by the factory.
+</p>
+<p>
+One more thing, not required but worth doing: put the parts that should not be selectable (buttons,
+labels) inside an <code>EditorUnselecableBox</code>. Without it, a Backspace at the start of the node may
+delete these interface elements.
+</p>
+
+<h2>Dropping the default implementation</h2>
+<p>
+The deepest level is to skip this layer and build an interface on <code>EditorComponent</code>. What you
+then have to handle yourself is exactly the list in the table on the
+<a href="overview.html">overview</a> page: the style configuration context, the toast container, index
+conflict repair, key dispatch, and handing the editor instance to downstream components. All of these are
+publicly exported, and the source of <code>DefaultEditorComponent</code> is itself a template you can
+copy from.
+</p>
+<p>
+It should be said that this level is a fair amount of work, and that the middle levels cover more
+situations than one expects. Before deciding to rewrite the layer, it is worth confirming that the
+existing options really are insufficient.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="default/customize.html"></script>
+</body>
+</html>

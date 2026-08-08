@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Printer Side · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>The Printer Side</h1>
+<p class="lead">
+The printer's default implementation is much thinner, since a printed page has no interaction and
+therefore needs no buttons, panels or shortcuts. What it mainly provides is a set of typesetting widgets
+and a configuration, so that output from different renderers agrees on the page.
+</p>
+
+<h2>DefaultPrinterComponent</h2>
+<p>
+The component does three things: supplies the printer configuration context, lays down a background sheet
+carrying the body font, and renders the printer component. Its props are:
+</p>
+<table>
+    <tr><th>Prop</th><th>Role</th></tr>
+    <tr><td><code>printer</code></td><td>The printer core</td></tr>
+    <tr><td><code>root</code></td><td>The document tree to render</td></tr>
+    <tr><td><code>config</code></td><td>A partial printer configuration, only what you want changed</td></tr>
+    <tr><td><code>onUpdateCache</code></td><td>Receives the whole cache after each preprocessing pass, which a picker for cross reference targets can be built from</td></tr>
+</table>
+<p>
+<code>onUpdateCache</code> appeared in tutorial chapter 6, where it logged the cache to the console to
+confirm that reference names really had been written into it. In a real application its purpose is to
+supply the editing side with data: a dropdown for choosing which theorem to reference takes its
+candidates from that cache.
+</p>
+
+<h2>The printer configuration</h2>
+<p>
+The printer configuration is also partial-override, in two parts, margins and fonts:
+</p>
+<table>
+    <tr><th>Field</th><th>Contents</th></tr>
+    <tr><td><code>margins</code></td><td><code>paragraph</code> (between paragraphs), <code>special</code> (around special elements), <code>colon</code> (a small gap), <code>level</code> (the width of one indentation level), <code>structure</code> (horizontal offset of structural text)</td></tr>
+    <tr><td><code>fonts</code></td><td><code>body</code>, <code>title</code>, <code>structure</code>, <code>display</code>, <code>weaken</code></td></tr>
+</table>
+<p>
+There are two more fonts than on the editor side, and the extras are exactly the distinctions typesetting
+calls for: <code>display</code> for displayed text such as a whole quotation, and <code>weaken</code> for
+de-emphasised text such as the body of a proof. In Chinese typesetting these two normally change typeface
+outright rather than merely size, which is why they need their own entries.
+</p>
+<p>
+The <code>level</code> entry decides how wide one indentation level is. Several of the widgets below read
+it, so changing it in one place shifts the indentation of the whole document consistently.
+</p>
+<pre><code class="language-tsx">&lt;DefaultPrinterComponent
+    printer={printer}
+    root={tree}
+    config={{
+        margins: {paragraph: "0.6rem", level: "2.5rem"},
+        fonts  : {display: {fontFamily: "Georgia"}, weaken: {fontSize: "0.95rem"}},
+    }}
+/&gt;</code></pre>
+
+<h2>Typesetting widgets</h2>
+<p>
+When writing printer renderers, reach for the widgets below rather than bare <code>div</code> and
+<code>span</code>. They take their fonts and spacing from the printer configuration, which is what keeps
+text playing the same role looking the same throughout the document; a bare tag instead hard-codes
+spacing and fonts into one renderer, where later changes to the configuration cannot reach them.
+</p>
+<table>
+    <tr><th>Widget</th><th>Purpose</th></tr>
+    <tr><td><code>PrinterPartBox</code></td><td>One logical block; with <code>subtitle_like</code> it uses the title font</td></tr>
+    <tr><td><code>PrinterStructureBoxText</code></td><td>Structural text, such as a "Theorem 1" heading</td></tr>
+    <tr><td><code>PrinterParagraphBox</code></td><td>An ordinary paragraph container with the standard spacing</td></tr>
+    <tr><td><code>PrinterDisplayText</code></td><td>Displayed text, a quotation for instance</td></tr>
+    <tr><td><code>PrinterWeakenText</code></td><td>De-emphasised text, the body of a proof for instance</td></tr>
+    <tr><td><code>PrinterNewLevelBox</code></td><td>Indents one level inward</td></tr>
+    <tr><td><code>PrinterOldLevelBox</code></td><td>Occupies the width of one indentation level, leaving room on the left for a number</td></tr>
+    <tr><td><code>PrinterDivider</code></td><td>A divider carrying the configured spacing for special elements</td></tr>
+    <tr><td><code>AutoStack</code></td><td>A container that arranges its contents in a row or a column depending on them</td></tr>
+</table>
+<p>
+The last two indentation widgets are a pair, and it takes both to produce the familiar "number on the
+left, content on the right" arrangement: <code>PrinterNewLevelBox</code> pushes the content in by one
+level, and <code>PrinterOldLevelBox</code> places the number within the width of that level. Tutorial
+chapter 6 used exactly this combination when numbering items.
+</p>
+<p>
+Chapters 4 and 5 of the tutorial were already using these widgets while writing the theorem renderer;
+they merely looked like ordinary layout components at the time. They can now be understood for what they
+are: the outlet of the printer configuration inside a renderer.
+</p>
+
+<h2>Renderer factories</h2>
+<p>
+The printer side has its own set of renderer factories mirroring the editor's:
+<code>get_default_group_renderer</code>, <code>get_default_inline_renderer</code>,
+<code>get_default_structure_renderer</code>, <code>get_default_abstract_renderer</code>, and
+<code>auto_renderer</code>, which belongs to no particular node type. Their options
+(<code>outer</code>, <code>inner</code>, <code>pre_element</code>, <code>contexters</code> and the rest)
+are covered in tutorial chapters 4 and 6, introduced one at a time in the order they become useful, which
+is easier to follow than a table here, so they are not repeated.
+</p>
+<p>
+There is also a set of <code>useless_renderer_block</code>, <code>useless_renderer_inline</code> and
+<code>useless_renderer_text</code>, serving the same purpose as <code>get_default_editors()</code> on the
+editor side: they fill the default renderer slots of the <code>Printer</code> constructor so that a node
+with no renderer registered still displays.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="default/printer.html"></script>
+</body>
+</html>

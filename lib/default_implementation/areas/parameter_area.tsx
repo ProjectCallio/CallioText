@@ -219,8 +219,9 @@ const ParameterArea = React.memo(({
     const has_parameters = Object.keys(cur_node.parameters).length > 0
 
 
-    return <Paper 
-        elevation = {3} 
+    return <Paper
+        className = "calliotext-area-parameter"
+        elevation = {3}
         sx  = {{
             position: "absolute",
             top     : container.y + position.y,

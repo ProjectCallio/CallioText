@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>印刷侧的默认实现 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>印刷侧的默认实现</h1>
+<p class="lead">
+印刷器这边的默认实现要薄得多，因为成品页面没有交互，不需要按钮、面板和快捷键。
+它提供的主要是一套排版部件和一份配置，让不同渲染器写出来的东西在版面上协调一致。
+</p>
+
+<h2>DefaultPrinterComponent</h2>
+<p>
+这个组件做三件事：套上印刷配置的上下文、铺一层带正文字体的背景纸、渲染印刷器组件。
+它接受的参数是：
+</p>
+<table>
+    <tr><th>参数</th><th>作用</th></tr>
+    <tr><td><code>printer</code></td><td>印刷器核心</td></tr>
+    <tr><td><code>root</code></td><td>要渲染的文档树</td></tr>
+    <tr><td><code>config</code></td><td>部分印刷配置，只写想改的项</td></tr>
+    <tr><td><code>onUpdateCache</code></td><td>每次预处理完成后收到整份缓存，交叉引用的目标选择器可以据此构建</td></tr>
+</table>
+<p>
+<code>onUpdateCache</code> 在教程第 6 章出现过，当时用它把缓存打到控制台以确认引用名确实写进去了。
+在真实应用里它的用途是给编辑侧提供数据：想做一个「选择要引用哪个定理」的下拉框，
+候选项就来自这份缓存。
+</p>
+
+<h2>印刷配置</h2>
+<p>
+印刷配置也是部分覆盖式的，分成边距和字体两块：
+</p>
+<table>
+    <tr><th>字段</th><th>内容</th></tr>
+    <tr><td><code>margins</code></td><td><code>paragraph</code>（段落间距）、<code>special</code>（特殊元素前后的间距）、<code>colon</code>（一个小间隔）、<code>level</code>（缩进一级的宽度）、<code>structure</code>（结构性文字的横向偏移）</td></tr>
+    <tr><td><code>fonts</code></td><td><code>body</code>、<code>title</code>、<code>structure</code>、<code>display</code>、<code>weaken</code></td></tr>
+</table>
+<p>
+字体比编辑器那边多两种，多出来的正是排版才需要的区分：<code>display</code>
+用于展示性文字，比如整段引文；<code>weaken</code> 用于弱化文字，比如证明的正文。
+中文排版里这两种通常会换字体（引文用楷体、弱化用仿宋），
+所以它们不是「同一种字体调个字号」能解决的，必须单独配置。
+</p>
+<p>
+<code>level</code> 这一项决定缩进一级有多宽，它同时被下面几个部件使用，
+所以改一处就能让全文的层级缩进统一变化。
+</p>
+<pre><code class="language-tsx">&lt;DefaultPrinterComponent
+    printer={printer}
+    root={tree}
+    config={{
+        margins: {paragraph: "0.6rem", level: "2.5rem"},
+        fonts  : {display: {fontFamily: "KaiTi"}, weaken: {fontFamily: "FangSong"}},
+    }}
+/&gt;</code></pre>
+
+<h2>排版部件</h2>
+<p>
+写印刷渲染器时，应当用下面这些部件而不是裸的 <code>div</code> 和 <code>span</code>。
+原因是它们会自动从印刷配置里取字体和间距，从而保证同一种角色的文字在全文各处长得一样；
+用裸标签则等于把间距和字体硬编码在某一个渲染器里，改配置时改不动它。
+</p>
+<table>
+    <tr><th>部件</th><th>用途</th></tr>
+    <tr><td><code>PrinterPartBox</code></td><td>一个逻辑段落块，<code>subtitle_like</code> 打开时用标题字体</td></tr>
+    <tr><td><code>PrinterStructureBoxText</code></td><td>结构性文字，比如「定理 一」这样的题头</td></tr>
+    <tr><td><code>PrinterParagraphBox</code></td><td>普通段落容器，带标准的段间距</td></tr>
+    <tr><td><code>PrinterDisplayText</code></td><td>展示性文字，比如引文</td></tr>
+    <tr><td><code>PrinterWeakenText</code></td><td>弱化文字，比如证明的正文</td></tr>
+    <tr><td><code>PrinterNewLevelBox</code></td><td>向内缩进一级</td></tr>
+    <tr><td><code>PrinterOldLevelBox</code></td><td>占住一级缩进的宽度，用来在左侧空出编号的位置</td></tr>
+    <tr><td><code>PrinterDivider</code></td><td>分隔线，带印刷配置里的特殊元素间距</td></tr>
+    <tr><td><code>AutoStack</code></td><td>按内容自动选择横排或纵排的容器</td></tr>
+</table>
+<p>
+最后两个缩进部件是一对，配合起来才能做出「编号在左、内容在右」的效果：
+外层用 <code>PrinterNewLevelBox</code> 把内容整体推进一级，
+再用 <code>PrinterOldLevelBox</code> 在左边那一级的宽度里放编号。
+教程第 6 章给条目加编号时用的就是这个组合。
+</p>
+<p>
+教程第 4 章和第 5 章写定理渲染器时其实已经在用这些部件了，
+当时只是把它们当作普通的布局组件；现在可以理解为，它们是印刷配置在渲染器里的出口。
+</p>
+
+<h2>渲染器工厂</h2>
+<p>
+印刷侧也有一组渲染器工厂，和编辑侧对应：
+<code>get_default_group_renderer</code>、<code>get_default_inline_renderer</code>、
+<code>get_default_structure_renderer</code>、<code>get_default_abstract_renderer</code>，
+以及不属于任何具体类型的 <code>auto_renderer</code>。
+它们的选项（<code>outer</code>、<code>inner</code>、<code>pre_element</code>、
+<code>contexters</code> 等）在教程第 4 章和第 6 章讲过，那里是按使用顺序逐个引入的，
+比在这里列一张表更容易理解，所以不再重复。
+</p>
+<p>
+另外还有一组 <code>useless_renderer_block</code>、<code>useless_renderer_inline</code>、
+<code>useless_renderer_text</code>，作用和编辑侧的 <code>get_default_editors()</code> 一样：
+填 <code>Printer</code> 构造函数的默认渲染器位，保证没注册渲染器的节点也能显示出来。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="default/printer.html"></script>
+</body>
+</html>

@@ -30,6 +30,14 @@
                     ["tutorial/06-numbering.html", "6. 自动编号与交叉引用"],
                     ["tutorial/07-advanced.html", "7. 进阶主题"],
                 ]},
+                { title: "默认实现", items: [
+                    ["default/overview.html", "总览"],
+                    ["default/interface.html", "编辑界面"],
+                    ["default/keyboard.html", "键盘操作"],
+                    ["default/renderers.html", "编辑渲染器工厂"],
+                    ["default/customize.html", "定制默认编辑器"],
+                    ["default/printer.html", "印刷侧的默认实现"],
+                ]},
                 { title: "API 文档", items: [
                     ["api/overview.html", "API 总览"],
                     ["api/core.html", "core：概念与节点"],
@@ -59,6 +67,14 @@
                     ["tutorial/05-custom-concept.html", "5. Defining Your Own Concepts"],
                     ["tutorial/06-numbering.html", "6. Numbering & Cross References"],
                     ["tutorial/07-advanced.html", "7. Advanced Topics"],
+                ]},
+                { title: "Default Implementation", items: [
+                    ["default/overview.html", "Overview"],
+                    ["default/interface.html", "The Editing Interface"],
+                    ["default/keyboard.html", "Keyboard Operation"],
+                    ["default/renderers.html", "Renderer Factories"],
+                    ["default/customize.html", "Customizing the Editor"],
+                    ["default/printer.html", "The Printer Side"],
                 ]},
                 { title: "API Docs", items: [
                     ["api/overview.html", "API Overview"],

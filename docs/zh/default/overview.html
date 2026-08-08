@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>默认实现总览 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>默认实现总览</h1>
+<p class="lead">
+教程里，<code>DefaultEditorComponent</code> 一直是个黑盒：把编辑器核心交给它，一个能用的编辑界面就出现了。
+这一部分把这个盒子拆开。本页先讲清楚默认实现在整个库里的位置、它为什么被设计成一个可以整体替换的层，
+以及那个组件到底替你装配了哪些东西；后面几页分别讲界面、键盘、渲染器工厂、定制手段和印刷侧。
+</p>
+
+<h2>库分成哪两半</h2>
+<p>
+库的代码分成两大部分。一部分是核心：概念与节点的定义、编辑器核心、印刷器核心。
+它们只关心「文档树是什么样、怎么被修改、怎么被渲染」，不做任何界面上的决定。
+核心里没有一个按钮、没有一种配色、没有一条快捷键。
+</p>
+<p>
+另一部分就是默认实现。它是对「界面应该长什么样」这个问题给出的一整套答案：
+一块纸张、一条侧边栏、每个节点上的一排按钮、两个可以拖动的浮动面板、一整套快捷键，
+以及印刷侧的一套排版部件。这套答案是有立场的，它假设你在做的是一个偏长文、偏严肃、
+需要频繁操作结构的编辑器；如果你的场景不是这样，这一层可以整个不要。
+</p>
+<p>
+这条分界线的位置解释了一个乍看奇怪的设计：编辑器和印刷器都各自分成了「核心」和「组件」两个对象。
+<code>EditorCore</code> 与 <code>EditorComponent</code> 是一对，<code>Printer</code> 与
+<code>PrinterComponent</code> 是另一对。核心保存信息但不负责绘制，组件负责绘制但不保存信息。
+</p>
+<p>
+拆开的好处是同一个核心可以同时被多个组件使用。默认实现里编辑抽象节点的那个浮动窗口就是现成的例子：
+它是又一个编辑器组件，和主编辑器共用同一个编辑器核心，因此两边看到的概念定义、渲染器完全一致，
+在脚注里插入的定理和在正文里插入的定理走的是同一套代码。如果核心和组件是一个对象，
+这种复用就得靠复制配置来实现，两边迟早会不一致。
+</p>
+
+<h2>三档深度</h2>
+<p>
+对使用者来说，上面这条分界线意味着有三档不同深度的做法，代价和自由度依次增加。
+</p>
+<table>
+    <tr><th>做法</th><th>你要写的</th><th>适合</th></tr>
+    <tr><td>直接用默认实现</td><td>概念定义、渲染器，以及 <code>DefaultEditorComponent</code> 的几个参数</td><td>绝大多数情况</td></tr>
+    <tr><td>在默认实现上改造</td><td>加上自定义按钮、替换个别渲染器、改配置和主题</td><td>需要自己的操作或外观时</td></tr>
+    <tr><td>不用默认实现</td><td>基于 <code>EditorComponent</code> 自己搭整套界面</td><td>界面形态和默认实现差得很远时</td></tr>
+</table>
+<p>
+第三档很少有人需要，但它存在这件事本身是有意义的：默认实现没有使用任何私有接口，
+它调用的东西你都能调用。换句话说，这一层不是「必须接受的前提」，而是「一份可以参考、可以抛弃的实现」。
+这一部分的每一页在讲用法之余，也会顺带说明它是怎么做到的，正是为了让第三档成为可能。
+</p>
+
+<h2>DefaultEditorComponent 装配了什么</h2>
+<p>
+这个组件本身几乎没有业务逻辑，它的价值在于把七八个必须同时存在、且顺序不能错的东西套在了一起。
+把它渲染出来的结构从外往里剥，依次是：
+</p>
+<table>
+    <tr><th>层</th><th>作用</th></tr>
+    <tr><td><code>EditorConfigContext.Provider</code></td><td>把样式配置（字体、边距、宽度）交给下游所有组件，渲染器里用 <code>useEditorConfig()</code> 读取</td></tr>
+    <tr><td><code>SnackbarProvider</code></td><td>提示气泡的容器，来自 notistack</td></tr>
+    <tr><td><code>IdxConflictSolver</code></td><td>监视文档里是否出现重复的节点编号，出现时自动重新编号</td></tr>
+    <tr><td><code>KeyEventManager</code></td><td>全局按键分发器，来自 <code>@ftyyy/mouseless</code></td></tr>
+    <tr><td><code>EditorComponent</code></td><td>真正的编辑器组件，也就是那块可以打字的纸</td></tr>
+    <tr><td><code>EditorGlobalInfo.Provider</code></td><td>把编辑器实例交给下游，侧边栏、浮动面板、你自己写的按钮都靠它拿到编辑器</td></tr>
+    <tr><td><code>DefaultSidebar</code> / <code>Areas</code> / <code>AbstractEditorArea</code></td><td>侧边栏、两个浮动面板、抽象节点的浮动编辑器</td></tr>
+</table>
+<p>
+这张表里有三层值得单独说明，因为它们解释了后面很多「为什么可以这样写」的问题。
+</p>
+<p>
+第一层是 <code>SnackbarProvider</code>。它在这里出现的原因是，默认实现的按钮在操作成功或失败时会弹出提示，
+而弹提示需要一个容器。它被放在编辑器内部，意味着你在自定义按钮里可以直接调用 <code>useSnackbar()</code>，
+不需要自己再套一层。反过来，如果你想在编辑器之外的地方（比如页面顶栏）弹提示，
+那就需要在更外层自己再放一个 <code>SnackbarProvider</code>。
+</p>
+<p>
+第二层是 <code>IdxConflictSolver</code>。教程第 1 章说过，每个概念节点都有一个全文唯一的编号
+<code>idx</code>，交叉引用就是靠它定位的。复制粘贴会天然地破坏这个唯一性：复制一个定理再粘贴，
+文档里就出现了两个 idx 相同的节点，引用会指向错误的目标。这个组件在每次文档变化后检查冲突，
+发现之后给其中一个重新编号。这是一件必须做、但没有人愿意自己写的事情，所以默认实现替你做了。
+</p>
+<p>
+第三层是 <code>KeyEventManager</code>，它是整套键盘操作的中枢。所有按键先到它这里，
+再按当前状态分发给对应的界面部件；默认编辑器在这里注册了四组界面元素，并登记了一批需要
+阻止浏览器默认行为的组合键。这套机制单独一页讲，见<a href="keyboard.html">键盘操作</a>。
+</p>
+
+<h2>这一部分怎么读</h2>
+<p>
+剩下五页各自独立，可以按需要挑着读，顺序大致是从「看得见的」到「改得动的」：
+</p>
+<table>
+    <tr><th>页</th><th>内容</th></tr>
+    <tr><td><a href="interface.html">编辑界面</a></td><td>纸张、节点上的八个按钮、参数抽屉、抽象节点、侧边栏、两个浮动面板，以及必须由你摆放的 <code>AreaContainer</code></td></tr>
+    <tr><td><a href="keyboard.html">键盘操作</a></td><td>空间导航的模型、全部组合键、按键提示</td></tr>
+    <tr><td><a href="renderers.html">编辑渲染器工厂</a></td><td>各类节点的渲染器工厂及其选项、<code>UniversalExtra</code>、渲染器里可用的 hook</td></tr>
+    <tr><td><a href="customize.html">定制默认编辑器</a></td><td>样式配置、追加按钮、主题，以及替换单个渲染器</td></tr>
+    <tr><td><a href="printer.html">印刷侧的默认实现</a></td><td><code>DefaultPrinterComponent</code>、印刷配置、排版部件</td></tr>
+</table>
+<p>
+在线演示的源码（仓库的 <code>demo/</code> 目录）是这一部分内容的一个完整用例，
+读到某处觉得抽象时可以去那里对照。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="default/overview.html"></script>
+</body>
+</html>

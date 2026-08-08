@@ -41,6 +41,7 @@ required.
 ## Documentation
 
 - [Tutorial](https://projectcallio.github.io/CallioText/en/tutorial/01-model.html): seven chapters, from the core ideas to automatic numbering, building a complete structured editor from zero.
+- [Default implementation](https://projectcallio.github.io/CallioText/en/default/overview.html): the ready-made editor in depth, its interface, keyboard scheme, renderer factories and customization points.
 - [API docs](https://projectcallio.github.io/CallioText/en/api/overview.html): the public API organized by module, for daily lookup.
 - [TypeDoc full reference](https://projectcallio.github.io/CallioText/reference/): generated from source comments, covering every export.
 

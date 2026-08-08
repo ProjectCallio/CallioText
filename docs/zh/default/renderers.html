@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编辑渲染器工厂 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>编辑渲染器工厂</h1>
+<p class="lead">
+教程里用过 <code>get_deafult_group_editor_with_appbar</code> 这样的函数，当时只说它「返回一个渲染器」。
+这一页把这一族函数完整过一遍：每种节点类型有哪些工厂、各自的选项是什么、
+一个容易写错的类型细节，以及渲染器内部可以用的 hook。
+</p>
+
+<h2>工厂替你做了什么</h2>
+<p>
+这一族函数的共同点是：你给一个选项对象，它返回一个可以直接注册进编辑器的渲染器组件。
+组件内部已经处理好了几件每个渲染器都要做、但都很烦的事情：
+</p>
+<ul>
+    <li>把八个操作按钮按选定的摆法排好，并接进键盘导航。</li>
+    <li>划分可编辑区域与不可编辑区域。按钮、标题这些不能被光标选中，
+    否则用户一按退格就把工具栏删了；这个边界由工厂内部的
+    <code>EditorUnselecableBox</code> 划定。</li>
+    <li>包上 <code>NodeInfoProvider</code>，这样你在选项里写的组件能用
+    <code>useNode()</code>、<code>useParameters()</code> 拿到当前节点。</li>
+    <li>渲染抽象节点的标签栏。</li>
+</ul>
+<p>
+所以自己从头写一个渲染器是可以的，但你会把上面这些重写一遍。
+除非外观差得很远，否则从工厂出发更划算。
+</p>
+
+<h2>组节点：两种摆法</h2>
+<p>
+组节点有两个工厂，区别只在按钮放哪。
+<code>get_deafult_group_editor_with_appbar</code> 把标题和八个按钮平铺在节点顶部的一条应用栏里，
+适合定理、证明这种块头较大、值得占一行的节点。
+<code>get_default_group_editor_with_rightbar</code> 则把它们收进右侧一个竖条，
+按钮折叠在一个箭头后面，适合列项这种短小、频繁出现的节点，免得满屏都是工具栏。
+两者接受的选项几乎一样：
+</p>
+<table>
+    <tr><th>选项</th><th>类型</th><th>作用</th></tr>
+    <tr><td><code>get_label</code></td><td>组件</td><td>返回这个节点在界面上显示的名字，默认取参数里的 <code>label</code></td></tr>
+    <tr><td><code>buttons_extra</code></td><td>组件数组</td><td>追加到那八个按钮之后的自定义按钮</td></tr>
+    <tr><td><code>surrounder</code></td><td>组件</td><td>包裹内容区域，用来给可编辑区加一层自己的外观</td></tr>
+    <tr><td><code>rightbar_extra</code></td><td>组件</td><td>只有右栏版有：在按钮组旁边放一个自定义部件</td></tr>
+</table>
+<pre><code class="language-tsx">const theorem_editor = get_deafult_group_editor_with_appbar({
+    // 标题跟着 category 参数走：改成「引理」，界面上的标题也变成「引理」。
+    get_label: () =&gt; useParameters().category,
+})
+
+const item_editor = get_default_group_editor_with_rightbar({})</code></pre>
+
+<h3>get_label 是一个组件，不是一个取值函数</h3>
+<p>
+这里有一个必须讲清楚的细节，否则很容易写出跑不起来的代码。<code>get_label</code> 的类型是
+React 组件，而不是「返回字符串的普通函数」。渲染器内部是把它当组件用的，
+写作 <code>&lt;GetLabel /&gt;</code>。上面那句熟悉的写法：
+</p>
+<pre><code class="language-tsx">get_label: () =&gt; useParameters().category</code></pre>
+<p>
+看起来像一个普通函数，实际上它是一个没有 props 的函数组件，函数体里调用了 hook。
+这个设计不是故意绕：正因为它是组件，你才能在里面调用 <code>useParameters()</code>、
+<code>useNode()</code> 乃至 <code>useTheme()</code>，从而让标题随参数变化而自动更新。
+如果它只是个普通函数，就没有地方订阅这些变化，参数改了标题也不会跟着变。
+代价是必须遵守 hook 的规则：不能条件调用，也不能在循环里调用。
+</p>
+
+<h2>行内节点</h2>
+<p>
+行内节点用 <code>get_default_inline_editor</code>。它的选项里最常用的是 <code>surrounder</code>，
+因为行内概念的外观通常就是一层标签：
+</p>
+<pre><code class="language-tsx">const strikeout_editor = get_default_inline_editor({
+    surrounder: (props) =&gt; &lt;del&gt;{props.children}&lt;/del&gt;,
+})</code></pre>
+<p>
+行内节点身上的按钮只有四个：设置参数、删除、解除、新建抽象。
+组节点那几个按钮在这里不适用，接排开关是块级节点之间的关系，
+加段落对混在文字中间的节点也没有意义。这四个按钮默认就是折叠的，
+因为行内节点处在文字流里，展开一排按钮会把行高撑坏。
+</p>
+
+<h2>结构节点</h2>
+<p>
+结构节点表示多栏排版，用 <code>get_default_struct_editor_with_rightbar</code>。
+它比别的工厂多两个选项，而且这两个选项会主动改写文档：
+</p>
+<ul>
+    <li><code>get_numchildren</code> 返回这个节点应该有几个子节点。渲染时如果实际数量对不上，
+    组件会自动补齐或者删掉多余的。也就是说栏数由参数说了算，写作者改参数就等于加减栏。</li>
+    <li><code>get_widths</code> 返回各栏的宽度比例，比如 <code>[1, 2]</code> 表示右栏是左栏的两倍宽。
+    数组长度和栏数对不上时会自动补足或截断。</li>
+</ul>
+<p>
+两者一般从同一个参数解析出来。比如约定一个 <code>widths</code> 参数存 <code>"1,2"</code>
+这样的字符串，栏数就是逗号分隔的段数：
+</p>
+<pre><code class="language-tsx">const columns_editor = get_default_struct_editor_with_rightbar({
+    get_label      : () =&gt; "栏",
+    get_numchildren: (node, params) =&gt; (params.widths as string).split(",").length,
+    get_widths     : (node, params) =&gt; (params.widths as string).split(",").map(x =&gt; parseInt(x)),
+})</code></pre>
+<p>
+注意这两个选项是普通函数，不是组件：它们接收节点和处理后的参数作为入参，
+所以不需要（也不能）在里面调用 hook。这和 <code>get_label</code> 的区别，
+看类型签名就能分清：带参数的是普通函数，不带参数的是组件。
+</p>
+
+<h2>支撑节点</h2>
+<p>
+支撑节点有两个工厂，对应它的两种典型用法。
+</p>
+<p>
+<code>get_default_spliter_editor</code> 把节点画成一条带标题的分隔线，
+适合小节线、章节线这类只起划分作用、本身没有内容的节点。选项只有一个 <code>get_title</code>。
+</p>
+<p>
+<code>get_default_display_editor</code> 把节点画成一个内嵌的小块，
+适合图片、公式这类「有内容但不能在正文里直接编辑」的节点。它的关键选项是：
+</p>
+<table>
+    <tr><th>选项</th><th>作用</th></tr>
+    <tr><td><code>render_element</code></td><td>怎么把内容画出来，比如返回一个 <code>img</code></td></tr>
+    <tr><td><code>is_empty</code></td><td>判断内容是否为空。为空时显示一个占位图标，而不是一张破图</td></tr>
+    <tr><td><code>get_label</code></td><td>块旁边显示的名字</td></tr>
+    <tr><td><code>rightbar_extra</code></td><td>常用来放一个改地址的小输入框，见下一节</td></tr>
+</table>
+
+<h2>抽象节点与兜底渲染器</h2>
+<p>
+抽象节点用 <code>get_default_abstract_editor</code>。抽象节点自身是一棵独立的小文档，
+不在正文里就地编辑，而是在浮动的抽象编辑器窗口里编辑，
+所以这个工厂产生的渲染器很简单，基本上只是一个容器。
+</p>
+<p>
+最后是 <code>get_default_editors()</code>，它返回一整套七种节点类型的兜底渲染器。
+这些渲染器只保证「能显示、不报错」，外观极简。它的用途是填 <code>EditorCore</code>
+的 <code>default_renderers</code> 字段：当一个节点的概念没有注册专门的渲染器时就落到这里，
+文档不会因此白屏。这在概念由后端下发的场景里尤其重要，
+因为随时可能出现一个前端还不认识的概念。
+</p>
+
+<h2>UniversalExtra：随手可改的参数输入框</h2>
+<p>
+<code>rightbar_extra</code> 最常见的用途是塞一个 <code>UniversalExtra</code>。
+它是一个小输入框，直接绑定到节点的某个参数上，省去「打开参数抽屉、找到那一项、改、关掉」的来回。
+链接的地址、图片的 URL、公式末尾的编号，都适合这样改。它的三个关键属性是：
+</p>
+<ul>
+    <li><code>onDeactivate</code>：输入框失去焦点时调用，参数是当前输入的值、编辑器和节点。
+    在这里把值写回参数。</li>
+    <li><code>onNodeChange</code>：节点变化时调用，返回输入框应该显示的新内容，
+    返回 <code>undefined</code> 表示保持不变。方向和上一条相反，负责把参数读进输入框。</li>
+    <li><code>accept_image</code>：开启后输入框接受直接粘贴图片，粘贴的图片会被转成可直接使用的地址。</li>
+</ul>
+<p>
+两个回调一进一出，构成一个完整的双向绑定。<code>onNodeChange</code> 里通常先比较
+参数对象是否变过，没变就返回 <code>undefined</code>，免得用户正在输入时被覆盖：
+</p>
+<pre><code class="language-tsx">const link_editor = get_default_inline_editor({
+    surrounder: (props) =&gt; &lt;u&gt;{props.children}&lt;/u&gt;,
+    rightbar_extra: () =&gt; &lt;UniversalExtra
+        variation="filled" width="7rem" extra_small
+        onDeactivate={(value, editor, node) =&gt; {
+            editor.set_node(node, {parameters: {
+                ...node.parameters,
+                target: {val: value, type: "string"},
+            }})
+        }}
+        onNodeChange={(node, prev_node) =&gt; {
+            if (node.parameters === prev_node?.parameters) return undefined
+            return node.parameters.target.val as string
+        }}
+    /&gt;,
+})</code></pre>
+<p>
+按住 Alt+W 可以直接把焦点送进这个输入框，不需要用鼠标点。
+</p>
+
+<h2>渲染器里可以用的 hook</h2>
+<p>
+写渲染器时会反复用到几个 hook。它们都依赖一个前提：当前渲染的是哪个节点。
+这个信息由 <code>NodeInfoProvider</code> 提供，而上面所有工厂产生的渲染器都已经在内部包好了它，
+所以在 <code>get_label</code>、<code>surrounder</code>、<code>rightbar_extra</code>
+以及你追加的按钮里，它们都可以直接用。
+</p>
+<table>
+    <tr><th>hook</th><th>返回</th></tr>
+    <tr><td><code>useNode()</code></td><td>当前节点本身。可以传一个比较函数，只在你关心的字段变化时才重新渲染</td></tr>
+    <tr><td><code>useParameters()</code></td><td>当前节点处理后的参数表</td></tr>
+    <tr><td><code>useEditor()</code></td><td>当前编辑器实例，树操作方法都在它上面</td></tr>
+    <tr><td><code>useEditorConfig()</code></td><td>当前的样式配置，自定义部件靠它跟内置外观保持一致</td></tr>
+</table>
+<p>
+<code>useParameters()</code> 返回的是「处理后」的参数，这一点在写渲染器时很重要。
+所谓处理后，指的是固定参数已经覆盖上去、函数型参数已经求值。
+教程第 5 章定义的「定理」，它的 <code>title</code> 是一个函数型参数
+<code>p =&gt; p.category.val</code>；渲染器里读到的不是这段代码，而是求值后的结果。
+换句话说，渲染器不需要知道某个参数是固定的、默认的还是函数算出来的，它只管用。
+</p>
+<p>
+还有一对 hook 用在别处：<code>useCurEditor()</code> 和 <code>useCurConceptNode()</code>
+返回的是「当前处于活动状态的编辑器」和「光标所在的概念节点」。它们不依赖
+<code>NodeInfoProvider</code>，可以在编辑器外面调用，两个浮动面板正是靠它们知道该为谁服务的。
+如果你要做一个「显示当前选中节点信息」的外部面板，用的就是这两个。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="default/renderers.html"></script>
+</body>
+</html>

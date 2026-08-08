@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>定制默认编辑器 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>定制默认编辑器</h1>
+<p class="lead">
+这一页收齐所有不必放弃默认实现就能用上的改造手段，按侵入程度从浅到深排列：
+调样式配置、换主题、往侧边栏和节点上加按钮、替换个别渲染器，
+最后是完全不用这一层时该从哪里接手。
+</p>
+
+<h2>样式配置</h2>
+<p>
+<code>config</code> 参数接受一份部分配置，只写想改的项，其余沿用默认值。
+编辑器的配置分三块：
+</p>
+<table>
+    <tr><th>字段</th><th>内容</th></tr>
+    <tr><td><code>margins</code></td><td><code>background</code>（纸张与内部元素的距离）、<code>paragraph</code>（段落间距）、<code>small</code>（小间隔）</td></tr>
+    <tr><td><code>widths</code></td><td><code>editable_drawer</code>（弹出抽屉的宽度）、<code>minimum_content</code>（有内容元素的最小宽度）</td></tr>
+    <tr><td><code>fonts</code></td><td><code>body</code>（正文）、<code>structure</code>（结构性文字，比如节点标题）、<code>info</code>（提示性文字）</td></tr>
+</table>
+<p>
+每种字体是一组 <code>fontFamily</code>、<code>fontSize</code>、<code>lineHeight</code> 这样的字段。
+三种字体的分工值得留意：<code>body</code> 是写作者输入的内容，
+<code>structure</code> 是界面自己产生的文字（节点标题、按钮上的字），
+<code>info</code> 是辅助提示。把它们分开，是为了让「作者写的」和「系统加的」在视觉上能区分开，
+一眼就能看出哪些字是文档的一部分。
+</p>
+<pre><code class="language-tsx">&lt;DefaultEditorComponent
+    editorcore={editor_core}
+    config={{
+        margins: {paragraph: "1rem"},
+        fonts  : {body: {fontFamily: "Source Han Serif", fontSize: "1.1rem"}},
+    }}
+/&gt;</code></pre>
+<p>
+这套配置和印刷器的配置是分开的两份，因为编辑界面和印刷成品本来就应该长得不一样：
+编辑时你可能想要更大的行距方便点选，成品则要紧凑美观。印刷侧的配置见
+<a href="printer.html">印刷侧的默认实现</a>。
+</p>
+
+<h2>主题</h2>
+<p>
+默认实现全程使用 MUI 的主题：颜色、圆角、按钮样式都从主题里取，自己不写死任何颜色。
+所以换配色只需要在外层套一个 <code>ThemeProvider</code>，包括深色模式在内，
+编辑器和印刷器都会跟着变：
+</p>
+<pre><code class="language-tsx">&lt;ThemeProvider theme={createTheme({palette: {mode: "dark"}})}&gt;
+    &lt;DefaultEditorComponent editorcore={editor_core} /&gt;
+&lt;/ThemeProvider&gt;</code></pre>
+<p>
+配置和主题的分工是：主题管颜色和控件外观，配置管字体、边距和宽度。
+想改「定理块的背景色」找主题，想改「段落之间空多少」找配置。
+</p>
+
+<h2>侧边栏按钮与尾部元素</h2>
+<p>
+<code>sidebar_extras</code> 接受一个组件数组，追加到侧边栏那四个内置按钮之后，
+中间自动加一条分隔线。追加的按钮会自动加入键盘导航（按住 Alt+E 后用上下方向键遍历），
+不需要额外登记。按钮内部可以用 <code>useEditor()</code> 拿到编辑器：
+</p>
+<pre><code class="language-tsx">import { useEditor, AutoIconButton } from "@project-callio/calliotext"
+import { Download as DownloadIcon } from "lucide-react"
+
+function ExportButton(){
+    const editor = useEditor()
+    return &lt;AutoIconButton
+        icon={DownloadIcon} title="导出" size="medium"
+        onClick={() =&gt; {
+            const root = editor.get_root()
+            console.log(JSON.stringify(root))
+        }}
+    /&gt;
+}
+
+&lt;DefaultEditorComponent editorcore={editor_core} sidebar_extras={[ExportButton]} /&gt;</code></pre>
+<p>
+<code>AutoIconButton</code> 是默认实现自己也在用的图标按钮，它会自动接上按键提示和主题，
+用它做出来的按钮和内置按钮长得一样。当然你也可以直接返回一个 MUI 的
+<code>IconButton</code>，只是提示和样式要自己管。
+</p>
+<p>
+<code>end_element</code> 则是插在纸张下方的任意内容，适合放状态栏、字数统计这类东西。
+</p>
+
+<h2>节点上的按钮</h2>
+<p>
+侧边栏按钮作用于整个文档，如果你要的是「作用于某一个节点」的操作，
+那应该加到节点自己的按钮组里，也就是渲染器工厂的 <code>buttons_extra</code> 选项。
+这类按钮里可以用 <code>useNode()</code> 和 <code>useParameters()</code> 拿到所属的节点：
+</p>
+<pre><code class="language-tsx">function MarkDoneButton(){
+    const editor = useEditor()
+    const node   = useNode()
+    return &lt;AutoIconButton
+        icon={CheckIcon} title="标记完成" size="medium"
+        onClick={() =&gt; {
+            editor.set_node(node, {parameters: {
+                ...node.parameters,
+                done: {val: true, type: "boolean"},
+            }})
+        }}
+    /&gt;
+}
+
+const theorem_editor = get_deafult_group_editor_with_appbar({
+    get_label    : () =&gt; useParameters().category,
+    buttons_extra: [MarkDoneButton],
+})</code></pre>
+
+<h2>替换单个渲染器</h2>
+<p>
+如果某个概念的外观和工厂给的差得太远，可以只替换这一个渲染器，其余照旧。
+渲染器就是一个普通的 React 组件，接收 <code>editor</code>、<code>node</code>、
+<code>children</code> 三个 props：
+</p>
+<pre><code class="language-tsx">import { NodeInfoProvider, EditorRendererProps } from "@project-callio/calliotext"
+
+const bare_editor = ({node, children}: EditorRendererProps) =&gt; (
+    &lt;NodeInfoProvider node={node}&gt;
+        &lt;div style={{borderLeft: "3px solid #888", paddingLeft: "1rem"}}&gt;
+            {children}
+        &lt;/div&gt;
+    &lt;/NodeInfoProvider&gt;
+)</code></pre>
+<p>
+自己写渲染器时有两条硬性要求。第一，必须把 <code>children</code> 输出到界面上，
+否则子节点的内容会丢失，Slate 也会因为找不到对应的 DOM 而报错。
+第二，如果你要在里面用 <code>useParameters()</code> 之类的 hook，
+或者放默认实现的按钮，就得自己包一层 <code>NodeInfoProvider</code>，
+因为这层原本是工厂替你包的。
+</p>
+<p>
+还有一条不是硬性要求但值得遵守：把不该被光标选中的部分（按钮、标题）
+包进 <code>EditorUnselecableBox</code>。不这样做，用户在节点开头按退格就有可能把这些界面元素删掉。
+</p>
+
+<h2>完全不用默认实现</h2>
+<p>
+最后一档是不要这一层，自己基于 <code>EditorComponent</code> 搭界面。
+这时你需要自己处理的东西，正好就是<a href="overview.html">总览</a>那张表里列的：
+样式配置的上下文、提示气泡容器、编号冲突修复、按键分发、以及把编辑器实例交给下游组件。
+这些都是公开导出的，<code>DefaultEditorComponent</code> 的源码本身就是一份可以照抄的样板。
+</p>
+<p>
+需要提醒的是，这一档的工作量不小，而中间那几档能覆盖的场景比想象中多。
+在决定重写整层之前，值得先确认现有的选项确实不够用。
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="default/customize.html"></script>
+</body>
+</html>

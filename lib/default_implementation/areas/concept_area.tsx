@@ -379,6 +379,7 @@ const ConceptArea = React.memo(({
     }
 
     return <Paper
+        className = "calliotext-area-concept"
         elevation = {3}
         sx  = {{
             position: "absolute",

@@ -38,6 +38,7 @@ CallioText 的做法是把语义用「概念」显式建模：编辑在图形界
 ## 文档
 
 - [入门教程](https://projectcallio.github.io/CallioText/zh/tutorial/01-model.html)：七章，从核心思想到自动编号，从零搭出一个完整的结构化编辑器。
+- [默认实现](https://projectcallio.github.io/CallioText/zh/default/overview.html)：开箱即用的那套编辑器详解，界面、键盘操作、渲染器工厂与定制方式。
 - [API 文档](https://projectcallio.github.io/CallioText/zh/api/overview.html)：按模块整理的公开 API，供开发时查阅。
 - [TypeDoc 完整参考](https://projectcallio.github.io/CallioText/reference/)：从源码注释自动生成，覆盖每一个导出项。
 

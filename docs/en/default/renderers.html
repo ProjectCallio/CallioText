@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor Renderer Factories · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>Editor Renderer Factories</h1>
+<p class="lead">
+The tutorial used functions such as <code>get_deafult_group_editor_with_appbar</code>, and all that was
+said at the time is that they return a renderer. This page covers the whole family: which factories exist
+for which node type, what options each takes, one type detail that is easy to get wrong, and the hooks
+available inside a renderer.
+</p>
+
+<h2>What a factory does for you</h2>
+<p>
+What these functions have in common is that you give an options object and get back a renderer component
+ready to register with the editor. Inside, the component has already handled several things every
+renderer needs and none is pleasant to write:
+</p>
+<ul>
+    <li>Laying out the eight operation buttons in the chosen arrangement and wiring them into keyboard
+    navigation.</li>
+    <li>Separating the editable region from the non-editable one. Buttons and labels must not be
+    selectable by the cursor, or the first Backspace would delete the toolbar; that boundary is drawn by
+    <code>EditorUnselecableBox</code> inside the factory.</li>
+    <li>Wrapping everything in a <code>NodeInfoProvider</code>, so that components you pass in the options
+    can reach the current node through <code>useNode()</code> and <code>useParameters()</code>.</li>
+    <li>Rendering the row of abstract node chips.</li>
+</ul>
+<p>
+Writing a renderer from scratch is perfectly possible, but you will end up rewriting the list above.
+Unless the appearance you want is genuinely far from what a factory gives, starting from one pays off.
+</p>
+
+<h2>Group nodes: two arrangements</h2>
+<p>
+Group nodes have two factories, differing only in where the buttons go.
+<code>get_deafult_group_editor_with_appbar</code> spreads the label and the eight buttons across an
+appbar at the top of the node, which suits theorems and proofs, blocks large enough to be worth a whole
+row. <code>get_default_group_editor_with_rightbar</code> collects them into a narrow strip on the right
+with the buttons folded behind a chevron, which suits list items, short nodes that appear often and would
+otherwise fill the screen with toolbars. The options are nearly the same for both:
+</p>
+<table>
+    <tr><th>Option</th><th>Type</th><th>Role</th></tr>
+    <tr><td><code>get_label</code></td><td>component</td><td>Returns the name shown for this node; defaults to the <code>label</code> parameter</td></tr>
+    <tr><td><code>buttons_extra</code></td><td>array of components</td><td>Custom buttons appended after the eight</td></tr>
+    <tr><td><code>surrounder</code></td><td>component</td><td>Wraps the content region, for giving the editable area an appearance of your own</td></tr>
+    <tr><td><code>rightbar_extra</code></td><td>component</td><td>Rightbar version only: a custom widget beside the button group</td></tr>
+</table>
+<pre><code class="language-tsx">const theorem_editor = get_deafult_group_editor_with_appbar({
+    // The label follows the category parameter: switch it to Lemma and the label says Lemma.
+    get_label: () =&gt; useParameters().category,
+})
+
+const item_editor = get_default_group_editor_with_rightbar({})</code></pre>
+
+<h3>get_label is a component, not a getter function</h3>
+<p>
+Here is a detail that has to be stated plainly, or you will write code that does not run. The type of
+<code>get_label</code> is a React component, not "a function returning a string". The renderer uses it as
+a component, written <code>&lt;GetLabel /&gt;</code>. That familiar line above:
+</p>
+<pre><code class="language-tsx">get_label: () =&gt; useParameters().category</code></pre>
+<p>
+looks like an ordinary function, but it is a function component taking no props whose body calls a hook.
+The design is not gratuitous: precisely because it is a component, you can call
+<code>useParameters()</code>, <code>useNode()</code> or even <code>useTheme()</code> inside it, which is
+what makes the label follow the parameters as they change. Were it a plain function, there would be
+nowhere to subscribe to those changes and the label would go stale. The price is that the rules of hooks
+apply: no conditional calls, no calls in loops.
+</p>
+
+<h2>Inline nodes</h2>
+<p>
+Inline nodes use <code>get_default_inline_editor</code>. Its most-used option is <code>surrounder</code>,
+since an inline concept's appearance is usually just a tag:
+</p>
+<pre><code class="language-tsx">const strikeout_editor = get_default_inline_editor({
+    surrounder: (props) =&gt; &lt;del&gt;{props.children}&lt;/del&gt;,
+})</code></pre>
+<p>
+An inline node carries only four buttons: edit parameters, delete, unwrap, new abstract. The rest do not
+apply here, since chaining describes a relation between block nodes and adding paragraphs means nothing
+for a node sitting in the middle of a sentence. These four are folded by default, because an inline node
+lives in the text flow and an expanded row of buttons would wreck the line height.
+</p>
+
+<h2>Structure nodes</h2>
+<p>
+Structure nodes lay content out in columns and use
+<code>get_default_struct_editor_with_rightbar</code>. It has two options the others lack, and these two
+actively rewrite the document:
+</p>
+<ul>
+    <li><code>get_numchildren</code> returns how many children the node should have. If the actual count
+    differs at render time, the component appends or removes children to match. The column count is
+    dictated by the parameters, so an author changing a parameter is adding or removing a column.</li>
+    <li><code>get_widths</code> returns the width ratio of each column, so <code>[1, 2]</code> makes the
+    right column twice as wide as the left. A length that does not match the column count is padded or
+    truncated.</li>
+</ul>
+<p>
+Both are usually derived from the same parameter. Say a <code>widths</code> parameter holds a string like
+<code>"1,2"</code>; then the column count is the number of comma-separated pieces:
+</p>
+<pre><code class="language-tsx">const columns_editor = get_default_struct_editor_with_rightbar({
+    get_label      : () =&gt; "column",
+    get_numchildren: (node, params) =&gt; (params.widths as string).split(",").length,
+    get_widths     : (node, params) =&gt; (params.widths as string).split(",").map(x =&gt; parseInt(x)),
+})</code></pre>
+<p>
+Note that these two options are plain functions rather than components: they receive the node and the
+processed parameters as arguments, so they neither need nor may call hooks. The signature tells the two
+kinds apart at a glance: options that take arguments are plain functions, options that take none are
+components.
+</p>
+
+<h2>Support nodes</h2>
+<p>
+Support nodes have two factories for their two typical uses.
+</p>
+<p>
+<code>get_default_spliter_editor</code> draws the node as a titled divider, which suits section and
+chapter breaks, nodes whose only job is to divide and which hold no content of their own. Its single
+option is <code>get_title</code>.
+</p>
+<p>
+<code>get_default_display_editor</code> draws the node as a small embedded block, which suits images and
+formulas, content that exists but cannot be edited inline. Its important options are:
+</p>
+<table>
+    <tr><th>Option</th><th>Role</th></tr>
+    <tr><td><code>render_element</code></td><td>How to draw the content, returning an <code>img</code> for instance</td></tr>
+    <tr><td><code>is_empty</code></td><td>Whether the content is empty, so a placeholder icon shows instead of a broken image</td></tr>
+    <tr><td><code>get_label</code></td><td>The name shown beside the block</td></tr>
+    <tr><td><code>rightbar_extra</code></td><td>Commonly a small input for editing the address, see below</td></tr>
+</table>
+
+<h2>Abstract nodes and the fallbacks</h2>
+<p>
+Abstract nodes use <code>get_default_abstract_editor</code>. An abstract node is an independent little
+document that is not edited inline but in the floating abstract editor, so the renderer this factory
+produces is simple, essentially a container.
+</p>
+<p>
+Last is <code>get_default_editors()</code>, which returns a full set of fallback renderers for all seven
+node types. They guarantee no more than that something displays without error, and they look plain. Their
+purpose is to fill the <code>default_renderers</code> field of <code>EditorCore</code>: a node whose
+concept has no renderer registered lands here instead of blanking the document. That matters most when
+concepts are delivered by a backend, since a concept the frontend has never heard of can turn up at any
+time.
+</p>
+
+<h2>UniversalExtra: a parameter you can edit without opening anything</h2>
+<p>
+The commonest use for <code>rightbar_extra</code> is to put a <code>UniversalExtra</code> there. It is a
+small input bound directly to one of the node's parameters, sparing the round trip of opening the
+parameter drawer, finding the field, editing it and closing again. A link's address, an image's URL, the
+tag at the end of an equation all suit this treatment. Its three important props:
+</p>
+<ul>
+    <li><code>onDeactivate</code>: called when the input loses focus, receiving the current value, the
+    editor and the node. Write the value back into the parameters here.</li>
+    <li><code>onNodeChange</code>: called when the node changes, returning what the input should now
+    display, or <code>undefined</code> to leave it alone. This is the opposite direction, reading the
+    parameter into the input.</li>
+    <li><code>accept_image</code>: with this on, the input accepts a pasted image and converts it into a
+    usable address.</li>
+</ul>
+<p>
+The two callbacks, one in each direction, make up a complete two-way binding.
+<code>onNodeChange</code> usually starts by checking whether the parameter object changed at all and
+returns <code>undefined</code> if not, so that a user in the middle of typing does not get overwritten:
+</p>
+<pre><code class="language-tsx">const link_editor = get_default_inline_editor({
+    surrounder: (props) =&gt; &lt;u&gt;{props.children}&lt;/u&gt;,
+    rightbar_extra: () =&gt; &lt;UniversalExtra
+        variation="filled" width="7rem" extra_small
+        onDeactivate={(value, editor, node) =&gt; {
+            editor.set_node(node, {parameters: {
+                ...node.parameters,
+                target: {val: value, type: "string"},
+            }})
+        }}
+        onNodeChange={(node, prev_node) =&gt; {
+            if (node.parameters === prev_node?.parameters) return undefined
+            return node.parameters.target.val as string
+        }}
+    /&gt;,
+})</code></pre>
+<p>
+Holding Alt+W drops the focus straight into this input, with no need for the mouse.
+</p>
+
+<h2>Hooks available inside renderers</h2>
+<p>
+A few hooks come up constantly when writing renderers. All of them rest on one premise: knowing which
+node is being rendered. That information comes from <code>NodeInfoProvider</code>, and every renderer
+produced by the factories above already wraps itself in one, so inside <code>get_label</code>,
+<code>surrounder</code>, <code>rightbar_extra</code> and any button you append, these are simply
+available.
+</p>
+<table>
+    <tr><th>Hook</th><th>Returns</th></tr>
+    <tr><td><code>useNode()</code></td><td>The current node. Takes an optional comparison function so you re-render only when the fields you care about change</td></tr>
+    <tr><td><code>useParameters()</code></td><td>The current node's processed parameters</td></tr>
+    <tr><td><code>useEditor()</code></td><td>The current editor instance, which carries the tree operations</td></tr>
+    <tr><td><code>useEditorConfig()</code></td><td>The current style config, which keeps custom widgets consistent with the built-in appearance</td></tr>
+</table>
+<p>
+That <code>useParameters()</code> returns processed parameters matters when writing renderers.
+"Processed" means fixed parameters have been applied over the defaults and function-typed parameters have
+been evaluated. The Theorem defined in tutorial chapter 5 has a function-typed <code>title</code>,
+<code>p =&gt; p.category.val</code>; what the renderer reads is not that source but the evaluated result. A
+renderer never needs to know whether a parameter was fixed, defaulted or computed. It just uses it.
+</p>
+<p>
+One more pair of hooks belongs elsewhere: <code>useCurEditor()</code> and
+<code>useCurConceptNode()</code> return the editor that is currently active and the concept node the
+cursor is in. They do not depend on <code>NodeInfoProvider</code> and may be called outside the editor,
+which is exactly how the two floating panels know whom they are serving. An external panel showing
+information about the current selection would be built on these two.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="default/renderers.html"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Default Implementation Overview · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>Default Implementation Overview</h1>
+<p class="lead">
+Throughout the tutorial, <code>DefaultEditorComponent</code> was a black box: hand it an editor core and
+a working editing interface appears. This part of the documentation opens the box. This page covers where
+the default implementation sits in the library, why it is built as a layer you can replace wholesale, and
+what that one component actually assembles for you. The pages that follow take the interface, the
+keyboard, the renderer factories, customization and the printer side in turn.
+</p>
+
+<h2>The two halves of the library</h2>
+<p>
+The library splits into two parts. One is the core: the definitions of concepts and nodes, the editor
+core, the printer core. They are concerned only with what a document tree is, how it gets modified and
+how it gets rendered, and they make no decisions about the interface. There is not a single button, not
+one colour, not one shortcut anywhere in the core.
+</p>
+<p>
+The other part is the default implementation. It is one complete answer to the question of what the
+interface should look like: a sheet of paper, a sidebar, a row of buttons on every node, two draggable
+floating panels, a full keyboard scheme, and a set of typesetting widgets on the printer side. That
+answer takes a position. It assumes you are building an editor for long, serious documents whose
+structure gets manipulated often. If that is not your situation, this whole layer can go.
+</p>
+<p>
+Where that line falls explains a design that looks odd at first sight: both the editor and the printer
+are split into a core object and a component object. <code>EditorCore</code> goes with
+<code>EditorComponent</code>, <code>Printer</code> goes with <code>PrinterComponent</code>. The core
+holds information but never draws; the component draws but holds nothing.
+</p>
+<p>
+The benefit of separating them is that several components can share one core. The floating window that
+edits abstract nodes is a ready example: it is another editor component sharing the main editor's core,
+so both sides see identical concept definitions and renderers, and a theorem inserted inside a footnote
+goes through exactly the same code as one inserted in the body. Were core and component a single object,
+that reuse would have to be achieved by duplicating configuration, and the two copies would drift apart
+sooner or later.
+</p>
+
+<h2>Three levels of depth</h2>
+<p>
+For you as a user, that dividing line means three levels of depth, increasing in both cost and freedom.
+</p>
+<table>
+    <tr><th>Approach</th><th>What you write</th><th>Suits</th></tr>
+    <tr><td>Use the default implementation as it comes</td><td>Concept definitions, renderers, and a few props on <code>DefaultEditorComponent</code></td><td>The large majority of cases</td></tr>
+    <tr><td>Modify the default implementation</td><td>Custom buttons, a replaced renderer here and there, config and theme</td><td>When you need operations or an appearance of your own</td></tr>
+    <tr><td>Skip the default implementation</td><td>Your own interface built on <code>EditorComponent</code></td><td>When your interface differs fundamentally</td></tr>
+</table>
+<p>
+Few people need the third level, but the fact that it exists matters: the default implementation uses no
+private interfaces, so everything it calls, you can call. This layer is not a premise you must accept;
+it is one implementation you may consult or discard. Every page in this part explains not just how to
+use something but also how it works, precisely so that the third level stays open.
+</p>
+
+<h2>What DefaultEditorComponent assembles</h2>
+<p>
+The component itself holds almost no logic of its own. Its value is that it stacks seven or eight things
+that all have to be present, in an order that cannot be varied. Peeling its rendered structure from the
+outside in:
+</p>
+<table>
+    <tr><th>Layer</th><th>Role</th></tr>
+    <tr><td><code>EditorConfigContext.Provider</code></td><td>Hands the style config (fonts, margins, widths) to everything downstream; renderers read it with <code>useEditorConfig()</code></td></tr>
+    <tr><td><code>SnackbarProvider</code></td><td>The container for toast messages, from notistack</td></tr>
+    <tr><td><code>IdxConflictSolver</code></td><td>Watches for duplicate node indices and renumbers when it finds them</td></tr>
+    <tr><td><code>KeyEventManager</code></td><td>The global key dispatcher, from <code>@ftyyy/mouseless</code></td></tr>
+    <tr><td><code>EditorComponent</code></td><td>The editor proper, the sheet you type on</td></tr>
+    <tr><td><code>EditorGlobalInfo.Provider</code></td><td>Hands the editor instance downstream; the sidebar, the floating panels and your own buttons all get the editor from here</td></tr>
+    <tr><td><code>DefaultSidebar</code> / <code>Areas</code> / <code>AbstractEditorArea</code></td><td>The sidebar, the two floating panels, the floating editor for abstract nodes</td></tr>
+</table>
+<p>
+Three of these layers deserve their own explanation, because they answer a good many later questions of
+the form "why am I allowed to write it that way".
+</p>
+<p>
+The first is <code>SnackbarProvider</code>. It is here because the default implementation's buttons
+report success and failure with toast messages, and those need a container. Since it sits inside the
+editor, your own buttons can call <code>useSnackbar()</code> with no further setup. The other way round:
+raising a toast from outside the editor, from a top bar for instance, needs another
+<code>SnackbarProvider</code> further out.
+</p>
+<p>
+The second is <code>IdxConflictSolver</code>. Tutorial chapter 1 established that every concept node
+carries an <code>idx</code> unique within the document, and that cross references locate their targets by
+it. Copy and paste breaks that uniqueness as a matter of course: copy a theorem, paste it, and the
+document holds two nodes with the same idx, so references point at the wrong one. This component checks
+after every change and renumbers one of the offenders. It is work that has to be done and that nobody
+wants to write, so the default implementation does it.
+</p>
+<p>
+The third is <code>KeyEventManager</code>, the hub of the whole keyboard scheme. Every keystroke reaches
+it first and is dispatched from there to the right part of the interface. The default editor registers
+four groups of interface elements with it and lists the combinations whose browser default must be
+suppressed. That mechanism has a page of its own, <a href="keyboard.html">Keyboard Operation</a>.
+</p>
+
+<h2>How to read this part</h2>
+<p>
+The remaining five pages stand on their own and can be read as needed, roughly ordered from what you see
+to what you change:
+</p>
+<table>
+    <tr><th>Page</th><th>Contents</th></tr>
+    <tr><td><a href="interface.html">The Editing Interface</a></td><td>The paper, the eight buttons on a node, the parameter drawer, abstract nodes, the sidebar, the two floating panels, and the <code>AreaContainer</code> you must place yourself</td></tr>
+    <tr><td><a href="keyboard.html">Keyboard Operation</a></td><td>The model behind spatial navigation, every combination, and the hint mechanism</td></tr>
+    <tr><td><a href="renderers.html">Editor Renderer Factories</a></td><td>A factory per node type and its options, <code>UniversalExtra</code>, and the hooks available inside renderers</td></tr>
+    <tr><td><a href="customize.html">Customizing the Default Editor</a></td><td>Style config, added buttons, theme, and replacing an individual renderer</td></tr>
+    <tr><td><a href="printer.html">The Printer Side</a></td><td><code>DefaultPrinterComponent</code>, the printer configuration, the typesetting widgets</td></tr>
+</table>
+<p>
+The source of the live demo, in the repository's <code>demo/</code> directory, is a complete worked
+example of everything in this part. When a passage feels abstract, that is the place to compare against.
+</p>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="en" data-root="../../" data-page="default/overview.html"></script>
+</body>
+</html>

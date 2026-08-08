@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编辑界面 · CallioText</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar"></nav>
+<main class="content">
+
+<h1>编辑界面</h1>
+<p class="lead">
+这一页把默认编辑器的界面逐块讲开：屏幕怎么划分，每个节点身上那排按钮各自做什么，
+参数怎么改，抽象节点长在哪里，侧边栏有什么，以及两个浮动面板和它们那个必须由你摆放的容器。
+</p>
+
+<h2>屏幕的划分</h2>
+<p>
+默认编辑器把自己拿到的矩形区域分成左右两块。左边约九成宽度是纸张，也就是文档内容本身；
+右边剩下的窄条是侧边栏，放的是作用于整个文档的按钮。这个比例随屏幕宽度略有变化，
+屏幕越宽留给侧边栏的比例越小，因为按钮就那么几个，不需要跟着屏幕一起变宽。
+</p>
+<p>
+除此之外还有两个浮动面板，「插入概念」和「修改参数」。它们不参与上面的左右划分，
+而是浮在界面上层，可以拖动和缩放。它们浮在哪一片区域上由你决定，这一点在本页最后一节讲。
+</p>
+<figure class="shot">
+    <img src="../../assets/shots/zh/layout.png" alt="默认编辑器的纸张与右侧侧边栏">
+    <figcaption>
+        纸张占据左侧的绝大部分，右侧窄条是侧边栏。纸上每个概念节点都有自己的边框和按钮：
+        上方两个「列项」把按钮折叠在右侧，下方的「定理」把按钮平铺在顶部，
+        中间那条带标题的横线是一个小节线。
+    </figcaption>
+</figure>
+
+<h2>纸张上的节点</h2>
+<p>
+纸张上的每个概念节点都带着自己的一排按钮。按钮的摆法有两种：
+平铺在节点顶部的一条应用栏里，或者收进右侧一个竖条、折叠在一个箭头后面。
+选哪种由这个概念用的渲染器工厂决定，<a href="renderers.html">编辑渲染器工厂</a>那一页会讲。
+</p>
+<figure class="shot">
+    <img src="../../assets/shots/zh/node-appbar.png" alt="带应用栏的定理节点">
+    <figcaption>
+        带应用栏的定理节点。左上角的「定理」是标签，右边跟着八个操作按钮。
+        正文里那些带下拉箭头的小块是行内的数学节点，各自也有自己的按钮；
+        中间整块是一个块级数学节点，它的按钮折叠在右侧。最下面的「脚注: 0」是挂在这个定理上的抽象节点。
+    </figcaption>
+</figure>
+<figure class="shot">
+    <img src="../../assets/shots/zh/node-rightbar.png" alt="带右栏的列项节点">
+    <figcaption>
+        同一套按钮换成右栏摆法：只露出概念名和一个箭头，点开才展开按钮组。
+        列项这类短小、成串出现的节点适合这样，免得每一条上面都顶着一条工具栏。
+    </figcaption>
+</figure>
+<p>
+不论哪种摆法，按钮本身是同一组八个：
+</p>
+<table>
+    <tr><th>按钮</th><th>作用</th></tr>
+    <tr><td>设置参数</td><td>打开参数抽屉，就地编辑这个节点的参数</td></tr>
+    <tr><td>接排开关</td><td>切换节点的 <code>relation</code>，也就是它与上一个节点是分离还是接排</td></tr>
+    <tr><td>复制此节点</td><td>连同整棵子树一起复制</td></tr>
+    <tr><td>删除组件</td><td>删除节点及其内容</td></tr>
+    <tr><td>解除组件</td><td>删除节点本身但保留其中的内容，也就是俗称的软删除</td></tr>
+    <tr><td>向上添加段落</td><td>在节点前面插入一个空段落</td></tr>
+    <tr><td>向下添加段落</td><td>在节点后面插入一个空段落</td></tr>
+    <tr><td>新建抽象</td><td>给这个节点挂一个抽象节点，比如脚注</td></tr>
+</table>
+<p>
+「接排开关」对应的是教程第 1 章讲过的 <code>relation</code> 属性。两个相邻的同类节点，
+分离时各自独立编号、中间留出间距；接排时后一个紧贴前一个，视觉上连成一体。
+列举一串条目时通常要接排，两个不相干的定理之间则要分离。
+</p>
+<p>
+「向上 / 向下添加段落」这两个按钮值得多解释一句，因为它解决的是结构化编辑器特有的一个麻烦。
+在纯文本编辑器里，光标总能移动到任意两个字符之间；但在树形文档里，如果两个块级节点直接相邻，
+它们之间并不存在可以放置光标的位置，于是就没有办法在中间插入新内容。
+这两个按钮的作用就是凭空造出这样一个位置：先加一个空段落，再往里写东西。
+</p>
+<p>
+「解除组件」也值得一提。删除一个定理时，通常你想删掉的是「它是一个定理」这件事，
+而不是里面那段话。解除组件做的正是这个：节点消失，内容原地留下，变成普通段落。
+</p>
+
+<h2>参数抽屉</h2>
+<p>
+点「设置参数」会从节点里展开一个抽屉，把这个节点的全部参数列出来。
+</p>
+<figure class="shot medium">
+    <img src="../../assets/shots/zh/param-drawer.png" alt="定理节点的参数抽屉">
+    <figcaption>
+        抽屉顶上是概念名「命题」和这个节点的 idx，下面逐项列出参数。
+        这个定理有两个可改的参数：<code>alias</code> 是它的别名，<code>category</code> 决定它算定理还是引理。
+    </figcaption>
+</figure>
+<p>
+每一项渲染成什么控件，由参数的类型和附加字段决定：
+</p>
+<table>
+    <tr><th>参数</th><th>控件</th></tr>
+    <tr><td>带 <code>choices</code> 字段</td><td>下拉选择，选项就是 <code>choices</code> 数组</td></tr>
+    <tr><td><code>string</code></td><td>文本输入框</td></tr>
+    <tr><td><code>number</code></td><td>数字输入框</td></tr>
+    <tr><td><code>boolean</code></td><td>开关</td></tr>
+</table>
+<p>
+注意判断顺序：<code>choices</code> 优先于类型。也就是说一个类型为 <code>string</code>
+但带了 <code>choices</code> 的参数会渲染成下拉框而不是输入框。教程第 7 章里那个「命题」概念
+就是靠这一点，把 <code>category</code> 做成了定理、引理、推论的下拉选择。
+</p>
+<p>
+被二级概念用 <code>fixed_override</code> 固定的参数不会出现在这里，因为写作者本来就不该改它们。
+这也是固定参数和默认参数的实际区别所在：前者是概念的一部分，后者只是一个起点。
+</p>
+
+<h2>抽象节点</h2>
+<p>
+挂在节点上的抽象节点（比如脚注）显示为节点下方的一排小标签。点其中一个，
+会打开一个浮动的编辑窗口来编辑它。这个窗口是一个独立的编辑器组件，
+和主编辑器共用同一个编辑器核心，所以在脚注里能用的概念和正文里完全一样。
+</p>
+<p>
+这也解释了抽象节点为什么不在正文里就地编辑：它自身是一棵完整的小文档，
+可以有自己的段落、自己的定理，塞进正文的行间无法容纳，
+放进一个独立窗口反而是最自然的做法。
+</p>
+
+<h2>侧边栏</h2>
+<p>
+侧边栏上固定有四个按钮，它们的作用范围是整个文档或者整个界面，而不是某一个节点：
+</p>
+<figure class="shot narrow">
+    <img src="../../assets/shots/zh/sidebar.png" alt="侧边栏的四个按钮">
+    <figcaption>
+        自上而下：根节点参数、参数区域、概念区域、显示提示。
+        后三个是开关，处于打开状态时按钮带底色，图中三个都开着。
+        下方那条分隔线之后就是你自己追加的按钮。
+    </figcaption>
+</figure>
+<table>
+    <tr><th>按钮</th><th>作用</th></tr>
+    <tr><td>根节点参数</td><td>编辑文档根节点的参数，比如全文标题</td></tr>
+    <tr><td>参数区域</td><td>开关「修改参数」面板</td></tr>
+    <tr><td>概念区域</td><td>开关「插入概念」面板</td></tr>
+    <tr><td>显示提示</td><td>按键提示的总开关，默认打开</td></tr>
+</table>
+<p>
+最后一个控制的是快捷键提示要不要出现。它默认是打开的，此时单独按住 Alt 片刻，
+各个按钮旁边就会浮现出对应的按键；关掉之后按住 Alt 也不再有提示。
+熟悉快捷键之后可以关掉它，眼前会清静一些。这套提示机制在
+<a href="keyboard.html">键盘操作</a>那页详细讲。
+</p>
+<p>
+你自己追加的按钮排在这四个之后，中间用一条分隔线隔开，
+追加的方法见<a href="customize.html">定制默认编辑器</a>。
+</p>
+
+<h2>两个浮动面板</h2>
+<p>
+「插入概念」面板列出当前可用的全部二级概念，按节点种类分节排列，点一个就在光标处插入。
+「修改参数」面板显示光标所在概念节点的参数，改完点保存生效。
+两者都可以拖动位置、拉动右下角改变大小，位置和大小记在浏览器的本地存储里，
+下次打开还在原处。
+</p>
+<figure class="shot medium">
+    <img src="../../assets/shots/zh/panels.png" alt="插入概念面板与修改参数面板">
+    <figcaption>
+        上面是「插入概念」，概念按组、行内、支持、结构分成四节，用分隔线隔开。
+        下面是「修改参数」，显示的是光标所在的那个定理，内容和参数抽屉一致。
+        面板是半透明的，下面的文字会透出来。
+    </figcaption>
+</figure>
+<p>
+它们和侧边栏按钮的分工是：侧边栏按钮控制面板的显示与隐藏，面板本身则是常驻的工作区。
+之所以做成浮动而不是固定在某一侧，是因为这两件事（插入概念、改参数）在写作时使用频率很高，
+固定占位会挤压正文，而藏进菜单又太慢。
+</p>
+
+<h3>AreaContainer：唯一需要你自己摆放的部件</h3>
+<p>
+两个面板由编辑器组件在内部渲染，但它们的定位依赖一个外部的容器：
+面板把自己定位在这个容器的坐标系里，拖动时也不会被拖出容器的范围。
+这个容器就是 <code>AreaContainer</code>，它需要你自己渲染。
+</p>
+<div class="warn-box">
+如果页面上没有任何 <code>AreaContainer</code>，两个浮动面板不会显示。
+这不是报错，是安静地什么都不发生，很容易让人以为是别处出了问题。
+</div>
+<p>
+<code>AreaContainer</code> 渲染出来是一个绝对定位、撑满父元素的空盒子，没有任何外观。
+换句话说，你是在用它划定一块矩形，告诉面板「你们可以在这个范围里活动」。
+把它放在哪里，取决于你希望面板浮在哪一片区域上。
+如果编辑器和印刷成品左右并排，把容器放在印刷那一侧是个不错的选择，
+这样面板浮在成品上方，不遮挡正在编辑的文字：
+</p>
+<pre><code class="language-tsx">import { AreaContainer, DefaultEditorComponent, DefaultPrinterComponent } from "@project-callio/calliotext"
+
+&lt;Box sx={{position: "relative", width: "100%", height: "100%"}}&gt;
+    &lt;Box sx={{position: "absolute", left: 0, width: "50%", height: "100%"}}&gt;
+        &lt;DefaultEditorComponent editorcore={editor_core} /&gt;
+    &lt;/Box&gt;
+
+    &lt;Box sx={{position: "absolute", left: "50%", width: "50%", height: "100%"}}&gt;
+        {/* 容器铺满印刷栏：面板的活动范围就是这半边。 */}
+        &lt;Box sx={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}&gt;
+            &lt;AreaContainer /&gt;
+        &lt;/Box&gt;
+        &lt;DefaultPrinterComponent printer={printer} root={tree} /&gt;
+    &lt;/Box&gt;
+&lt;/Box&gt;</code></pre>
+<div class="tip">
+现在打开页面，把光标放进正文，按住 Alt+X。「插入概念」面板上会出现虚线选中框，
+方向键移动、回车插入。松开 Alt+X，光标回到正文。把光标停在一个概念节点里按住 Alt+Z，
+则轮到「修改参数」面板响应方向键。这两组快捷键不需要任何配置，面板在就有。
+</div>
+
+<div class="pager" id="pager"></div>
+</main>
+</div>
+<script src="../../assets/docs.js" data-lang="zh" data-root="../../" data-page="default/interface.html"></script>
+</body>
+</html>
